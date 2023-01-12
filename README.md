@@ -1,5 +1,5 @@
 # rffmpeg
 
-> command-line tool for automation of ffmpeg commands through whole file paths
+command-line tool for automation of ffmpeg commands through whole file paths
 
-- use **--help** for instructions
+- run with **--help** for instructions
