@@ -6,7 +6,7 @@
 void setup(void);
 void prompt(const char *format);
 
-size_t appendDotToString(char *string, char *control);
+size_t appendDotToString(char *string, size_t stringSize);
 
 int handleErrors(char **arguments);
 void printError(const char *msg);

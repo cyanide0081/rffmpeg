@@ -1,14 +1,12 @@
 #include "functions.h"
 
-/* Put dot at the start of str */
-size_t appendDotToString(char *string, char *control) {
-    char *s = string, *c = control;
-    char buf[SHORTBUF];
-    size_t size = strlen(s) + strlen(c);
+size_t appendDotToString(char *string, size_t stringSize) {
+    char buffer[SHORTBUF];
+    size_t size = strlen(string) + strlen(".");
 
-    strcpy(buf, c);
-    strcat(buf, s);
-    strcpy(s, buf);
+    strcpy_s(buffer, SHORTBUF - 1, ".");
+    strcat_s(buffer, SHORTBUF - 1, string);
+    strcpy_s(string, stringSize - 1, buffer);
 
     return size;
 }
@@ -25,22 +23,22 @@ char **parseArguments(int count, const char *arguments[], char *destination[]) {
     for (int i = 1; i < count; ++i) {
         if (strcmp(a[i], "-i") == 0) {
             list[ARG_PATH] = malloc(MAX_PATH);
-            strncpy(list[ARG_PATH], a[++i], MAX_PATH);
+            strncpy_s(list[ARG_PATH], MAX_PATH - 1, a[++i], MAX_PATH);
         }
 
         if (strcmp(a[i], "-f") == 0) {
             list[ARG_FORMAT] = malloc(BUFFER);
-            strncpy(list[ARG_FORMAT], a[++i], BUFFER);
+            strncpy_s(list[ARG_FORMAT], BUFFER - 1, a[++i], BUFFER);
         }
 
         if (strcmp(a[i], "-p") == 0) {
             list[ARG_PARAMS] = malloc(BUFFER);
-            strncpy(list[ARG_PARAMS], a[++i], BUFFER);
+            strncpy_s(list[ARG_PARAMS], BUFFER - 1, a[++i], BUFFER);
         }
 
         if (strcmp(a[i], "-o") == 0) {
             list[ARG_OUTPUT] = malloc(SHORTBUF);
-            strncpy(list[ARG_OUTPUT], a[++i], SHORTBUF);
+            strncpy_s(list[ARG_OUTPUT], SHORTBUF - 1, a[++i], SHORTBUF);
         }
     }
 
@@ -79,17 +77,17 @@ int preventFilenameOverwrites(char *pureFilename, char *outputFormat, char *path
     bool exists = false;
     char buf[BUFFER] = { '\0' };
 
-    snprintf(buf, BUFFER, "%s\\%s%s", p, f, o);
+    sprintf_s(buf, BUFFER, "%s\\%s%s", p, f, o);
 
     if (PathFileExistsA(buf)) {
         uint16_t index = 0;
 
         while (PathFileExistsA(buf)) {
-            snprintf(buf, BUFFER, "%s\\%s-%03d%s", p, f, ++index, o);
+            sprintf_s(buf, BUFFER, "%s\\%s-%03d%s", p, f, ++index, o);
         }
 
-        snprintf(buf, BUFFER, "%s-%03d", f, index);
-        strncpy(f, buf, FILENAME_MAX);
+        sprintf_s(buf, BUFFER, "%s-%03d", f, index);
+        strcpy_s(f, FILENAME_MAX, buf);
     }
 
     return EXIT_SUCCESS;

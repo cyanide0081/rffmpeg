@@ -16,7 +16,6 @@ int main(int argc, const char *argv[]) {
 
     SetConsoleOutputCP(_codepage); // UTF-8 codepage
 
-    /* Parse from arguments or start the hud mode */
     if (argc > 1) {
         parseArguments(argc, argv, arguments);
         parseOptions(argc, argv, options);
@@ -26,7 +25,7 @@ int main(int argc, const char *argv[]) {
         runInConsoleMode(arguments, options);
     }
 
-    exitCode = runMainLoop(arguments, options); // Main loop
+    exitCode = runMainLoop(arguments, options);
 
     for (int i = 0; arguments[i]; ++i)
         free(arguments[i]);
@@ -41,7 +40,6 @@ int runMainLoop(char *arguments[], const bool options[]) {
     char inputFormat[BUFFER], outputFormat[SHORTBUF];
     char currentPath[PATH_MAX], nextPath[PATH_MAX];
 
-    /* Check for help option first */
     if (options[OPT_HELP]) {
         displayHelp();
         return EXIT_SUCCESS;
@@ -70,11 +68,10 @@ int runMainLoop(char *arguments[], const bool options[]) {
     for (int i = 0; token != NULL; ++i, ++numberOfFormats, token = strtok_r(NULL, delimiter, &savePointer))
         strncpy(inputFormats[i], token, SHORTBUF);
 
-    /* Append '.' to extensions */
     for (int i = 0; i < numberOfFormats; ++i)
-        appendDotToString(inputFormats[i],  ".");
+        appendDotToString(inputFormats[i], SHORTBUF);
 
-    appendDotToString(outputFormat, ".");
+    appendDotToString(outputFormat, SHORTBUF);
 
     /* Temporary out_path hardcode */
     strncpy(outputPath, inputPath, PATH_MAX);
@@ -93,7 +90,7 @@ int runMainLoop(char *arguments[], const bool options[]) {
         const char *filename = entry->d_name;
         char filenameWithoutExtension[FILENAME_MAX] = { '\0' };
         bool isOfCurrentFormat = false;
-        const char *optionOverwrite = "";
+        const char *overwriteOption = "";
 
         /* Check for correct extension and skip ./.. */
         if (!strcmp(".", filename) || !strcmp("..", filename))
@@ -113,14 +110,14 @@ int runMainLoop(char *arguments[], const bool options[]) {
             continue;
 
         if (options[OPT_OVERWRITE])
-            optionOverwrite = "-y";
+            overwriteOption = "-y";
         else
             preventFilenameOverwrites(filenameWithoutExtension, outputFormat, inputPath);
 
         char command[LONGBUF];
 
-        snprintf(command, LONGBUF, "ffmpeg -hide_banner %s -i \"%s\\%s\" %s \"%s\\%s%s\"", 
-        optionOverwrite, inputPath, filename, parameters, outputPath, filenameWithoutExtension, outputFormat);
+        sprintf_s(command, LONGBUF, "ffmpeg -hide_banner %s -i \"%s\\%s\" %s \"%s\\%s%s\"", 
+        overwriteOption, inputPath, filename, parameters, outputPath, filenameWithoutExtension, outputFormat);
         
         system(command);     
         putchar('\n');
