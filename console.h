@@ -3,6 +3,6 @@
 
 #include "libs.h"
 
-int open_console(char **args, bool *opts);
+int runInConsoleMode(char **arguments, bool *options);
 
 #endif

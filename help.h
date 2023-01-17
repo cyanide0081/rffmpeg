@@ -3,8 +3,8 @@
 
 #include "libs.h"
 
-static void display_help(void) {
-    printf("%s\n", full_title);
+static void displayHelp(void) {
+    printf("%s\n", fullTitle);
     printf(" Use me to automate an ffmpeg conversion throughout a whole directory\n");
     printf("\n");
     printf(" Arguments:\n");

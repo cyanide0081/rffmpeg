@@ -4,123 +4,123 @@
 
 /* TODO: implement recursion, new folder option and delete option */
 /* TODO: implement specific case where overwriting a file of same input fmt as output requires a temp file to be created and renamed afterwards */
-/* TODO: fix opts parsing on console mode */
+/* TODO: fix options parsing on console mode */
 /* TODO: utf-8 characters break the parsing */
 
-int start_main(char *args[], const bool opts[]);
+int runMainLoop(char *arguments[], const bool options[]);
 
 int main(int argc, const char *argv[]) {
-    char *args[MAX_ARGS] = { NULL };
-    bool opts[MAX_OPTS] = { false };
-    int exit_code;
+    char *arguments[MAX_ARGS] = { NULL };
+    bool options[MAX_OPTS] = { false };
+    int exitCode;
 
     SetConsoleOutputCP(_codepage); // UTF-8 codepage
 
     /* Parse from arguments or start the hud mode */
     if (argc > 1) {
-        parse_args(argc, argv, args);
-        parse_opts(argc, argv, opts);
+        parseArguments(argc, argv, arguments);
+        parseOptions(argc, argv, options);
 
-        printf("%s%s%s\n", CHARCOLOR_RED, full_title, COLOR_DEFAULT);
+        printf("%s%s%s\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
     } else {
-        open_console(args, opts);
+        runInConsoleMode(arguments, options);
     }
 
-    exit_code = start_main(args, opts); // Main loop
+    exitCode = runMainLoop(arguments, options); // Main loop
 
-    for (int i = 0; args[i]; ++i)
-        free(args[i]);
+    for (int i = 0; arguments[i]; ++i)
+        free(arguments[i]);
 
     putchar('\n');
 
-    return exit_code;
+    return exitCode;
 }
 
-int start_main(char *args[], const bool opts[]) {
-    char in_path[PATH_MAX], out_path[PATH_MAX], parameters[BUFFER];
-    char in_format[BUFFER], out_format[SHORTBUF];
-    char current_path[PATH_MAX], next_path[PATH_MAX];
+int runMainLoop(char *arguments[], const bool options[]) {
+    char inputPath[PATH_MAX], outputPath[PATH_MAX], parameters[BUFFER];
+    char inputFormat[BUFFER], outputFormat[SHORTBUF];
+    char currentPath[PATH_MAX], nextPath[PATH_MAX];
 
     /* Check for help option first */
-    if (opts[OPT_HELP]) {
-        display_help();
+    if (options[OPT_HELP]) {
+        displayHelp();
         return EXIT_SUCCESS;
     }
 
-    if (handle_errors(args))
+    if (handleErrors(arguments))
         exit(EXIT_FAILURE);
 
-    /* Transfer args */
-    strncpy(in_path,    args[ARG_PATH],   PATH_MAX);
-    strncpy(parameters, args[ARG_PARAMS], BUFFER);
-    strncpy(in_format,  args[ARG_FORMAT], BUFFER);
-    strncpy(out_format, args[ARG_OUTPUT], SHORTBUF);
+    /* Transfer arguments */
+    strncpy(inputPath,    arguments[ARG_PATH],   PATH_MAX);
+    strncpy(parameters, arguments[ARG_PARAMS], BUFFER);
+    strncpy(inputFormat,  arguments[ARG_FORMAT], BUFFER);
+    strncpy(outputFormat, arguments[ARG_OUTPUT], SHORTBUF);
 
     /* Check if path was provided */
-    if (strcmp(in_path, IDENTIFIER_NO_PATH) == 0)
-        GetCurrentDirectoryA(PATH_MAX, in_path);
+    if (strcmp(inputPath, IDENTIFIER_NO_PATH) == 0)
+        GetCurrentDirectoryA(PATH_MAX, inputPath);
 
     /* Tokenize input formats */
-    char in_formats[SHORTBUF][SHORTBUF];
-    char *saveptr;
-    const char *delim = ", ";
-    int index = -1, fmts = 0;
-    char *token = strtok_r(in_format, delim, &saveptr);
+    char inputFormats[SHORTBUF][SHORTBUF];
+    char *savePointer;
+    const char *delimiter = ", ";
+    int index = -1, numberOfFormats = 0;
+    char *token = strtok_r(inputFormat, delimiter, &savePointer);
 
-    for (int i = 0; token != NULL; ++i, ++fmts, token = strtok_r(NULL, delim, &saveptr))
-        strncpy(in_formats[i], token, SHORTBUF);
+    for (int i = 0; token != NULL; ++i, ++numberOfFormats, token = strtok_r(NULL, delimiter, &savePointer))
+        strncpy(inputFormats[i], token, SHORTBUF);
 
     /* Append '.' to extensions */
-    for (int i = 0; i < fmts; ++i)
-        attach_dot(in_formats[i],  ".");
+    for (int i = 0; i < numberOfFormats; ++i)
+        appendDotToString(inputFormats[i],  ".");
 
-    attach_dot(out_format, ".");
+    appendDotToString(outputFormat, ".");
 
     /* Temporary out_path hardcode */
-    strncpy(out_path, in_path, PATH_MAX);
+    strncpy(outputPath, inputPath, PATH_MAX);
 
-    DIR *dir = opendir(in_path);
+    DIR *directory = opendir(inputPath);
     struct dirent *entry;
 
     putchar('\n');
 
-    if (!dir) {
-        fprintf(stderr, "%sERROR: %sCouldn't open \'%s\'\n", CHARCOLOR_RED, CHARCOLOR_WHITE, in_path);
+    if (!directory) {
+        fprintf(stderr, "%sERROR: %sCouldn't open \'%s\'\n", CHARCOLOR_RED, CHARCOLOR_WHITE, inputPath);
         return EXIT_FAILURE;
     }
 
-    while ((entry = readdir(dir)) != NULL) {
+    while ((entry = readdir(directory)) != NULL) {
         const char *filename = entry->d_name;
-        char filename_noext[FILENAME_MAX] = { '\0' };
-        bool is_format = false;
-        const char *opt_overwrite = "";
+        char filenameWithoutExtension[FILENAME_MAX] = { '\0' };
+        bool isOfCurrentFormat = false;
+        const char *optionOverwrite = "";
 
         /* Check for correct extension and skip ./.. */
         if (!strcmp(".", filename) || !strcmp("..", filename))
             continue;
 
-        for (int i = 0; i < fmts; ++i) {
-            if (strstr(filename, in_formats[i]) != NULL) {
-                is_format = true;
+        for (int i = 0; i < numberOfFormats; ++i) {
+            if (strstr(filename, inputFormats[i]) != NULL) {
+                isOfCurrentFormat = true;
 
                 /* Trim extension from filename */
-                strncpy_s(filename_noext, FILENAME_MAX, filename, strstr(filename, in_formats[i]) - filename);
+                strncpy_s(filenameWithoutExtension, FILENAME_MAX, filename, strstr(filename, inputFormats[i]) - filename);
                 break;
             }
         }
 
-        if (!is_format)
+        if (!isOfCurrentFormat)
             continue;
 
-        if (opts[OPT_OVERWRITE])
-            opt_overwrite = "-y";
+        if (options[OPT_OVERWRITE])
+            optionOverwrite = "-y";
         else
-            avoid_overwriting(filename_noext, out_format, in_path);
+            preventFilenameOverwrites(filenameWithoutExtension, outputFormat, inputPath);
 
         char command[LONGBUF];
 
         snprintf(command, LONGBUF, "ffmpeg -hide_banner %s -i \"%s\\%s\" %s \"%s\\%s%s\"", 
-        opt_overwrite, in_path, filename, parameters, out_path, filename_noext, out_format);
+        optionOverwrite, inputPath, filename, parameters, outputPath, filenameWithoutExtension, outputFormat);
         
         system(command);     
         putchar('\n');
@@ -132,7 +132,7 @@ int start_main(char *args[], const bool opts[]) {
 
         // start_main();
     }
-    closedir(dir);
+    closedir(directory);
 
     return EXIT_SUCCESS;
 }

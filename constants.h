@@ -5,12 +5,12 @@
 #define PROGRAM_NAME_FULL "RFFMPEG"
 #define PROGRAM_VERSION   "0.2 [ALPHA]"
 
-static const char *full_title = PROGRAM_NAME_FULL " v" PROGRAM_VERSION " d-_-b";
+static const char *fullTitle = PROGRAM_NAME_FULL " v" PROGRAM_VERSION " d-_-b";
 
 #define CHARCOLOR_WHITE   "\033[37m"
-#define CHARCOLOR_WHITE_B "\033[97m"
+#define CHARCOLOR_WHITE_BOLD "\033[97m"
 #define CHARCOLOR_RED     "\033[31m"
-#define CHARCOLOR_RED_B   "\033[91m"
+#define CHARCOLOR_RED_BOLD   "\033[91m"
 #define COLOR_DEFAULT     "\033[0m"
 
 #define IDENTIFIER_NO_PATH "__ident_no_path"
