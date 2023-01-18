@@ -49,10 +49,10 @@ int runMainLoop(char *arguments[], const bool options[]) {
         exit(EXIT_FAILURE);
 
     /* Transfer arguments */
-    strncpy(inputPath,    arguments[ARG_PATH],   PATH_MAX);
-    strncpy(parameters, arguments[ARG_PARAMS], BUFFER);
-    strncpy(inputFormat,  arguments[ARG_FORMAT], BUFFER);
-    strncpy(outputFormat, arguments[ARG_OUTPUT], SHORTBUF);
+    strcpy_s(inputPath, PATH_MAX - 1, arguments[ARG_PATH]);
+    strcpy_s(parameters, BUFFER - 1, arguments[ARG_PARAMS]);
+    strcpy_s(inputFormat, BUFFER - 1,  arguments[ARG_FORMAT]);
+    strcpy_s(outputFormat, SHORTBUF - 1, arguments[ARG_OUTPUT]);
 
     /* Check if path was provided */
     if (strcmp(inputPath, IDENTIFIER_NO_PATH) == 0)
@@ -66,7 +66,7 @@ int runMainLoop(char *arguments[], const bool options[]) {
     char *token = strtok_r(inputFormat, delimiter, &savePointer);
 
     for (int i = 0; token != NULL; ++i, ++numberOfFormats, token = strtok_r(NULL, delimiter, &savePointer))
-        strncpy(inputFormats[i], token, SHORTBUF);
+        strcpy_s(inputFormats[i], SHORTBUF - 1, token);
 
     for (int i = 0; i < numberOfFormats; ++i)
         appendDotToString(inputFormats[i], SHORTBUF);
@@ -74,7 +74,7 @@ int runMainLoop(char *arguments[], const bool options[]) {
     appendDotToString(outputFormat, SHORTBUF);
 
     /* Temporary out_path hardcode */
-    strncpy(outputPath, inputPath, PATH_MAX);
+    strcpy_s(outputPath, PATH_MAX - 1, inputPath);
 
     DIR *directory = opendir(inputPath);
     struct dirent *entry;
