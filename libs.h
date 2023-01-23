@@ -3,10 +3,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <dirent.h>
-#include <sys/stat.h>
 #include <windows.h>
-#include <shlwapi.h>
+#include <versionhelpers.h>
 #include <stdbool.h>
 #include <stdint.h>
 

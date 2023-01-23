@@ -1,42 +1,48 @@
 #ifndef H_CONSTS
 #define H_CONSTS
 
-#define PROGRAM_NAME      "RFF"
-#define PROGRAM_NAME_FULL "RFFMPEG"
-#define PROGRAM_VERSION   "0.2 [ALPHA]"
+#define PROGRAM_NAME      L"RFF"
+#define PROGRAM_NAME_FULL L"RFFMPEG"
+#define PROGRAM_VERSION   L"0.2 [ALPHA]"
 
-static const char *fullTitle = PROGRAM_NAME_FULL " v" PROGRAM_VERSION " d-_-b";
+static const wchar_t *fullTitle = PROGRAM_NAME_FULL L" v" PROGRAM_VERSION L" d-_-b";
 
-#define CHARCOLOR_WHITE   "\033[37m"
-#define CHARCOLOR_WHITE_BOLD "\033[97m"
-#define CHARCOLOR_RED     "\033[31m"
-#define CHARCOLOR_RED_BOLD   "\033[91m"
-#define COLOR_DEFAULT     "\033[0m"
+static const uint16_t _utf8Codepage = 65001;
 
-#define IDENTIFIER_NO_PATH "__ident_no_path"
+/* ANSI eschape chars for colored shell output */
+#define CHARCOLOR_WHITE      L"\033[37m"
+#define CHARCOLOR_WHITE_BOLD L"\033[97m"
+#define CHARCOLOR_RED        L"\033[31m"
+#define CHARCOLOR_RED_BOLD   L"\033[91m"
+#define COLOR_DEFAULT        L"\033[0m"
 
-/* sketchy commands (prohibited by richard stallman) */
-static const char *cmd_sleep = "TIMEOUT /T 1 > NUL";
-static const char *cmd_pause = "TIMEOUT /T -1 > NUL";
+#define IDENTIFIER_NO_PATH L"__ident_no_path"
 
-static const int _codepage = 65001;
-
-#define BUFFER   (512 * sizeof(char))
-#define SHORTBUF (BUFFER / 4)
+/* Buffers and size limitations */
+#define BUFFER   (512 * sizeof(wchar_t))
+#define SHORTBUF (BUFFER / 32)
 #define LONGBUF  (BUFFER * 8)
+#define PATHBUF  (MAX_PATH * sizeof(wchar_t))
 
 #define MAX_ARGS (4 + 1)
 #define MAX_OPTS (5 + 1)
 
-#define ARG_PATH   0
-#define ARG_FORMAT 1
-#define ARG_PARAMS 2
-#define ARG_OUTPUT 3
+/* Argument and option arrays' index trackers */
+#define ARG_INPATH       0
+#define ARG_INFORMAT     1
+#define ARG_INPARAMETERS 2
+#define ARG_OUTFORMAT    3
 
-#define OPT_HELP      0
-#define OPT_NEWFOLDER 1
-#define OPT_DELETE    2
-#define OPT_RECURSIVE 3
-#define OPT_OVERWRITE 4
+#define OPT_DISPLAYHELP      0
+#define OPT_MAKENEWFOLDER    1
+#define OPT_DELETEOLDFILES   2
+#define OPT_DISABLERECURSION 3
+#define OPT_FORCEOVERWRITE   4
 
 #endif
+
+/* (maybe work with path size limitations later?) */
+/* if (IsWindowsVersionOrGreater(10, 0, 14393))
+    #define PATHBUF 32000
+else
+    #define PATHBUF MAX_PATH */

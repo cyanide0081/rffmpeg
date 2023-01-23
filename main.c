@@ -1,135 +1,138 @@
 #include "libs.h"
 
-/* Pior programa que existe B) */
+/* TODO:  add new folder option and delete-old-files option */
+/* TODO:  implement specific case where overwriting a file of same input fmt as output requires a temp file to be created and renamed afterwards */
+/* TODO:  add dialogues after processing stage */
 
-/* TODO: implement recursion, new folder option and delete option */
-/* TODO: implement specific case where overwriting a file of same input fmt as output requires a temp file to be created and renamed afterwards */
-/* TODO: fix options parsing on console mode */
-/* TODO: utf-8 characters break the parsing */
+int processFiles(const wchar_t *directory, const wchar_t *arguments[], const bool options[]);
 
-int runMainLoop(char *arguments[], const bool options[]);
-
-int main(int argc, const char *argv[]) {
-    char *arguments[MAX_ARGS] = { NULL };
+int wmain(int argc, const wchar_t *argv[]) {
+    wchar_t *arguments[MAX_ARGS] = { NULL };
     bool options[MAX_OPTS] = { false };
     int exitCode;
 
-    SetConsoleOutputCP(_codepage); // UTF-8 codepage
+    SetConsoleCP(_utf8Codepage);
+    SetConsoleOutputCP(_utf8Codepage);
+
+    wprintf(L"%ls%ls%ls\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
 
     if (argc > 1) {
         parseArguments(argc, argv, arguments);
         parseOptions(argc, argv, options);
-
-        printf("%s%s%s\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
     } else {
         runInConsoleMode(arguments, options);
     }
 
-    exitCode = runMainLoop(arguments, options);
+    exitCode = processFiles(NULL, (const wchar_t**)arguments, (const bool*)options);
 
     for (int i = 0; arguments[i]; ++i)
         free(arguments[i]);
 
-    putchar('\n');
+    putwchar(L'\n');
 
     return exitCode;
 }
 
-int runMainLoop(char *arguments[], const bool options[]) {
-    char inputPath[PATH_MAX], outputPath[PATH_MAX], parameters[BUFFER];
-    char inputFormat[BUFFER], outputFormat[SHORTBUF];
-    char currentPath[PATH_MAX], nextPath[PATH_MAX];
-
-    if (options[OPT_HELP]) {
+int processFiles(const wchar_t *directory, const wchar_t *arguments[], const bool options[]) {
+    if (options[OPT_DISPLAYHELP]) {
         displayHelp();
         return EXIT_SUCCESS;
     }
 
-    if (handleErrors(arguments))
-        exit(EXIT_FAILURE);
+    if (handleErrors((wchar_t**)arguments))
+        return EXIT_FAILURE;
 
-    /* Transfer arguments */
-    strcpy_s(inputPath, PATH_MAX - 1, arguments[ARG_PATH]);
-    strcpy_s(parameters, BUFFER - 1, arguments[ARG_PARAMS]);
-    strcpy_s(inputFormat, BUFFER - 1,  arguments[ARG_FORMAT]);
-    strcpy_s(outputFormat, SHORTBUF - 1, arguments[ARG_OUTPUT]);
+    const wchar_t *inputPath          = arguments[ARG_INPATH];
+    const wchar_t *inputFormatString  = arguments[ARG_INFORMAT];
+    const wchar_t *parameters         = arguments[ARG_INPARAMETERS];
+    const wchar_t *outputFormat       = arguments[ARG_OUTFORMAT];
 
-    /* Check if path was provided */
-    if (strcmp(inputPath, IDENTIFIER_NO_PATH) == 0)
-        GetCurrentDirectoryA(PATH_MAX, inputPath);
+    if (directory == NULL)
+        inputPath = arguments[ARG_INPATH];
+    else
+        inputPath = directory;
 
     /* Tokenize input formats */
-    char inputFormats[SHORTBUF][SHORTBUF];
-    char *savePointer;
-    const char *delimiter = ", ";
-    int index = -1, numberOfFormats = 0;
-    char *token = strtok_r(inputFormat, delimiter, &savePointer);
+    wchar_t inputFormats[SHORTBUF][SHORTBUF];
+    size_t numberOfInputFormats = 0;
+    size_t inputFormatIndex = 0;
+    wchar_t *savePointer;
+    wchar_t *token = wcstok_s((wchar_t*)inputFormatString, L", ", &savePointer);
 
-    for (int i = 0; token != NULL; ++i, ++numberOfFormats, token = strtok_r(NULL, delimiter, &savePointer))
-        strcpy_s(inputFormats[i], SHORTBUF - 1, token);
+    while (token != NULL) {
+        swprintf_s(inputFormats[numberOfInputFormats++], SHORTBUF - 1, L".%ls", token);
+        token = wcstok_s(NULL, L", ", &savePointer);
+    }
 
-    for (int i = 0; i < numberOfFormats; ++i)
-        appendDotToString(inputFormats[i], SHORTBUF);
+    HANDLE fileHandle = INVALID_HANDLE_VALUE;
+    WIN32_FIND_DATAW fileData;
+    wchar_t pathMask[BUFFER];
 
-    appendDotToString(outputFormat, SHORTBUF);
 
-    /* Temporary out_path hardcode */
-    strcpy_s(outputPath, PATH_MAX - 1, inputPath);
+    swprintf_s(pathMask, BUFFER - 1, L"%ls\\*", inputPath);
 
-    DIR *directory = opendir(inputPath);
-    struct dirent *entry;
+    if ((fileHandle = FindFirstFileW(pathMask, &fileData)) == INVALID_HANDLE_VALUE) {
+        fwprintf(stderr, L"%lsERROR: %lsCouldn't open \'%ls\'\n", CHARCOLOR_RED, CHARCOLOR_WHITE, inputPath);
 
-    putchar('\n');
-
-    if (!directory) {
-        fprintf(stderr, "%sERROR: %sCouldn't open \'%s\'\n", CHARCOLOR_RED, CHARCOLOR_WHITE, inputPath);
         return EXIT_FAILURE;
     }
 
-    while ((entry = readdir(directory)) != NULL) {
-        const char *filename = entry->d_name;
-        char filenameWithoutExtension[FILENAME_MAX] = { '\0' };
-        bool isOfCurrentFormat = false;
-        const char *overwriteOption = "";
-
-        /* Check for correct extension and skip ./.. */
-        if (!strcmp(".", filename) || !strcmp("..", filename))
+    do {
+        /* Skip . and .. */
+        if (wcscmp(fileData.cFileName, L".") == 0 || wcscmp(fileData.cFileName, L"..") == 0)
             continue;
 
-        for (int i = 0; i < numberOfFormats; ++i) {
-            if (strstr(filename, inputFormats[i]) != NULL) {
-                isOfCurrentFormat = true;
+        /* Recursive part */
+        if (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && options[OPT_DISABLERECURSION] == false) {
+            wchar_t newPathMask[PATHBUF];
 
-                /* Trim extension from filename */
-                strncpy_s(filenameWithoutExtension, FILENAME_MAX, filename, strstr(filename, inputFormats[i]) - filename);
+            swprintf_s(newPathMask, PATHBUF - 1, L"%ls\\%ls", inputPath, fileData.cFileName);
+
+            processFiles(newPathMask, arguments, options);
+
+            continue;
+        }
+
+        bool isOfFormat = false;
+
+        for (size_t i = 0; i < numberOfInputFormats; ++i) {
+            if (wcsstr(fileData.cFileName, inputFormats[i]) != NULL) {
+                isOfFormat = true;
+                inputFormatIndex = i;
                 break;
             }
         }
 
-        if (!isOfCurrentFormat)
+        if (!isOfFormat)
             continue;
 
-        if (options[OPT_OVERWRITE])
-            overwriteOption = "-y";
+        wchar_t *fileName = fileData.cFileName;
+        wchar_t fileNameNoExtension[PATHBUF];
+        wchar_t outputPath[PATHBUF];
+        wchar_t *overwriteOption = L"";
+
+        wcscpy_s(fileNameNoExtension, PATHBUF - 1, fileName);
+        *(wcsstr(fileNameNoExtension, inputFormats[inputFormatIndex])) = L'\0'; 
+
+        if (options[OPT_FORCEOVERWRITE] == true)
+            overwriteOption = L"-y";
         else
-            preventFilenameOverwrites(filenameWithoutExtension, outputFormat, inputPath);
+            preventFilenameOverwrites(fileNameNoExtension, outputFormat, inputPath);
 
-        char command[LONGBUF];
+        /* temporary output path hardcode to input path */
+        wcscpy_s(outputPath, sizeof outputPath, inputPath);
 
-        sprintf_s(command, LONGBUF, "ffmpeg -hide_banner %s -i \"%s\\%s\" %s \"%s\\%s%s\"", 
-        overwriteOption, inputPath, filename, parameters, outputPath, filenameWithoutExtension, outputFormat);
+        wchar_t command[LONGBUF];
+
+        swprintf_s(command, LONGBUF, L"ffmpeg -hide_banner %s -i \"%s\\%s\" %s \"%s\\%s.%s\"", 
+            overwriteOption, inputPath, fileName, parameters, outputPath, fileNameNoExtension, outputFormat);
         
-        system(command);     
+        _wsystem(command);     
         putchar('\n');
 
-        // /* Make new path for recursion */
-        // strcpy(next_path, current_path);
-        // strcat(next_path, "\\");
-        // strcat(next_path, entry->d_name);
+    } while (FindNextFileW(fileHandle, &fileData));
 
-        // start_main();
-    }
-    closedir(directory);
+    FindClose(fileHandle);
 
     return EXIT_SUCCESS;
 }

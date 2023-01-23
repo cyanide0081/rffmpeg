@@ -4,16 +4,16 @@
 #include "libs.h"
 
 void setup(void);
-void prompt(const char *format);
+void prompt(const wchar_t *format);
 
-size_t appendDotToString(char *string, size_t stringSize);
+size_t prependDotToString(wchar_t *string, size_t stringSize);
 
-int handleErrors(char **arguments);
-void printError(const char *msg);
+int handleErrors(wchar_t *arguments[]);
+void printError(const wchar_t *msg);
 
-char **parseArguments(int count, const char *arguments[], char *destination[]);
-bool *parseOptions(int count, const char *arguments[], bool destination[]);
+wchar_t **parseArguments(int count, const wchar_t *arguments[], wchar_t *destination[]);
+bool *parseOptions(int count, const wchar_t *arguments[], bool destination[]);
 
-int preventFilenameOverwrites(char *pureFilename, char *outputFormat, char *path);
+int preventFilenameOverwrites(wchar_t *pureFilename, const wchar_t *outputFormat, const wchar_t *path);
 
 #endif

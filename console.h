@@ -3,6 +3,6 @@
 
 #include "libs.h"
 
-int runInConsoleMode(char **arguments, bool *options);
+int runInConsoleMode(wchar_t *arguments[], bool *options);
 
 #endif
