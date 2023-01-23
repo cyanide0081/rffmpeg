@@ -7,8 +7,9 @@ testfiles/Bosario_-_Spaceora_64506132.mp3
 testfiles/Gesaffelstein - Viol (NEUS 'Orgasme' Remix).mp3
 testfiles/HeartBeat.ogg
 testfiles/Westbam - Beatbox Rocker and City of Shamballa (Remix REVAMPED)-l_x0swe8pfg.m4a
-testfiles/ㅤㅤㅤ.opus
+testfiles\weird char\ㅤㅤㅤ.opus
 rffmpeg.exe
 .vscode/tasks.json
 .vscode/settings.json
 .vscode/c_cpp_properties.json
+.gitignore
