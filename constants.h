@@ -3,9 +3,9 @@
 
 #define PROGRAM_NAME      L"RFF"
 #define PROGRAM_NAME_FULL L"RFFMPEG"
-#define PROGRAM_VERSION   L"0.3 [ALPHA]"
+#define PROGRAM_VERSION   L"v0.3.0-alpha"
 
-static const wchar_t *fullTitle = PROGRAM_NAME_FULL L" v" PROGRAM_VERSION L" d-_-b";
+static const wchar_t *fullTitle = PROGRAM_NAME_FULL L" " PROGRAM_VERSION L" d-_-b";
 
 static const uint16_t _utf8Codepage = 65001;
 
