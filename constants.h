@@ -39,6 +39,12 @@ static const uint16_t _utf8Codepage = 65001;
 #define OPT_DISABLERECURSION 3
 #define OPT_FORCEOVERWRITE   4
 
+#define OPT_DISPLAYHELP_STRING      L"--help"  
+#define OPT_MAKENEWFOLDER_STRING    L"--newfolder"  
+#define OPT_DELETEOLDFILES_STRING   L"--delete"  
+#define OPT_DISABLERECURSION_STRING L"--norecursion"
+#define OPT_FORCEOVERWRITE_STRING   L"--overwrite"
+
 #endif
 
 /* (maybe work with path size limitations later?) */

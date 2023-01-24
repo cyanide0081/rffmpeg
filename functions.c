@@ -1,14 +1,5 @@
 #include "functions.h"
 
-size_t prependDotToString(wchar_t *string, size_t stringSize) {
-    wchar_t buffer[SHORTBUF];
-
-    swprintf_s(buffer, SHORTBUF - 1, L".%ls", string);
-    wcscpy_s(string, stringSize - 1, buffer);
-
-    return wcsnlen_s(buffer, SHORTBUF - 1);
-}
-
 void printError(const wchar_t *msg) {
     fwprintf(stderr, L"%lsERROR: %ls%ls%ls\n", CHARCOLOR_RED, CHARCOLOR_WHITE, msg, COLOR_DEFAULT);
 }
@@ -37,15 +28,15 @@ wchar_t **parseArguments(int count, const wchar_t *arguments[], wchar_t *destina
 bool *parseOptions(int count, const wchar_t *options[], bool destination[]) {
     /* fmt: --help (duh) /n (folder) /d (delete old) /r (recursive) /y (overwrite) */
     for (int i = 1; i < count; ++i) {
-        if (wcsstr(options[i], L"-h")) {
+        if (wcsstr(options[i], OPT_DISPLAYHELP_STRING)) {
             destination[OPT_DISPLAYHELP] = true;
-        } else if (wcscmp(options[i], L"/n") == 0) {
+        } else if (wcscmp(options[i], OPT_MAKENEWFOLDER_STRING) == 0) {
             destination[OPT_MAKENEWFOLDER] = true;
-        } else if (wcscmp(options[i], L"/d") == 0) {
+        } else if (wcscmp(options[i], OPT_DELETEOLDFILES_STRING) == 0) {
             destination[OPT_DELETEOLDFILES] = true;
-        } else if (wcscmp(options[i], L"/r") == 0) {
+        } else if (wcscmp(options[i], OPT_DISABLERECURSION_STRING) == 0) {
             destination[OPT_DISABLERECURSION] = true;
-        } else if (wcscmp(options[i], L"/y") == 0) {
+        } else if (wcscmp(options[i], OPT_FORCEOVERWRITE_STRING) == 0) {
             destination[OPT_FORCEOVERWRITE] = true;
         }
     }

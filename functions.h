@@ -3,11 +3,6 @@
 
 #include "libs.h"
 
-void setup(void);
-void prompt(const wchar_t *format);
-
-size_t prependDotToString(wchar_t *string, size_t stringSize);
-
 int handleErrors(wchar_t *arguments[]);
 void printError(const wchar_t *msg);
 
