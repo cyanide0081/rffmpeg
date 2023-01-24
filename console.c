@@ -32,28 +32,32 @@ int runInConsoleMode(wchar_t *arguments[], bool *options) {
     arguments[ARG_OUTFORMAT][wcscspn(arguments[ARG_OUTFORMAT], L"\r\n")] = L'\0';
 
     wchar_t optionsString[BUFFER];
-    wchar_t optionsTokenized[MAX_OPTS][SHORTBUF];
 
     wprintf(L"%ls > %lsAdditional modes: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
     fgetws(optionsString, BUFFER, stdin);
     optionsString[wcscspn(optionsString, L"\r\n")] = L'\0';
 
-    /* Tokenize options */
     uint16_t numberOfOptions = 0;
      
+    wchar_t *optionsTokenized[MAX_OPTS] = { NULL };
     wchar_t *parserState;
     wchar_t *token = wcstok_s(optionsString, L" ", &parserState);
 
     while (token) {
-        wcscpy_s(optionsTokenized[numberOfOptions++], SHORTBUF, token);
+        optionsTokenized[numberOfOptions] = malloc(SHORTBUF);
+
+        wcscpy_s(optionsTokenized[numberOfOptions++], SHORTBUF - 1, token);
 
         token = wcstok_s(NULL, L" ", &parserState);
     }
 
-    parseOptions(numberOfOptions, (const wchar_t**)optionsTokenized, options); // macarrão
+    parseOptions(numberOfOptions, (const wchar_t**)optionsTokenized, options);
 
     wprintf(COLOR_DEFAULT);
+
+    for (int i = 0; optionsTokenized[i]; ++i)
+        free(optionsTokenized[i]);
 
     return EXIT_SUCCESS;
 }

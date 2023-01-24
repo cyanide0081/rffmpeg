@@ -6,7 +6,7 @@ void printError(const wchar_t *msg) {
 
 wchar_t **parseArguments(int count, const wchar_t *arguments[], wchar_t *destination[]) {
     /* fmt: -i <path> -f <container> -p <params> -o <container> */
-    for (int i = 1; i < count - 1; ++i) {
+    for (size_t i = 1; i < count; ++i) {
         if (wcscmp(arguments[i], L"-i") == 0) {
             destination[ARG_INPATH] = malloc(PATHBUF);
             wcsncpy_s(destination[ARG_INPATH], MAX_PATH - 1, arguments[++i], MAX_PATH);
@@ -27,8 +27,8 @@ wchar_t **parseArguments(int count, const wchar_t *arguments[], wchar_t *destina
 
 bool *parseOptions(int count, const wchar_t *options[], bool destination[]) {
     /* fmt: --help (duh) /n (folder) /d (delete old) /r (recursive) /y (overwrite) */
-    for (int i = 1; i < count; ++i) {
-        if (wcsstr(options[i], OPT_DISPLAYHELP_STRING)) {
+    for (size_t i = 0; i < count; ++i) {
+        if (wcscmp(options[i], OPT_DISPLAYHELP_STRING) == 0) {
             destination[OPT_DISPLAYHELP] = true;
         } else if (wcscmp(options[i], OPT_MAKENEWFOLDER_STRING) == 0) {
             destination[OPT_MAKENEWFOLDER] = true;
@@ -67,7 +67,9 @@ int preventFilenameOverwrites(wchar_t *pureFilename, const wchar_t *outputFormat
     return EXIT_SUCCESS;
 }
 
-int handleErrors(wchar_t *arguments[]) {  
+int handleErrors(wchar_t *arguments[]) {
+    bool hasError = false;
+
     if (!arguments[ARG_INPATH] || *arguments[ARG_INPATH] == 0) { 
         arguments[ARG_INPATH] = malloc(PATHBUF);         
         GetCurrentDirectoryW(PATHBUF, arguments[ARG_INPATH]);
@@ -79,13 +81,13 @@ int handleErrors(wchar_t *arguments[]) {
 
     if (!arguments[ARG_INFORMAT] || *arguments[ARG_INFORMAT] == 0) {
         printError(L"no input format (null)");
-        return EXIT_FAILURE;
+        hasError = true;
     }
 
     if (!arguments[ARG_OUTFORMAT] || *arguments[ARG_OUTFORMAT] == 0) {
         printError(L"no output format (null)");
-        return EXIT_FAILURE;
+        hasError = true;
     }
 
-    return EXIT_SUCCESS;
+    return hasError == true ? EXIT_FAILURE : EXIT_SUCCESS;
 }

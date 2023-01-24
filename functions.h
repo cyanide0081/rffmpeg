@@ -7,7 +7,7 @@ int handleErrors(wchar_t *arguments[]);
 void printError(const wchar_t *msg);
 
 wchar_t **parseArguments(int count, const wchar_t *arguments[], wchar_t *destination[]);
-bool *parseOptions(int count, const wchar_t *arguments[], bool destination[]);
+bool *parseOptions(int count, const wchar_t *options[], bool destination[]);
 
 int preventFilenameOverwrites(wchar_t *pureFilename, const wchar_t *outputFormat, const wchar_t *path);
 

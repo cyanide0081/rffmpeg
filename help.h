@@ -19,6 +19,7 @@ static void displayHelp(void) {
     wprintf_s(L"    %-20lsdisable recursive subfolder search\n", OPT_DISABLERECURSION_STRING);
     wprintf_s(L"\n");
     wprintf_s(L" Example usage: rffmpeg -i C:\\Users\\Music -f wav,aif -p \"-c:a libmp3lame\" -o mp3\n");
+    wprintf_s(L"\n");
 }
 
 #endif

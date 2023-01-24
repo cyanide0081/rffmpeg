@@ -3,7 +3,7 @@
 
 #define PROGRAM_NAME      L"RFF"
 #define PROGRAM_NAME_FULL L"RFFMPEG"
-#define PROGRAM_VERSION   L"v0.3.0-alpha"
+#define PROGRAM_VERSION   L"v0.3.1-alpha"
 
 static const wchar_t *fullTitle = PROGRAM_NAME_FULL L" " PROGRAM_VERSION L" d-_-b";
 
@@ -16,11 +16,9 @@ static const uint16_t _utf8Codepage = 65001;
 #define CHARCOLOR_RED_BOLD   L"\033[91m"
 #define COLOR_DEFAULT        L"\033[0m"
 
-#define IDENTIFIER_NO_PATH L"__ident_no_path"
-
 /* Buffers and size limitations */
 #define BUFFER   (512 * sizeof(wchar_t))
-#define SHORTBUF (BUFFER / 32)
+#define SHORTBUF (BUFFER / 16)
 #define LONGBUF  (BUFFER * 8)
 #define PATHBUF  (MAX_PATH * sizeof(wchar_t))
 
@@ -44,6 +42,9 @@ static const uint16_t _utf8Codepage = 65001;
 #define OPT_DELETEOLDFILES_STRING   L"--delete"  
 #define OPT_DISABLERECURSION_STRING L"--norecursion"
 #define OPT_FORCEOVERWRITE_STRING   L"--overwrite"
+
+#define IDENTIFIER_NO_PATH   L"__ident_no_path"
+#define IDENTIFIER_NO_FORMAT L"__identifier_no_format"
 
 #endif
 

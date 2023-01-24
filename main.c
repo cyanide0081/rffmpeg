@@ -1,14 +1,16 @@
 #include "libs.h"
 
-/* TODO:  implement specific case where overwriting a file of same input fmt as output requires a temp file to be created and renamed afterwards */
 /* TODO:  add dialogues after processing stage */
-/* TODO:  experiment with making some strings static inside processFiles() to conserve more memory */
+/* TODO:  implement specific case where overwriting a file of same input fmt as output requires a temp file to be created and renamed afterwards */
 
 int processFiles(const wchar_t *directory, wchar_t *arguments[], const bool options[]);
 
 int wmain(int argc, const wchar_t *argv[]) {
     wchar_t *arguments[MAX_ARGS] = { NULL };
+
     bool options[MAX_OPTS] = { false };
+    bool exit = false;
+    int32_t exitCode;
 
     SetConsoleCP(_utf8Codepage);
     SetConsoleOutputCP(_utf8Codepage);
@@ -22,7 +24,18 @@ int wmain(int argc, const wchar_t *argv[]) {
         runInConsoleMode(arguments, options);
     }
 
-    int32_t exitCode = processFiles(NULL, arguments, (const bool*)options);
+    if (options[OPT_DISPLAYHELP] == true) {
+        displayHelp();
+        exit = true;
+    }
+
+    if ((exitCode = handleErrors(arguments)) == EXIT_FAILURE) {
+        putwchar('\n');
+        exit = true;
+    }
+
+    if (exit == false)
+        exitCode = processFiles(NULL, arguments, (const bool*)options);
 
     for (int i = 0; arguments[i]; ++i)
         free(arguments[i]);
@@ -33,34 +46,31 @@ int wmain(int argc, const wchar_t *argv[]) {
 }
 
 int processFiles(const wchar_t *directory, wchar_t *arguments[], const bool options[]) {
-    if (options[OPT_DISPLAYHELP] == true) {
-        displayHelp();
-        return EXIT_SUCCESS;
-    }
-
-    if (handleErrors(arguments))
-        return EXIT_FAILURE;
-
-    static size_t numberOfConvertedFiles = 0;
-
     const wchar_t *inputPath         = directory == NULL ? arguments[ARG_INPATH] : directory;
     const wchar_t *inputFormatString = arguments[ARG_INFORMAT];
     const wchar_t *parameters        = arguments[ARG_INPARAMETERS];
     const wchar_t *outputFormat      = arguments[ARG_OUTFORMAT];
 
-
-    /* Tokenize input formats */
-    wchar_t inputFormats[SHORTBUF][SHORTBUF];
-    size_t numberOfInputFormats = 0;
     size_t inputFormatIndex = 0;
-    wchar_t *savePointer;
-    wchar_t *token = wcstok_s((wchar_t*)inputFormatString, L", ", &savePointer);
+    static size_t numberOfInputFormats = 0;
+    static size_t numberOfConvertedFiles = 0;
+    static wchar_t inputFormats[SHORTBUF][SHORTBUF] = { IDENTIFIER_NO_FORMAT };
 
-    while (token != NULL) {
-        swprintf_s(inputFormats[numberOfInputFormats++], SHORTBUF - 1, L".%ls", token);
-        token = wcstok_s(NULL, L", ", &savePointer);
+    /* Save cpu resources by only tokenizing formats once */
+    if (inputFormats[0] == IDENTIFIER_NO_FORMAT); {
+        wchar_t inputFormatStringBuffer[BUFFER];
+
+        wcscpy_s(inputFormatStringBuffer, BUFFER - 1, inputFormatString);
+
+        wchar_t *parserState;
+        wchar_t *token = wcstok_s(inputFormatStringBuffer, L", ", &parserState);
+
+        while (token != NULL) {
+            swprintf_s(inputFormats[numberOfInputFormats++], SHORTBUF - 1, L".%ls", token);
+            token = wcstok_s(NULL, L", ", &parserState);
+        }
     }
-
+    
     HANDLE fileHandle = INVALID_HANDLE_VALUE;
     WIN32_FIND_DATAW fileData;
     wchar_t pathMask[BUFFER];
@@ -105,7 +115,8 @@ int processFiles(const wchar_t *directory, wchar_t *arguments[], const bool opti
         wchar_t *fileName = fileData.cFileName;
         wchar_t fileNameNoExtension[PATHBUF];
         wchar_t outputPath[PATHBUF];
-        wchar_t *overwriteOption = L"";
+
+        const wchar_t *overwriteOption = options[OPT_FORCEOVERWRITE] == true ? L"-y" : L"";
 
         wcscpy_s(fileNameNoExtension, PATHBUF - 1, fileName);
         *(wcsstr(fileNameNoExtension, inputFormats[inputFormatIndex])) = L'\0'; 
@@ -121,15 +132,12 @@ int processFiles(const wchar_t *directory, wchar_t *arguments[], const bool opti
             wcscpy_s(outputPath, PATHBUF - 1, inputPath);
         }
 
-        /* Check for possible filename overwrites */
-        if (options[OPT_FORCEOVERWRITE] == true)
-            overwriteOption = L"-y";
-        else
+        if (options[OPT_FORCEOVERWRITE] == false)
             preventFilenameOverwrites(fileNameNoExtension, outputFormat, outputPath);
 
         wchar_t command[LONGBUF];
 
-        swprintf_s(command, LONGBUF, L"ffmpeg -hide_banner %s -i \"%s\\%s\" %s \"%s\\%s.%s\"", 
+        swprintf_s(command, LONGBUF, L"ffmpeg -hide_banner %ls -i \"%ls\\%ls\" %ls \"%ls\\%ls.%ls\"", 
             overwriteOption, inputPath, fileName, parameters, outputPath, fileNameNoExtension, outputFormat);
         
         _wsystem(command);
