@@ -3,7 +3,7 @@
 
 #define PROGRAM_NAME      L"RFF"
 #define PROGRAM_NAME_FULL L"RFFMPEG"
-#define PROGRAM_VERSION   L"0.2 [ALPHA]"
+#define PROGRAM_VERSION   L"0.3 [BETA]"
 
 static const wchar_t *fullTitle = PROGRAM_NAME_FULL L" v" PROGRAM_VERSION L" d-_-b";
 
