@@ -7,7 +7,9 @@
 #include <versionhelpers.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <time.h>
 
+#include "types.h"
 #include "constants.h"
 #include "functions.h"
 #include "console.h"

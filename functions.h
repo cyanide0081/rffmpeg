@@ -11,4 +11,8 @@ bool *parseOptions(int count, const wchar_t *options[], bool destination[]);
 
 int preventFilenameOverwrites(wchar_t *pureFilename, const wchar_t *outputFormat, const wchar_t *path);
 
+int searchDirectory(const wchar_t *directory, wchar_t *arguments[], const bool options[], processInfo_t *processInformation);
+
+void displayEndDialog(processInfo_t *processInformation);
+
 #endif

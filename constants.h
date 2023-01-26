@@ -6,7 +6,6 @@
 #define PROGRAM_VERSION   L"v0.3.1-alpha"
 
 static const wchar_t *fullTitle = PROGRAM_NAME_FULL L" " PROGRAM_VERSION L" d-_-b";
-
 static const uint16_t _utf8Codepage = 65001;
 
 /* ANSI eschape chars for colored shell output */
@@ -22,8 +21,8 @@ static const uint16_t _utf8Codepage = 65001;
 #define LONGBUF  (BUFFER * 8)
 #define PATHBUF  (MAX_PATH * sizeof(wchar_t))
 
-#define MAX_ARGS (4 + 1)
-#define MAX_OPTS (5 + 1)
+#define MAX_ARGS 4
+#define MAX_OPTS 5
 
 /* Argument and option arrays' index trackers */
 #define ARG_INPATH       0
@@ -37,19 +36,15 @@ static const uint16_t _utf8Codepage = 65001;
 #define OPT_DISABLERECURSION 3
 #define OPT_FORCEOVERWRITE   4
 
+/* Option string constants */
 #define OPT_DISPLAYHELP_STRING      L"--help"  
 #define OPT_MAKENEWFOLDER_STRING    L"--newfolder"  
 #define OPT_DELETEOLDFILES_STRING   L"--delete"  
 #define OPT_DISABLERECURSION_STRING L"--norecursion"
 #define OPT_FORCEOVERWRITE_STRING   L"--overwrite"
 
+/* Misc functinality identifiers */
 #define IDENTIFIER_NO_PATH   L"__ident_no_path"
 #define IDENTIFIER_NO_FORMAT L"__identifier_no_format"
 
 #endif
-
-/* (maybe work with path size limitations later?) */
-/* if (IsWindowsVersionOrGreater(10, 0, 14393))
-    #define PATHBUF 32000
-else
-    #define PATHBUF MAX_PATH */
