@@ -3,17 +3,17 @@
 
 #define PROGRAM_NAME      L"RFF"
 #define PROGRAM_NAME_FULL L"RFFMPEG"
-#define PROGRAM_VERSION   L"v0.3.1-alpha"
+#define PROGRAM_VERSION   L"v0.4.0-beta"
 
 static const wchar_t *fullTitle = PROGRAM_NAME_FULL L" " PROGRAM_VERSION L" d-_-b";
-static const uint16_t _utf8Codepage = 65001;
+static const wchar_t *consoleWindowTitle = PROGRAM_NAME L" " PROGRAM_VERSION;
 
 /* ANSI eschape chars for colored shell output */
-#define CHARCOLOR_WHITE      L"\033[37m"
-#define CHARCOLOR_WHITE_BOLD L"\033[97m"
-#define CHARCOLOR_RED        L"\033[31m"
-#define CHARCOLOR_RED_BOLD   L"\033[91m"
-#define COLOR_DEFAULT        L"\033[0m"
+#define CHARCOLOR_WHITE      L"\x1b[37m"
+#define CHARCOLOR_WHITE_BOLD L"\x1b[97m"
+#define CHARCOLOR_RED        L"\x1b[31m"
+#define CHARCOLOR_RED_BOLD   L"\x1b[91m"
+#define COLOR_DEFAULT        L"\x1b[0m"
 
 /* Buffers and size limitations */
 #define BUFFER   (512 * sizeof(wchar_t))

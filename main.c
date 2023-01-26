@@ -2,6 +2,7 @@
 
 /* TODO:    implement specific case where overwriting a file of same input fmt as output requires a temp file to be created and renamed afterwards */
 /* TODO:    get wchar arguments through windows function instead of wmain() to remove need for the compiler flag */
+/* TODO:    maybe change wchar_t to char16_t to ensure a size of at least 16 bits per char */
 
 int wmain(int argc, const wchar_t *argv[]) {
     wchar_t *arguments[MAX_ARGS] = { NULL };
@@ -9,21 +10,29 @@ int wmain(int argc, const wchar_t *argv[]) {
     processInfo_t processInformation = { 0 };
 
     int32_t exitCode;
+    DWORD originalConsoleMode;
     clock_t startTime, endTime;
-    inputMode_t inputMode;
 
-    SetConsoleCP(_utf8Codepage);
-    SetConsoleOutputCP(_utf8Codepage);
+    char *locale = setlocale(LC_ALL, ".UTF-8");
+
+    wchar_t originalConsoleWindowTitle[PATHBUF];
+
+    inputMode_t inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
+
+    enableVirtualTerminalProcessing(&originalConsoleMode);
+
+    if (inputMode == CONSOLE) {
+        GetConsoleTitleW(originalConsoleWindowTitle, PATHBUF);
+        SetConsoleTitleW(consoleWindowTitle);
+    }
 
     wprintf(L"%ls%ls%ls\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
 
-    if (argc > 1) {
+    if (inputMode == ARGUMENTS) {
         parseArguments(argc, argv, arguments);
         parseOptions(argc, argv, options);     
-        inputMode = ARGUMENTS;
     } else {
-        runInConsoleMode(arguments, options);
-        inputMode = CONSOLE;
+        getInputFromConsole(arguments, options);
     }
 
     if (options[OPT_DISPLAYHELP] == true) {
@@ -37,7 +46,7 @@ int wmain(int argc, const wchar_t *argv[]) {
 
     startTime = clock();
 
-    exitCode = searchDirectory(NULL, arguments, (const bool*)options, &processInformation);
+    exitCode = searchDirectory(NULL, arguments, options, &processInformation);
 
     endTime = clock();
 
@@ -53,8 +62,14 @@ int wmain(int argc, const wchar_t *argv[]) {
 
     if (inputMode == CONSOLE) {
         wprintf_s(L" %ls(Press any key to exit) %ls", CHARCOLOR_WHITE, COLOR_DEFAULT);
+
         getwchar();
+
+        wprintf_s(L"\n");
+        SetConsoleTitleW(originalConsoleWindowTitle);
     }
+
+    resetConsoleMode(originalConsoleMode);
 
     return exitCode;
 }

@@ -1,9 +1,6 @@
 #include "console.h"
 
-int runInConsoleMode(wchar_t *arguments[], bool *options) {
-    _wsystem(L"@ECHO OFF");
-    _wsystem(L"TITLE " PROGRAM_NAME L" " PROGRAM_VERSION);
-
+int getInputFromConsole(wchar_t *arguments[], bool *options) {
     wprintf_s(L"%ls > %lsInput path: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
     arguments[ARG_INPATH] = malloc(PATHBUF);

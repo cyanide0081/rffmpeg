@@ -25,6 +25,66 @@ wchar_t **parseArguments(int count, const wchar_t *arguments[], wchar_t *destina
     return destination;
 }
 
+errno_t clearConsoleWindow(void) {
+    HANDLE handleToStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    DWORD consoleMode = 0;
+
+    if (!GetConsoleMode(handleToStdOut, &consoleMode)) {
+        return GetLastError();
+    }
+
+    const DWORD originalConsoleMode = consoleMode;
+
+    consoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+
+    if (!SetConsoleMode(handleToStdOut, consoleMode)) {
+        return GetLastError();
+    }
+
+    DWORD writtenCharacters = 0;
+    PCWSTR sequence = L"\x1b]10d\x1b]1G";
+
+    if (!WriteConsoleW(handleToStdOut, sequence, (DWORD)wcslen(sequence), &writtenCharacters, NULL)) {
+        SetConsoleMode(handleToStdOut, originalConsoleMode);
+        return GetLastError();
+    }
+
+    SetConsoleMode(handleToStdOut, originalConsoleMode);
+
+    return EXIT_SUCCESS;
+}
+
+errno_t resetConsoleMode(DWORD originalConsoleMode) {
+    HANDLE handleToStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    if (!SetConsoleMode(handleToStdOut, originalConsoleMode)) {
+        return GetLastError();
+    }
+
+    return EXIT_SUCCESS;
+}
+
+errno_t enableVirtualTerminalProcessing(PDWORD originalConsoleMode) {
+    HANDLE handleToStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    DWORD consoleMode = 0;
+
+    if (!GetConsoleMode(handleToStdOut, &consoleMode)) {
+        return GetLastError();
+    }
+
+    *originalConsoleMode = consoleMode;
+
+    consoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+
+    if (!SetConsoleMode(handleToStdOut, consoleMode)) {
+        return GetLastError();
+    }
+
+    return EXIT_SUCCESS;
+}
+
 bool *parseOptions(int count, const wchar_t *options[], bool destination[]) {
     /* fmt: --help (duh) /n (folder) /d (delete old) /r (recursive) /y (overwrite) */
     for (size_t i = 0; i < count; ++i) {
@@ -91,7 +151,7 @@ int handleErrors(wchar_t *arguments[]) {
     return EXIT_SUCCESS;
 }
 
-int searchDirectory(const wchar_t *directory, wchar_t *arguments[], const bool options[], processInfo_t *processInformation) {
+int searchDirectory(const wchar_t *directory, wchar_t *arguments[], const bool *options, processInfo_t *runtimeData) {
     const wchar_t *inputPath         = directory == NULL ? arguments[ARG_INPATH] : directory;
     const wchar_t *inputFormatString = arguments[ARG_INFORMAT];
     const wchar_t *parameters        = arguments[ARG_INPARAMETERS];
@@ -139,7 +199,7 @@ int searchDirectory(const wchar_t *directory, wchar_t *arguments[], const bool o
 
             swprintf_s(newPathMask, PATHBUF - 1, L"%ls\\%ls", inputPath, fileData.cFileName);
 
-            searchDirectory(newPathMask, arguments, options, processInformation);
+            searchDirectory(newPathMask, arguments, options, runtimeData);
 
             continue;
         }
@@ -180,22 +240,34 @@ int searchDirectory(const wchar_t *directory, wchar_t *arguments[], const bool o
         if (options[OPT_FORCEOVERWRITE] == false)
             preventFilenameOverwrites(fileNameNoExtension, outputFormat, outputPath);
 
-        wchar_t command[LONGBUF];
+        wchar_t ffmpegParameters[LONGBUF];
 
-        swprintf_s(command, LONGBUF, L"ffmpeg -hide_banner %ls -i \"%ls\\%ls\" %ls \"%ls\\%ls.%ls\"", 
+        swprintf_s(ffmpegParameters, LONGBUF, L"ffmpeg -hide_banner %ls -i \"%ls\\%ls\" %ls \"%ls\\%ls.%ls\"", 
             overwriteOption, inputPath, fileName, parameters, outputPath, fileNameNoExtension, outputFormat);
         
-        _wsystem(command);
-        ++processInformation->convertedFiles;
-        putchar('\n');
+        /* Setup process info structures */
+        STARTUPINFO ffmpegStartupInformation = { sizeof(ffmpegStartupInformation) };
+        PROCESS_INFORMATION ffmpegProcessInformation;
 
+        /* Call ffmpeg and wait for it to finish */
+        if (CreateProcessW(NULL, ffmpegParameters, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &ffmpegStartupInformation, &ffmpegProcessInformation)) {
+            WaitForSingleObject(ffmpegProcessInformation.hProcess, INFINITE);
+
+            CloseHandle(ffmpegProcessInformation.hProcess);
+            CloseHandle(ffmpegProcessInformation.hThread);
+
+            ++(runtimeData->convertedFiles);
+
+            wprintf_s(L"\n");
+        }
+        
         /* Keep or delete original files */
         if (options[OPT_DELETEOLDFILES] == true) {
             wchar_t inputFilePath[PATHBUF];
             swprintf_s(inputFilePath, PATHBUF, L"%ls\\%ls", inputPath, fileName);
 
             if (DeleteFileW(inputFilePath)) {
-                processInformation->deletedFiles++;
+                ++(runtimeData->deletedFiles);
             }
         }
     } while (FindNextFileW(fileHandle, &fileData));

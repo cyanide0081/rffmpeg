@@ -3,6 +3,6 @@
 
 #include "libs.h"
 
-int runInConsoleMode(wchar_t *arguments[], bool *options);
+int getInputFromConsole(wchar_t *arguments[], bool *options);
 
 #endif
