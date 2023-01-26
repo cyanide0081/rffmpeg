@@ -17,4 +17,4 @@ command-line tool for automation of ffmpeg commands through whole file paths on 
 
 - to compile this with *MingW*, use the [-municode](https://gcc.gnu.org/onlinedocs/gcc/x86-Windows-Options.html) option
 
-- **p.s.:** currently, the executable is blocked by smartscreen by default (probably due to its `system()` calls)
+- **p.s.:** for whatever reason the executable is blocked by smartscreen by default
