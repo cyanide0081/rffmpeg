@@ -1,7 +1,7 @@
 #include "functions.h"
 
 void printError(const wchar_t *msg) {
-    fwprintf(stderr, L"%lsERROR: %ls%ls%ls\n", CHARCOLOR_RED, CHARCOLOR_WHITE, msg, COLOR_DEFAULT);
+    fwprintf(stderr, L"%lsERROR: %ls%ls%ls\n\n", CHARCOLOR_RED, CHARCOLOR_WHITE, msg, COLOR_DEFAULT);
 }
 
 wchar_t **parseArguments(int count, const wchar_t *arguments[], wchar_t *destination[]) {

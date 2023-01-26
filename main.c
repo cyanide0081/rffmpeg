@@ -35,12 +35,19 @@ int wmain(int argc, const wchar_t *argv[]) {
         getInputFromConsole(arguments, options);
     }
 
-    if (options[OPT_DISPLAYHELP] == true) {
+    if (options[OPT_DISPLAYHELP] == true && inputMode == ARGUMENTS) {
         displayHelp();
         return EXIT_SUCCESS;
     }
 
     if (handleErrors(arguments) == EXIT_FAILURE) {
+        wprintf_s(L" %ls(Press any key to exit) %ls", CHARCOLOR_WHITE, COLOR_DEFAULT);
+
+        getwchar();
+
+        wprintf_s(L"\n");
+        SetConsoleTitleW(originalConsoleWindowTitle);
+        
         return EXIT_FAILURE;
     }
 
