@@ -31,23 +31,25 @@ int getInputFromConsole(wchar_t *arguments[], bool *options) {
 
     uint16_t numberOfOptions = 0;
      
-    wchar_t *optionsTokenized[MAX_OPTS] = { NULL };
+    wchar_t *optionsTokenized[MAX_OPTS];
     wchar_t *parserState;
     wchar_t *token = wcstok_s(optionsString, L" ", &parserState);
 
     while (token) {
         optionsTokenized[numberOfOptions] = calloc(SHORTBUF, sizeof(wchar_t));
 
-        wcscpy_s(optionsTokenized[numberOfOptions++], SHORTBUF - 1, token);
+        wcscpy_s(optionsTokenized[numberOfOptions++], SHORTBUF, token);
 
         token = wcstok_s(NULL, L" ", &parserState);
     }
 
-    parseOptions(numberOfOptions, (const wchar_t**)optionsTokenized, options);
+    if (numberOfOptions > 0) {
+        parseArguments(numberOfOptions, (const wchar_t**)optionsTokenized, arguments, options, false, true);
+    }
 
     wprintf_s(COLOR_DEFAULT);
 
-    for (int i = 0; optionsTokenized[i]; ++i)
+    for (int i = 0; i < numberOfOptions; ++i)
         free(optionsTokenized[i]);
 
     return EXIT_SUCCESS;

@@ -4,34 +4,51 @@ void printError(const wchar_t *msg) {
     fwprintf(stderr, L"%lsERROR: %ls%ls%ls\n\n", CHARCOLOR_RED, CHARCOLOR_WHITE, msg, COLOR_DEFAULT);
 }
 
-void parseArguments(int count, const wchar_t *arguments[], wchar_t *destination[]) {
-    /* fmt: -i <path> -f <container> -p <params> -o <container> */
-    for (size_t i = 1; i < count; ++i) {
-        if (wcscmp(arguments[i], L"-path") == 0) {
-            wcsncpy_s(destination[ARG_INPATH], PATHBUF - 1, arguments[++i], PATHBUF);
-        } else if (wcscmp(arguments[i], L"-fmt") == 0) {
-            wcsncpy_s(destination[ARG_INFORMAT], BUFFER - 1, arguments[++i], BUFFER);
-        } else if (wcscmp(arguments[i], L"-opts") == 0) {
-            wcsncpy_s(destination[ARG_INPARAMETERS], BUFFER - 1, arguments[++i], BUFFER);
-        } else if (wcscmp(arguments[i], L"-ext") == 0) {
-            wcsncpy_s(destination[ARG_OUTFORMAT], SHORTBUF - 1, arguments[++i], SHORTBUF);
+void parseArguments(const int count, const wchar_t *rawArguments[], wchar_t *parsedArguments[], bool parsedOptions[], bool parseArguments, bool parseOptions) {
+    if (parseArguments) {
+        /* fmt: -i <path> -f <container> -p <params> -o <container> */
+        for (size_t i = 1; i < count; ++i) {
+            if (wcscmp(rawArguments[i], L"-path") == 0) {
+                wcsncpy_s(parsedArguments[ARG_INPATH], PATHBUF - 1, rawArguments[++i], PATHBUF);
+            } else if (wcscmp(rawArguments[i], L"-fmt") == 0) {
+                wcsncpy_s(parsedArguments[ARG_INFORMAT], BUFFER - 1, rawArguments[++i], BUFFER);
+            } else if (wcscmp(rawArguments[i], L"-opts") == 0) {
+                wcsncpy_s(parsedArguments[ARG_INPARAMETERS], BUFFER - 1, rawArguments[++i], BUFFER);
+            } else if (wcscmp(rawArguments[i], L"-ext") == 0) {
+                wcsncpy_s(parsedArguments[ARG_OUTFORMAT], SHORTBUF - 1, rawArguments[++i], SHORTBUF);
+            }
         }
     }
-}
 
-void parseOptions(int count, const wchar_t *options[], bool destination[]) {
-    /* fmt: --help (duh) /n (folder) /d (delete old) /r (recursive) /y (overwrite) */
-    for (size_t i = 0; i < count; ++i) {
-        if (wcscmp(options[i], OPT_DISPLAYHELP_STRING) == 0) {
-            destination[OPT_DISPLAYHELP] = true;
-        } else if (wcscmp(options[i], OPT_MAKENEWFOLDER_STRING) == 0) {
-            destination[OPT_MAKENEWFOLDER] = true;
-        } else if (wcscmp(options[i], OPT_DELETEOLDFILES_STRING) == 0) {
-            destination[OPT_DELETEOLDFILES] = true;
-        } else if (wcscmp(options[i], OPT_DISABLERECURSION_STRING) == 0) {
-            destination[OPT_DISABLERECURSION] = true;
-        } else if (wcscmp(options[i], OPT_FORCEOVERWRITE_STRING) == 0) {
-            destination[OPT_FORCEOVERWRITE] = true;
+    if (parseOptions) {
+        /* fmt: --help, --newfolder=foldername, --delete, --norecursion, --overwrite, */
+        for (size_t i = 0; i < count; ++i) {
+            if (wcscmp(rawArguments[i], OPT_DISPLAYHELP_STRING) == 0) {
+                parsedOptions[OPT_DISPLAYHELP] = true;
+            } else if (wcsstr(rawArguments[i], OPT_MAKENEWFOLDER_STRING)) {
+                parsedOptions[OPT_MAKENEWFOLDER] = true;
+
+                wchar_t *argumentBuffer = wcsdup(rawArguments[i]); // duplicate argument string for analysis
+
+                wchar_t *parserState;
+                wchar_t *delimiter = L"=";
+                wchar_t *token = wcstok_s(argumentBuffer, delimiter, &parserState);
+
+                /* If there's an '=' sign, pass the string after it to the foldername argument */
+                if ((token = wcstok_s(NULL, delimiter, &parserState)) != NULL) {
+                    parsedOptions[OPT_CUSTOMFOLDERNAME] = true;
+                    
+                    wcscpy_s(parsedArguments[ARG_NEWFOLDERNAME], PATHBUF, token);
+                }
+
+                free(argumentBuffer);
+            } else if (wcscmp(rawArguments[i], OPT_DELETEOLDFILES_STRING) == 0) {
+                parsedOptions[OPT_DELETEOLDFILES] = true;
+            } else if (wcscmp(rawArguments[i], OPT_DISABLERECURSION_STRING) == 0) {
+                parsedOptions[OPT_DISABLERECURSION] = true;
+            } else if (wcscmp(rawArguments[i], OPT_FORCEOVERWRITE_STRING) == 0) {
+                parsedOptions[OPT_FORCEOVERWRITE] = true;
+            }
         }
     }
 }
@@ -217,7 +234,9 @@ errorCode_t searchDirectory(const wchar_t *directory, wchar_t *arguments[], cons
         if (options[OPT_MAKENEWFOLDER] == true) {
             wchar_t subFolderDirectory[PATHBUF];
 
-            swprintf_s(subFolderDirectory, PATHBUF, L"%ls\\%ls", inputPath, outputFormat);
+            const wchar_t *folderName = options[OPT_CUSTOMFOLDERNAME] == true ? arguments[ARG_NEWFOLDERNAME] : outputFormat;
+
+            swprintf_s(subFolderDirectory, PATHBUF, L"%ls\\%ls", inputPath, folderName);
             CreateDirectoryW(subFolderDirectory, NULL);
             wcscpy_s(outputPath, PATHBUF - 1, subFolderDirectory);
         } else {
@@ -251,6 +270,7 @@ errorCode_t searchDirectory(const wchar_t *directory, wchar_t *arguments[], cons
         /* Keep or delete original files */
         if (options[OPT_DELETEOLDFILES] == true) {
             wchar_t inputFilePath[PATHBUF];
+
             swprintf_s(inputFilePath, PATHBUF, L"%ls\\%ls", inputPath, fileName);
 
             if (DeleteFileW(inputFilePath)) {

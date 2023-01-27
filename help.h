@@ -13,7 +13,7 @@ static void displayHelp(void) {
     wprintf_s(L"    %-20lsthe output extension (e.g.: mkv)\n", L"-ext <output>");
     wprintf_s(L"\n");
     wprintf_s(L" Additional options:\n");
-    wprintf_s(L"    %-20lsstore converted files in a new folder\n", OPT_MAKENEWFOLDER_STRING);
+    wprintf_s(L"    %-20lsstore converted files in a new folder (you can choose a folder name with --newfolder=name)\n", OPT_MAKENEWFOLDER_STRING);
     wprintf_s(L"    %-20lsauto-overwrite existing output files (default behaviour appends an index)\n", OPT_FORCEOVERWRITE_STRING);
     wprintf_s(L"    %-20lsdelete original files after conversion \n", OPT_DELETEOLDFILES_STRING);
     wprintf_s(L"    %-20lsdisable recursive subfolder search\n", OPT_DISABLERECURSION_STRING);

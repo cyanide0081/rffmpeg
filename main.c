@@ -8,10 +8,11 @@
 int wmain(int argc, const wchar_t *argv[]) {
     wchar_t *arguments[MAX_ARGS];
 
-    arguments[ARG_INPATH]       = calloc(PATHBUF, sizeof(wchar_t));
-    arguments[ARG_INFORMAT]     = calloc(BUFFER, sizeof(wchar_t));
-    arguments[ARG_INPARAMETERS] = calloc(BUFFER, sizeof(wchar_t));
-    arguments[ARG_OUTFORMAT]    = calloc(SHORTBUF, sizeof(wchar_t));
+    arguments[ARG_INPATH]           = calloc(PATHBUF, sizeof(wchar_t));
+    arguments[ARG_INFORMAT]         = calloc(BUFFER, sizeof(wchar_t));
+    arguments[ARG_INPARAMETERS]     = calloc(BUFFER, sizeof(wchar_t));
+    arguments[ARG_OUTFORMAT]        = calloc(SHORTBUF, sizeof(wchar_t));
+    arguments[ARG_NEWFOLDERNAME]    = calloc(PATHBUF, sizeof(wchar_t));
 
     bool options[MAX_OPTS] = { false };
 
@@ -22,7 +23,7 @@ int wmain(int argc, const wchar_t *argv[]) {
 
     inputMode_t inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
-    char *originalLocale = setlocale(LC_ALL, NULL);
+    char *originalLocale = strdup(setlocale(LC_ALL, NULL));
     
     setlocale(LC_ALL, ".UTF-8");
     enableVirtualTerminalProcessing(&originalConsoleMode);
@@ -35,8 +36,7 @@ int wmain(int argc, const wchar_t *argv[]) {
     wprintf_s(L"%ls%ls%ls\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
 
     if (inputMode == ARGUMENTS) {
-        parseArguments(argc, argv, arguments);
-        parseOptions(argc, argv, options);     
+        parseArguments(argc, argv, arguments, options, true, true);
     } else {
         getInputFromConsole(arguments, options);
     }
@@ -73,6 +73,8 @@ int wmain(int argc, const wchar_t *argv[]) {
     }
 
     setlocale(LC_ALL, originalLocale);
+    free(originalLocale);
+
     resetConsoleMode(originalConsoleMode);
 
     return (int)exitCode;

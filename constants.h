@@ -3,7 +3,7 @@
 
 #define PROGRAM_NAME      L"RFF"
 #define PROGRAM_NAME_FULL L"RFFMPEG"
-#define PROGRAM_VERSION   L"v0.4.1-beta"
+#define PROGRAM_VERSION   L"v0.5.0-beta"
 
 static const wchar_t *fullTitle = PROGRAM_NAME_FULL L" " PROGRAM_VERSION L" d-_-b";
 static const wchar_t *consoleWindowTitle = PROGRAM_NAME L" " PROGRAM_VERSION;
@@ -21,20 +21,22 @@ static const wchar_t *consoleWindowTitle = PROGRAM_NAME L" " PROGRAM_VERSION;
 #define LONGBUF  (BUFFER * 8)
 #define PATHBUF  (MAX_PATH)
 
-#define MAX_ARGS 4
-#define MAX_OPTS 5
+#define MAX_ARGS 5
+#define MAX_OPTS 6
 
 /* Argument and option arrays' index trackers */
-#define ARG_INPATH       0
-#define ARG_INFORMAT     1
-#define ARG_INPARAMETERS 2
-#define ARG_OUTFORMAT    3
+#define ARG_INPATH        0
+#define ARG_INFORMAT      1
+#define ARG_INPARAMETERS  2
+#define ARG_OUTFORMAT     3
+#define ARG_NEWFOLDERNAME 4
 
 #define OPT_DISPLAYHELP      0
 #define OPT_MAKENEWFOLDER    1
 #define OPT_DELETEOLDFILES   2
 #define OPT_DISABLERECURSION 3
 #define OPT_FORCEOVERWRITE   4
+#define OPT_CUSTOMFOLDERNAME 5
 
 /* Option string constants */
 #define OPT_DISPLAYHELP_STRING      L"--help"  
