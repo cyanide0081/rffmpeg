@@ -4,25 +4,36 @@ void printError(const wchar_t *msg) {
     fwprintf(stderr, L"%lsERROR: %ls%ls%ls\n\n", CHARCOLOR_RED, CHARCOLOR_WHITE, msg, COLOR_DEFAULT);
 }
 
-wchar_t **parseArguments(int count, const wchar_t *arguments[], wchar_t *destination[]) {
+void parseArguments(int count, const wchar_t *arguments[], wchar_t *destination[]) {
     /* fmt: -i <path> -f <container> -p <params> -o <container> */
     for (size_t i = 1; i < count; ++i) {
-        if (wcscmp(arguments[i], L"-i") == 0) {
-            destination[ARG_INPATH] = malloc(PATHBUF);
-            wcsncpy_s(destination[ARG_INPATH], MAX_PATH - 1, arguments[++i], MAX_PATH);
-        } else if (wcscmp(arguments[i], L"-f") == 0) {
-            destination[ARG_INFORMAT] = malloc(BUFFER);
+        if (wcscmp(arguments[i], L"-path") == 0) {
+            wcsncpy_s(destination[ARG_INPATH], PATHBUF - 1, arguments[++i], PATHBUF);
+        } else if (wcscmp(arguments[i], L"-fmt") == 0) {
             wcsncpy_s(destination[ARG_INFORMAT], BUFFER - 1, arguments[++i], BUFFER);
-        } else if (wcscmp(arguments[i], L"-p") == 0) {
-            destination[ARG_INPARAMETERS] = malloc(BUFFER);
+        } else if (wcscmp(arguments[i], L"-opts") == 0) {
             wcsncpy_s(destination[ARG_INPARAMETERS], BUFFER - 1, arguments[++i], BUFFER);
-        } else if (wcscmp(arguments[i], L"-o") == 0) {
-            destination[ARG_OUTFORMAT] = malloc(SHORTBUF);
+        } else if (wcscmp(arguments[i], L"-ext") == 0) {
             wcsncpy_s(destination[ARG_OUTFORMAT], SHORTBUF - 1, arguments[++i], SHORTBUF);
         }
     }
+}
 
-    return destination;
+void parseOptions(int count, const wchar_t *options[], bool destination[]) {
+    /* fmt: --help (duh) /n (folder) /d (delete old) /r (recursive) /y (overwrite) */
+    for (size_t i = 0; i < count; ++i) {
+        if (wcscmp(options[i], OPT_DISPLAYHELP_STRING) == 0) {
+            destination[OPT_DISPLAYHELP] = true;
+        } else if (wcscmp(options[i], OPT_MAKENEWFOLDER_STRING) == 0) {
+            destination[OPT_MAKENEWFOLDER] = true;
+        } else if (wcscmp(options[i], OPT_DELETEOLDFILES_STRING) == 0) {
+            destination[OPT_DELETEOLDFILES] = true;
+        } else if (wcscmp(options[i], OPT_DISABLERECURSION_STRING) == 0) {
+            destination[OPT_DISABLERECURSION] = true;
+        } else if (wcscmp(options[i], OPT_FORCEOVERWRITE_STRING) == 0) {
+            destination[OPT_FORCEOVERWRITE] = true;
+        }
+    }
 }
 
 errno_t clearConsoleWindow(void) {
@@ -85,25 +96,6 @@ errno_t enableVirtualTerminalProcessing(PDWORD originalConsoleMode) {
     return EXIT_SUCCESS;
 }
 
-bool *parseOptions(int count, const wchar_t *options[], bool destination[]) {
-    /* fmt: --help (duh) /n (folder) /d (delete old) /r (recursive) /y (overwrite) */
-    for (size_t i = 0; i < count; ++i) {
-        if (wcscmp(options[i], OPT_DISPLAYHELP_STRING) == 0) {
-            destination[OPT_DISPLAYHELP] = true;
-        } else if (wcscmp(options[i], OPT_MAKENEWFOLDER_STRING) == 0) {
-            destination[OPT_MAKENEWFOLDER] = true;
-        } else if (wcscmp(options[i], OPT_DELETEOLDFILES_STRING) == 0) {
-            destination[OPT_DELETEOLDFILES] = true;
-        } else if (wcscmp(options[i], OPT_DISABLERECURSION_STRING) == 0) {
-            destination[OPT_DISABLERECURSION] = true;
-        } else if (wcscmp(options[i], OPT_FORCEOVERWRITE_STRING) == 0) {
-            destination[OPT_FORCEOVERWRITE] = true;
-        }
-    }
-
-    return destination;
-}
-
 int preventFilenameOverwrites(wchar_t *pureFilename, const wchar_t *outputFormat, const wchar_t *path) {
     wchar_t fileMask[PATHBUF];
     wchar_t fileNameNew[PATHBUF];
@@ -127,31 +119,25 @@ int preventFilenameOverwrites(wchar_t *pureFilename, const wchar_t *outputFormat
     return EXIT_SUCCESS;
 }
 
-int handleErrors(wchar_t *arguments[]) {
-    if (arguments[ARG_INPATH] == NULL) { 
-        arguments[ARG_INPATH] = malloc(PATHBUF);         
+errorCode_t handleErrors(wchar_t *arguments[]) {
+    if (*arguments[ARG_INPATH] == 0) {       
         GetCurrentDirectoryW(PATHBUF, arguments[ARG_INPATH]);
     }
 
-    if (arguments[ARG_INPARAMETERS] == NULL) {
-        arguments[ARG_INPARAMETERS] = malloc(2 * sizeof(wchar_t));
-        wcscpy_s(arguments[ARG_INPARAMETERS], sizeof(wchar_t), L"");
-    }
-
-    if (arguments[ARG_INFORMAT] == NULL || *arguments[ARG_INFORMAT] == 0) {
+    if (*arguments[ARG_INFORMAT] == 0) {
         printError(L"no input format (null)");
-        return EXIT_FAILURE;
+        return ERROR_NO_INPUT_FORMAT;
     }
 
-    if (arguments[ARG_OUTFORMAT] == NULL || *arguments[ARG_OUTFORMAT] == 0) {
+    if (*arguments[ARG_OUTFORMAT] == 0) {
         printError(L"no output format (null)");
-        return EXIT_FAILURE;
+        return ERROR_NO_OUTPUT_FORMAT;
     }
 
-    return EXIT_SUCCESS;
+    return ERROR_NONE;
 }
 
-int searchDirectory(const wchar_t *directory, wchar_t *arguments[], const bool *options, processInfo_t *runtimeData) {
+errorCode_t searchDirectory(const wchar_t *directory, wchar_t *arguments[], const bool *options, processInfo_t *runtimeData) {
     const wchar_t *inputPath         = directory == NULL ? arguments[ARG_INPATH] : directory;
     const wchar_t *inputFormatString = arguments[ARG_INFORMAT];
     const wchar_t *parameters        = arguments[ARG_INPARAMETERS];
@@ -162,7 +148,7 @@ int searchDirectory(const wchar_t *directory, wchar_t *arguments[], const bool *
     static wchar_t inputFormats[SHORTBUF][SHORTBUF] = { IDENTIFIER_NO_FORMAT };
 
     /* Save cpu resources by only tokenizing formats once */
-    if (inputFormats[0] == IDENTIFIER_NO_FORMAT); {
+    if (wcscmp(inputFormats[0], IDENTIFIER_NO_FORMAT) == 0 && numberOfInputFormats == 0) {
         wchar_t inputFormatStringBuffer[BUFFER];
 
         wcscpy_s(inputFormatStringBuffer, BUFFER - 1, inputFormatString);
@@ -183,9 +169,10 @@ int searchDirectory(const wchar_t *directory, wchar_t *arguments[], const bool *
     swprintf_s(pathMask, BUFFER - 1, L"%ls\\*", inputPath);
 
     if ((fileHandle = FindFirstFileW(pathMask, &fileData)) == INVALID_HANDLE_VALUE) {
-        fwprintf(stderr, L"%lsERROR: %lsCouldn't open \'%ls\'\n", CHARCOLOR_RED, CHARCOLOR_WHITE, inputPath);
+        fwprintf_s(stderr, L"%lsERROR: %lsCouldn't open \'%ls\' (code: %ls%lu%ls)\n\n",
+            CHARCOLOR_RED, CHARCOLOR_WHITE, inputPath, CHARCOLOR_RED, GetLastError(), CHARCOLOR_WHITE);
 
-        return EXIT_FAILURE;
+        return ERROR_FAILED_TO_OPEN_DIRECTORY;
     }
 
     do {

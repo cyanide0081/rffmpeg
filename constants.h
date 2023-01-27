@@ -8,7 +8,7 @@
 static const wchar_t *fullTitle = PROGRAM_NAME_FULL L" " PROGRAM_VERSION L" d-_-b";
 static const wchar_t *consoleWindowTitle = PROGRAM_NAME L" " PROGRAM_VERSION;
 
-/* ANSI eschape chars for colored shell output */
+/* ANSI escape chars for colored shell output (Virtual Terminal Sequences) */
 #define CHARCOLOR_WHITE      L"\x1b[37m"
 #define CHARCOLOR_WHITE_BOLD L"\x1b[97m"
 #define CHARCOLOR_RED        L"\x1b[31m"
@@ -16,10 +16,10 @@ static const wchar_t *consoleWindowTitle = PROGRAM_NAME L" " PROGRAM_VERSION;
 #define COLOR_DEFAULT        L"\x1b[0m"
 
 /* Buffers and size limitations */
-#define BUFFER   (512 * sizeof(wchar_t))
+#define BUFFER   (512)
 #define SHORTBUF (BUFFER / 16)
 #define LONGBUF  (BUFFER * 8)
-#define PATHBUF  (MAX_PATH * sizeof(wchar_t))
+#define PATHBUF  (MAX_PATH)
 
 #define MAX_ARGS 4
 #define MAX_OPTS 5
