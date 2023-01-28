@@ -1,53 +1,53 @@
 #include "console.h"
 
-int getInputFromConsole(wchar_t *arguments[], bool *options) {
-    wprintf_s(L"%ls > %lsInput path: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
-    fgetws(arguments[ARG_INPATH], PATHBUF, stdin);
-    arguments[ARG_INPATH][wcscspn(arguments[ARG_INPATH], L"\r\n")] = L'\0'; // Remove trailing fgets() newline
+int getInputFromConsole(char *arguments[], bool *options) {
+    printf_s(u8"%s > %sInput path: %s", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+    fscanf_s(stdin, "%s", arguments[ARG_INPATH], PATHBUF);
+    arguments[ARG_INPATH][strcspn(arguments[ARG_INPATH], u8"\r\n")] = L'\0'; // Remove trailing fgets() newline
     
-    wprintf_s(L"%ls > %lsTarget format(s): %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+    printf_s(u8"%s > %sTarget format(s): %s", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
-    fgetws(arguments[ARG_INFORMAT], BUFFER, stdin);
-    arguments[ARG_INFORMAT][wcscspn(arguments[ARG_INFORMAT], L"\r\n")] = L'\0';
+    fscanf_s(stdin, "%s", arguments[ARG_INFORMAT], BUFFER);
+    arguments[ARG_INFORMAT][strcspn(arguments[ARG_INFORMAT], u8"\r\n")] = L'\0';
 
-    wprintf_s(L"%ls > %lsFFmpeg options: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+    printf_s(u8"%s > %sFFmpeg options: %s", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
-    fgetws(arguments[ARG_INPARAMETERS], BUFFER, stdin);
-    arguments[ARG_INPARAMETERS][wcscspn(arguments[ARG_INPARAMETERS], L"\r\n")] = L'\0';
+    fscanf_s(stdin, "%s", arguments[ARG_INPARAMETERS], BUFFER);
+    arguments[ARG_INPARAMETERS][strcspn(arguments[ARG_INPARAMETERS], u8"\r\n")] = L'\0';
 
-    wprintf_s(L"%ls > %lsOutput format: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+    printf_s(u8"%s > %sOutput format: %s", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
-    fgetws(arguments[ARG_OUTFORMAT], SHORTBUF, stdin);
-    arguments[ARG_OUTFORMAT][wcscspn(arguments[ARG_OUTFORMAT], L"\r\n")] = L'\0';
+    fscanf_s(stdin, "%s", arguments[ARG_OUTFORMAT], SHORTBUF);
+    arguments[ARG_OUTFORMAT][strcspn(arguments[ARG_OUTFORMAT], u8"\r\n")] = L'\0';
 
-    wchar_t optionsString[BUFFER];
+    char optionsString[BUFFER];
 
-    wprintf_s(L"%ls > %lsAdditional modes: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+    printf_s(u8"%s > %sAdditional modes: %s", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
-    fgetws(optionsString, BUFFER, stdin);
-    optionsString[wcscspn(optionsString, L"\r\n")] = L'\0';
+    fscanf_s(stdin, "%s", optionsString, BUFFER);
+    optionsString[strcspn(optionsString, u8"\r\n")] = L'\0';
 
-    wprintf_s(L"\n");
+    printf_s(u8"\n");
 
     uint16_t numberOfOptions = 0;
      
-    wchar_t *optionsTokenized[MAX_OPTS];
-    wchar_t *parserState;
-    wchar_t *token = wcstok_s(optionsString, L" ", &parserState);
+    char *optionsTokenized[MAX_OPTS];
+    char *parserState;
+    char *token = strtok_s(optionsString, u8" ", &parserState);
 
     while (token) {
-        optionsTokenized[numberOfOptions] = calloc(SHORTBUF, sizeof(wchar_t));
+        optionsTokenized[numberOfOptions] = calloc(SHORTBUF, sizeof(char));
 
-        wcscpy_s(optionsTokenized[numberOfOptions++], SHORTBUF, token);
+        strcpy_s(optionsTokenized[numberOfOptions++], SHORTBUF, token);
 
-        token = wcstok_s(NULL, L" ", &parserState);
+        token = strtok_s(NULL, u8" ", &parserState);
     }
 
     if (numberOfOptions > 0) {
-        parseArguments(numberOfOptions, (const wchar_t**)optionsTokenized, arguments, options, false, true);
+        parseArguments(numberOfOptions, (const char**)optionsTokenized, arguments, options, false, true);
     }
 
-    wprintf_s(COLOR_DEFAULT);
+    printf_s(COLOR_DEFAULT);
 
     for (int i = 0; i < numberOfOptions; ++i)
         free(optionsTokenized[i]);

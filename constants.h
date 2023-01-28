@@ -1,19 +1,21 @@
 #ifndef H_CONSTS
 #define H_CONSTS
 
-#define PROGRAM_NAME      L"RFF"
-#define PROGRAM_NAME_FULL L"RFFMPEG"
-#define PROGRAM_VERSION   L"v0.5.0-beta"
+#define PROGRAM_NAME      u8"RFF"
+#define PROGRAM_NAME_FULL u8"RFFMPEG"
+#define PROGRAM_VERSION   u8"v0.5.0-beta"
 
-static const wchar_t *fullTitle = PROGRAM_NAME_FULL L" " PROGRAM_VERSION L" d-_-b";
-static const wchar_t *consoleWindowTitle = PROGRAM_NAME L" " PROGRAM_VERSION;
+static const char *fullTitle = PROGRAM_NAME_FULL u8" " PROGRAM_VERSION u8" d-_-b";
+static const char *consoleWindowTitle = PROGRAM_NAME u8" " PROGRAM_VERSION;
+
+#define CODEPAGE_UTF8 65001
 
 /* ANSI escape chars for colored shell output (Virtual Terminal Sequences) */
-#define CHARCOLOR_WHITE      L"\x1b[37m"
-#define CHARCOLOR_WHITE_BOLD L"\x1b[97m"
-#define CHARCOLOR_RED        L"\x1b[31m"
-#define CHARCOLOR_RED_BOLD   L"\x1b[91m"
-#define COLOR_DEFAULT        L"\x1b[0m"
+#define CHARCOLOR_WHITE      u8"\x1b[37m"
+#define CHARCOLOR_WHITE_BOLD u8" \x1b[97m"
+#define CHARCOLOR_RED        u8"\x1b[31m"
+#define CHARCOLOR_RED_BOLD   u8"\x1b[91m"
+#define COLOR_DEFAULT        u8"\x1b[0m"
 
 /* Buffers and size limitations */
 #define BUFFER   (512)
@@ -39,14 +41,14 @@ static const wchar_t *consoleWindowTitle = PROGRAM_NAME L" " PROGRAM_VERSION;
 #define OPT_CUSTOMFOLDERNAME 5
 
 /* Option string constants */
-#define OPT_DISPLAYHELP_STRING      L"--help"  
-#define OPT_MAKENEWFOLDER_STRING    L"--newfolder"  
-#define OPT_DELETEOLDFILES_STRING   L"--delete"  
-#define OPT_DISABLERECURSION_STRING L"--norecursion"
-#define OPT_FORCEOVERWRITE_STRING   L"--overwrite"
+#define OPT_DISPLAYHELP_STRING      u8"--help"  
+#define OPT_MAKENEWFOLDER_STRING    u8"--newfolder"  
+#define OPT_DELETEOLDFILES_STRING   u8"--delete"  
+#define OPT_DISABLERECURSION_STRING u8"--norecursion"
+#define OPT_FORCEOVERWRITE_STRING   u8"--overwrite"
 
 /* Misc functinality identifiers */
-#define IDENTIFIER_NO_PATH   L"__ident_no_path"
-#define IDENTIFIER_NO_FORMAT L"__identifier_no_format"
+#define IDENTIFIER_NO_PATH   u8"__ident_no_path"
+#define IDENTIFIER_NO_FORMAT u8"__identifier_no_format"
 
 #endif

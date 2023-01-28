@@ -3,37 +3,54 @@
 /* TODO:    implement custom newfolder naming (--newfolder=foldername) */
 /* TODO:    (maybe) implement specific case where overwriting a file of same input fmt as output requires a temp file to be created and renamed afterwards */
 /* TODO:    get wchar arguments through windows function instead of wmain() to remove need for the compiler flag */
-/* TODO:    maybe change wchar_t to char16_t to ensure a size of at least 16 bits per char */
 
-int wmain(int argc, const wchar_t *argv[]) {
-    wchar_t *arguments[MAX_ARGS];
+int main(int argc, const char *argv[]) {
+    char *arguments[MAX_ARGS];
 
-    arguments[ARG_INPATH]           = calloc(PATHBUF, sizeof(wchar_t));
-    arguments[ARG_INFORMAT]         = calloc(BUFFER, sizeof(wchar_t));
-    arguments[ARG_INPARAMETERS]     = calloc(BUFFER, sizeof(wchar_t));
-    arguments[ARG_OUTFORMAT]        = calloc(SHORTBUF, sizeof(wchar_t));
-    arguments[ARG_NEWFOLDERNAME]    = calloc(PATHBUF, sizeof(wchar_t));
+    arguments[ARG_INPATH]        = calloc(PATHBUF, sizeof(char));
+    arguments[ARG_INFORMAT]      = calloc(BUFFER, sizeof(char));
+    arguments[ARG_INPARAMETERS]  = calloc(BUFFER, sizeof(char));
+    arguments[ARG_OUTFORMAT]     = calloc(SHORTBUF, sizeof(char));
+    arguments[ARG_NEWFOLDERNAME] = calloc(PATHBUF, sizeof(char));
 
     bool options[MAX_OPTS] = { false };
+
+    setlocale(LC_ALL, "");
 
     processInfo_t processInformation = { 0 };
     errorCode_t exitCode = ERROR_NONE;
     DWORD originalConsoleMode;
-    wchar_t originalConsoleWindowTitle[PATHBUF];
+    char originalConsoleWindowTitle[PATHBUF];
+    
+    // UINT originalConsoleOutputCodePage = GetConsoleOutputCP();
+    // SetConsoleOutputCP(CP_UTF8);
+
+    // char commandLineArguments[BUFFER];
+    char *cmdArgs = GetCommandLineA();
+
+    for (int i = 0; i < argc; ++i)
+        printf("%s\n", argv[i]);
+    // size_t bytesWritten;
+
+    // WideCharToMultiByte(CP_UTF8, 0, GetCommandLineW(), wcslen(GetCommandLineW()), commandLineArguments, BUFFER, NULL, NULL);
+    
+    // wchar_t *wideArgs = GetCommandLineW();
+
+    // wprintf_s(u"%ls\n", wideArgs);
+    // printf_s(u8"%s\n", cmdArgs);
+   
+    // printf(u8"\nワンパンマン");
 
     inputMode_t inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
-    char *originalLocale = strdup(setlocale(LC_ALL, NULL));
-    
-    setlocale(LC_ALL, ".UTF-8");
     enableVirtualTerminalProcessing(&originalConsoleMode);
 
     if (inputMode == CONSOLE) {
-        GetConsoleTitleW(originalConsoleWindowTitle, PATHBUF);
-        SetConsoleTitleW(consoleWindowTitle);
+        GetConsoleTitleA(originalConsoleWindowTitle, PATHBUF);
+        SetConsoleTitleA(consoleWindowTitle);
     }
 
-    wprintf_s(L"%ls%ls%ls\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
+    printf_s(u8"%s%s%s\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
 
     if (inputMode == ARGUMENTS) {
         parseArguments(argc, argv, arguments, options, true, true);
@@ -64,18 +81,16 @@ int wmain(int argc, const wchar_t *argv[]) {
     }
 
     if (inputMode == CONSOLE) {
-        wprintf_s(L" %ls(Press any key to exit) %ls", CHARCOLOR_WHITE, COLOR_DEFAULT);
+        printf_s(u8" %s(Press any key to exit) %s", CHARCOLOR_WHITE, COLOR_DEFAULT);
 
         getwchar();
 
-        wprintf_s(L"\n");
-        SetConsoleTitleW(originalConsoleWindowTitle);
+        printf_s(u8"\n");
+        SetConsoleTitleA(originalConsoleWindowTitle);
     }
 
-    setlocale(LC_ALL, originalLocale);
-    free(originalLocale);
-
     resetConsoleMode(originalConsoleMode);
+    // SetConsoleOutputCP(originalConsoleOutputCodePage);
 
-    return (int)exitCode;
+     return (int)exitCode;
 }

@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <locale.h>
-#include <uchar.h>
+#include <tchar.h>
 
 #include "types.h"
 #include "constants.h"
