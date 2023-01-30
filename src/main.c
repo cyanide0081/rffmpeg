@@ -1,16 +1,17 @@
 #include "../include/libs.h"
 
 int main(int argc, const char *argv[]) {
-    char *arguments[MAX_ARGS];
+    char *arguments[MAX_ARGS] = { NULL };
 
-    arguments[ARG_INPATH]        = calloc(PATHBUF, sizeof(char));
-    arguments[ARG_INFORMAT]      = calloc(BUFFER, sizeof(char));
-    arguments[ARG_INPARAMETERS]  = calloc(BUFFER, sizeof(char));
-    arguments[ARG_OUTFORMAT]     = calloc(SHORTBUF, sizeof(char));
-    arguments[ARG_NEWFOLDERNAME] = calloc(PATHBUF, sizeof(char));
+    arguments[ARG_INPATH]        = malloc(PATHBUF);
+    arguments[ARG_INFORMAT]      = malloc(BUFFER);
+    arguments[ARG_INPARAMETERS]  = malloc(BUFFER);
+    arguments[ARG_OUTFORMAT]     = malloc(SHORTBUF);
+    arguments[ARG_NEWFOLDERNAME] = malloc(PATHBUF);
 
     bool options[MAX_OPTS] = { false };
 
+    /* Set system locale and output codepage to UTF-8 for unicode support */
     char originalLocale[PATHBUF] ;
     strcpy_s(originalLocale, PATHBUF, setlocale(LC_ALL, ""));
     setlocale(LC_ALL, ".UTF8");  
@@ -18,11 +19,11 @@ int main(int argc, const char *argv[]) {
     UINT originalConsoleOutputCP = GetConsoleOutputCP();
     SetConsoleOutputCP(CP_UTF8);
 
-    processInfo_t processInformation = { 0 };
-    errorCode_t exitCode = ERROR_NONE;
     DWORD originalConsoleMode;
     char originalConsoleWindowTitle[PATHBUF];
  
+    errorCode_t exitCode = ERROR_NONE;
+    processInfo_t processInformation = { 0 };
     inputMode_t inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
     enableVirtualTerminalProcessing(&originalConsoleMode);
@@ -44,14 +45,12 @@ int main(int argc, const char *argv[]) {
         displayHelp();
     } else if ((exitCode = handleErrors(arguments)) == ERROR_NONE) {
         clock_t startTime = clock();
-
         exitCode = searchDirectory(NULL, arguments, options, &processInformation);
-
         clock_t endTime = clock();
 
         if (exitCode == ERROR_NONE) {
             processInformation.executionTime = (double)(endTime - startTime) / CLOCKS_PER_SEC;
-
+            
             displayEndDialog(&processInformation);
         }
     }
@@ -64,17 +63,16 @@ int main(int argc, const char *argv[]) {
 
     if (inputMode == CONSOLE) {
         printf_s(" %s(Press any key to exit) %s", CHARCOLOR_WHITE, COLOR_DEFAULT);
-
-        getwchar();
+        getchar();
 
         printf_s("\n");
         SetConsoleTitleA(originalConsoleWindowTitle);
     }
 
+    /* Restore our locale/codepage changes before leaving */
     setlocale(LC_ALL, originalLocale);
-
     SetConsoleOutputCP(originalConsoleOutputCP);
-    resetConsoleMode(originalConsoleMode);
+    restoreConsoleMode(originalConsoleMode);
 
      return (int)exitCode;
 }

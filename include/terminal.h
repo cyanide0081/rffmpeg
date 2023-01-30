@@ -7,7 +7,7 @@ void printError(const char *msg);
 
 errno_t clearConsoleWindow(void);
 
-errno_t resetConsoleMode(DWORD originalConsoleMode);
+errno_t restoreConsoleMode(DWORD originalConsoleMode);
 
 errno_t enableVirtualTerminalProcessing(PDWORD originalConsoleMode);
 

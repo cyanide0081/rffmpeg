@@ -34,7 +34,7 @@ errno_t clearConsoleWindow(void) {
     return EXIT_SUCCESS;
 }
 
-errno_t resetConsoleMode(DWORD originalConsoleMode) {
+errno_t restoreConsoleMode(DWORD originalConsoleMode) {
     HANDLE handleToStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
     if (!SetConsoleMode(handleToStdOut, originalConsoleMode)) {
@@ -71,7 +71,7 @@ void displayEndDialog(processInfo_t *processInformation) {
     } else {
         printf_s(" %sDONE!%s\n", CHARCOLOR_RED, COLOR_DEFAULT);
         printf_s("\n");
-        printf_s(" %sConverted file(s): %s%llu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->convertedFiles, COLOR_DEFAULT);
+        printf_s(" %sProcessed file(s): %s%llu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->convertedFiles, COLOR_DEFAULT);
         printf_s(" %sDeleted file(s): %s%llu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->deletedFiles, COLOR_DEFAULT);
         printf_s(" %sExecution time: %s%.2lfs%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->executionTime, COLOR_DEFAULT);
         printf_s("\n");
