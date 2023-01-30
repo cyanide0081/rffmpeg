@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-I. -g
+CFLAGS=-I. -g -std=c17
 
 IDIR=../include
 ODIR=obj
