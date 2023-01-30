@@ -3,16 +3,14 @@
 
 #define PROGRAM_NAME      "RFF"
 #define PROGRAM_NAME_FULL "RFFMPEG"
-#define PROGRAM_VERSION   "v0.5.0-beta"
+#define PROGRAM_VERSION   "v0.6.0-beta"
 
 static const char *fullTitle = PROGRAM_NAME_FULL " " PROGRAM_VERSION u8" (ユニコード)";
 static const char *consoleWindowTitle = PROGRAM_NAME " " PROGRAM_VERSION;
 
-#define CODEPAGE_UTF8 65001
-
 /* ANSI escape chars for colored shell output (Virtual Terminal Sequences) */
 #define CHARCOLOR_WHITE      "\x1b[37m"
-#define CHARCOLOR_WHITE_BOLD " \x1b[97m"
+#define CHARCOLOR_WHITE_BOLD "\x1b[97m"
 #define CHARCOLOR_RED        "\x1b[31m"
 #define CHARCOLOR_RED_BOLD   "\x1b[91m"
 #define COLOR_DEFAULT        "\x1b[0m"

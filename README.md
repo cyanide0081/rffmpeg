@@ -1,12 +1,12 @@
 # rffmpeg
 
-command-line tool for automation of ffmpeg commands through whole file paths on Windows
+command-line tool for automating file conversion through inside directories on Windows
 
-- run with **--help** for instructions
+- run with **--help** to get the full manual
 
 #### dependencies
 
-- this tool uses the *ffmpeg* framework, you can download it [here](https://ffmpeg.org/download.html)
+- to use this tool you need to have [*ffmpeg*](https://ffmpeg.org/download.html) installed
 
 - to run it, either:
 
@@ -14,7 +14,5 @@ command-line tool for automation of ffmpeg commands through whole file paths on 
 
   b. copy the *ffmpeg* executable to the same directory as *rffmpeg*
   
-
-- to compile this with *MingW*, use the [-municode](https://gcc.gnu.org/onlinedocs/gcc/x86-Windows-Options.html) option
 
 - **p.s.:** for whatever reason the executable is blocked by smartscreen by default

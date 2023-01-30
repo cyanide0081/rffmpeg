@@ -16,6 +16,5 @@
 #include "functions.h"
 #include "console.h"
 #include "help.h"
-#include "strings.h"
 
 #endif
