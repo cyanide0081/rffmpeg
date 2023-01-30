@@ -1,9 +1,5 @@
 #include "../include/libs.h"
 
-/* TODO:    implement custom newfolder naming (--newfolder=foldername) */
-/* TODO:    (maybe) implement specific case where overwriting a file of same input fmt as output requires a temp file to be created and renamed afterwards */
-/* TODO:    get wchar arguments through windows function instead of wmain() to remove need for the compiler flag */
-
 int main(int argc, const char *argv[]) {
     char *arguments[MAX_ARGS];
 
@@ -41,7 +37,7 @@ int main(int argc, const char *argv[]) {
     if (inputMode == ARGUMENTS) {
         parseArguments(argc, argv, arguments, options, true, true);
     } else {
-        getInputFromConsole(arguments, options);
+        parseArgumentsFromTerminal(arguments, options);
     }
 
     if (options[OPT_DISPLAYHELP] == true && inputMode == ARGUMENTS) {

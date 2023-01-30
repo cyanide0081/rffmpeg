@@ -7,10 +7,10 @@ LDIR=../lib
 
 LIBS=-lm
 
-_DEPS=libs.h help.h functions.h constants.h console.h types.h strings.h
+_DEPS=libs.h help.h mainloop.h handlers.h constants.h terminal.h input.h
 DEPS=$(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ=main.o functions.o console.o strings.o
+_OBJ=main.o mainloop.o handlers.o input.o terminal.o
 OBJ=$(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(ODIR)/%.o: %.c $(DEPS)

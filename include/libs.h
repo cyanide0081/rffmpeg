@@ -4,17 +4,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
-#include <versionhelpers.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
 #include <locale.h>
-#include <tchar.h>
 
-#include "types.h"
 #include "constants.h"
-#include "functions.h"
-#include "console.h"
+#include "types.h"
 #include "help.h"
+#include "mainloop.h"
+#include "handlers.h"
+#include "input.h"
+#include "terminal.h"
 
 #endif
