@@ -5,7 +5,7 @@
 #define PROGRAM_NAME_FULL "RFFMPEG"
 #define PROGRAM_VERSION   "v0.6.1-beta"
 
-static const char *fullTitle = PROGRAM_NAME_FULL " " PROGRAM_VERSION u8" (ユニコード)";
+static const char *fullTitle = PROGRAM_NAME_FULL " " PROGRAM_VERSION " (ユニコード)";
 static const char *consoleWindowTitle = PROGRAM_NAME " " PROGRAM_VERSION;
 
 /* ANSI escape chars for colored shell output (Virtual Terminal Sequences) */
