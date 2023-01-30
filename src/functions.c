@@ -1,20 +1,20 @@
-#include "functions.h"
+#include "../include/functions.h"
 
 void printError(const char *msg) {
-    fprintf(stderr, u8"%sERROR: %s%s%s\n\n", CHARCOLOR_RED, CHARCOLOR_WHITE, msg, COLOR_DEFAULT);
+    fprintf(stderr, "%sERROR: %s%s%s\n\n", CHARCOLOR_RED, CHARCOLOR_WHITE, msg, COLOR_DEFAULT);
 }
 
 void parseArguments(const int count, const char *rawArguments[], char *parsedArguments[], bool parsedOptions[], bool parseArguments, bool parseOptions) {
     if (parseArguments) {
         /* fmt: -i <path> -f <container> -p <params> -o <container> */
         for (size_t i = 1; i < count; ++i) {
-            if (strcmp(rawArguments[i], u8"-path") == 0) {
+            if (strcmp(rawArguments[i], "-path") == 0) {
                 strncpy_s(parsedArguments[ARG_INPATH], PATHBUF - 1, rawArguments[++i], PATHBUF);
-            } else if (strcmp(rawArguments[i], u8"-fmt") == 0) {
+            } else if (strcmp(rawArguments[i], "-fmt") == 0) {
                 strncpy_s(parsedArguments[ARG_INFORMAT], BUFFER - 1, rawArguments[++i], BUFFER);
-            } else if (strcmp(rawArguments[i], u8"-opts") == 0) {
+            } else if (strcmp(rawArguments[i], "-opts") == 0) {
                 strncpy_s(parsedArguments[ARG_INPARAMETERS], BUFFER - 1, rawArguments[++i], BUFFER);
-            } else if (strcmp(rawArguments[i], u8"-ext") == 0) {
+            } else if (strcmp(rawArguments[i], "-ext") == 0) {
                 strncpy_s(parsedArguments[ARG_OUTFORMAT], SHORTBUF - 1, rawArguments[++i], SHORTBUF);
             }
         }
@@ -31,7 +31,7 @@ void parseArguments(const int count, const char *rawArguments[], char *parsedArg
                 char *argumentBuffer = strdup(rawArguments[i]); // duplicate argument string for analysis
 
                 char *parserState;
-                char *delimiter = u8"=";
+                char *delimiter = "=";
                 char *token = strtok_s(argumentBuffer, delimiter, &parserState);
 
                 /* If there's an '=' sign, pass the string after it to the foldername argument */
@@ -71,7 +71,7 @@ errno_t clearConsoleWindow(void) {
     }
 
     DWORD writtenCharacters = 0;
-    PCSTR sequence = u8"\x1b]10d\x1b]1G";
+    PCSTR sequence = "\x1b]10d\x1b]1G";
 
     if (!WriteConsoleA(handleToStdOut, sequence, (DWORD)strlen(sequence), &writtenCharacters, NULL)) {
         SetConsoleMode(handleToStdOut, originalConsoleMode);
@@ -115,21 +115,24 @@ errno_t enableVirtualTerminalProcessing(PDWORD originalConsoleMode) {
 
 int preventFilenameOverwrites(char *pureFilename, const char *outputFormat, const char *path) {
     char fileMask[PATHBUF];
+    wchar_t fileMaskWide[PATHBUF];
     char fileNameNew[PATHBUF];
 
+    sprintf_s(fileMask, PATHBUF, "%s\\%s.%s", path, pureFilename, outputFormat);
+    MultiByteToWideChar(CP_UTF8, 0, fileMask, -1, fileMaskWide, PATHBUF);
+
     HANDLE fileHandle = INVALID_HANDLE_VALUE;
-    WIN32_FIND_DATAA fileData;
+    WIN32_FIND_DATAW fileData;
 
-    sprintf_s(fileMask, PATHBUF, u8"%s\\%s.%s", path, pureFilename, outputFormat);
-
-    if ((fileHandle = FindFirstFileA(fileMask, &fileData)) != INVALID_HANDLE_VALUE) {
+    if ((fileHandle = FindFirstFileW(fileMaskWide, &fileData)) != INVALID_HANDLE_VALUE) {
         size_t index = 0;
 
         do {
-            sprintf_s(fileMask, BUFFER, u8"%s\\%s-%03d.%s", path, pureFilename, ++index, outputFormat);
-        }   while ((fileHandle = FindFirstFileA(fileMask, &fileData)) != INVALID_HANDLE_VALUE);
+            sprintf_s(fileMask, BUFFER, "%s\\%s-%03d.%s", path, pureFilename, ++index, outputFormat);
+            MultiByteToWideChar(CP_UTF8, 0, fileMask, -1, fileMaskWide, PATHBUF);
+        }   while ((fileHandle = FindFirstFileW(fileMaskWide, &fileData)) != INVALID_HANDLE_VALUE);
 
-        sprintf_s(fileNameNew, PATHBUF, u8"%s-%03d", pureFilename, index);
+        sprintf_s(fileNameNew, PATHBUF, "%s-%03d", pureFilename, index);
         strcpy_s(pureFilename, PATHBUF, fileNameNew);
     }
 
@@ -137,17 +140,19 @@ int preventFilenameOverwrites(char *pureFilename, const char *outputFormat, cons
 }
 
 errorCode_t handleErrors(char *arguments[]) {
-    if (*arguments[ARG_INPATH] == 0) {       
-        GetCurrentDirectoryA(PATHBUF, arguments[ARG_INPATH]);
+    if (*arguments[ARG_INPATH] == 0) {
+        wchar_t currentDirectory[PATHBUF];
+        GetCurrentDirectoryW(PATHBUF, currentDirectory);
+        WideCharToMultiByte(CP_UTF8, 0, currentDirectory, -1, arguments[ARG_INPATH], PATHBUF, NULL, NULL);
     }
 
     if (*arguments[ARG_INFORMAT] == 0) {
-        printError(u8"no input format (null)");
+        printError("no input format (null)");
         return ERROR_NO_INPUT_FORMAT;
     }
 
     if (*arguments[ARG_OUTFORMAT] == 0) {
-        printError(u8"no output format (null)");
+        printError("no output format (null)");
         return ERROR_NO_OUTPUT_FORMAT;
     }
 
@@ -172,39 +177,41 @@ errorCode_t searchDirectory(const char *directory, char *arguments[], const bool
         strcpy_s(inputFormatStringBuffer, BUFFER - 1, inputFormatString);
 
         char *parserState;
-        char *token = strtok_s(inputFormatStringBuffer, u8", ", &parserState);
+        char *token = strtok_s(inputFormatStringBuffer, ", ", &parserState);
 
         while (token != NULL) {
-            sprintf_s(inputFormats[numberOfInputFormats++], SHORTBUF - 1, u8".%s", token);
-            token = strtok_s(NULL, u8", ", &parserState);
+            sprintf_s(inputFormats[numberOfInputFormats++], SHORTBUF - 1, ".%s", token);
+            token = strtok_s(NULL, ", ", &parserState);
         }
     }
     
     HANDLE fileHandle = INVALID_HANDLE_VALUE;
-    WIN32_FIND_DATAA fileData;
-    char pathMask[BUFFER];
+    WIN32_FIND_DATAW fileData;
     wchar_t pathMaskWide[BUFFER];
+    wchar_t inputPathWide[PATHBUF];
+    
+    MultiByteToWideChar(CP_UTF8, 0, inputPath, -1, inputPathWide, PATHBUF);
+    swprintf_s(pathMaskWide, BUFFER, u"%ls\\*", inputPathWide);
 
-    sprintf_s(pathMask, BUFFER - 1, u8"%s\\*", inputPath);
-    swprintf_s(pathMaskWide, BUFFER - 1, u"%ls\\*", inputPath);
-
-    if ((fileHandle = FindFirstFileA(pathMask, &fileData)) == INVALID_HANDLE_VALUE) {
-        fprintf_s(stderr, u8"%sERROR: %sCouldn't open \'%s\' (code: %s%lu%s)\n\n",
+    if ((fileHandle = FindFirstFileW(pathMaskWide, &fileData)) == INVALID_HANDLE_VALUE) {
+        fprintf_s(stderr, "%sERROR: %sCouldn't open \'%s\' (code: %s%lu%s)\n\n",
             CHARCOLOR_RED, CHARCOLOR_WHITE, inputPath, CHARCOLOR_RED, GetLastError(), CHARCOLOR_WHITE);
 
         return ERROR_FAILED_TO_OPEN_DIRECTORY;
     }
 
     do {
+        char fileName[PATHBUF];
+        WideCharToMultiByte(CP_UTF8, 0, fileData.cFileName, -1, fileName, PATHBUF, NULL, NULL);
+
         /* Skip . and .. */
-        if (strcmp(fileData.cFileName, u8".") == 0 || strcmp(fileData.cFileName, u8"..") == 0)
+        if (strcmp(fileName, ".") == 0 || strcmp(fileName, "..") == 0)
             continue;
 
         /* Perform recursive search (or not) */
         if (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && options[OPT_DISABLERECURSION] == false) {
             char newPathMask[PATHBUF];
-
-            sprintf_s(newPathMask, PATHBUF - 1, u8"%s\\%s", inputPath, fileData.cFileName);
+            sprintf_s(newPathMask, PATHBUF, "%s\\%s", inputPath, fileName);
 
             searchDirectory(newPathMask, arguments, options, runtimeData);
 
@@ -214,7 +221,7 @@ errorCode_t searchDirectory(const char *directory, char *arguments[], const bool
         bool isOfFormat = false;
 
         for (size_t i = 0; i < numberOfInputFormats; ++i) {
-            if (strstr(fileData.cFileName, inputFormats[i]) != NULL) {
+            if (strstr(fileName, inputFormats[i]) != NULL) {
                 isOfFormat = true;
                 inputFormatIndex = i;
                 break;
@@ -224,23 +231,24 @@ errorCode_t searchDirectory(const char *directory, char *arguments[], const bool
         if (!isOfFormat)
             continue;
 
-        char *fileName = fileData.cFileName;
         char fileNameNoExtension[PATHBUF];
         char outputPath[PATHBUF];
 
-        const char *overwriteOption = options[OPT_FORCEOVERWRITE] == true ? u8"-y" : u8"";
+        const char *overwriteOption = options[OPT_FORCEOVERWRITE] == true ? "-y" : "";
 
         strcpy_s(fileNameNoExtension, PATHBUF - 1, fileName);
         *(strstr(fileNameNoExtension, inputFormats[inputFormatIndex])) = L'\0'; 
 
         /* Make-a-subfolder-or-not part */
         if (options[OPT_MAKENEWFOLDER] == true) {
-            char subFolderDirectory[PATHBUF];
-
             const char *folderName = options[OPT_CUSTOMFOLDERNAME] == true ? arguments[ARG_NEWFOLDERNAME] : outputFormat;
 
-            sprintf_s(subFolderDirectory, PATHBUF, u8"%s\\%s", inputPath, folderName);
-            CreateDirectoryA(subFolderDirectory, NULL);
+            char subFolderDirectory[PATHBUF];
+            wchar_t subFolderDirectoryWide[PATHBUF];
+            sprintf_s(subFolderDirectory, PATHBUF, "%s\\%s", inputPath, folderName);
+            MultiByteToWideChar(CP_UTF8, 0, subFolderDirectory, -1, subFolderDirectoryWide, PATHBUF);
+
+            CreateDirectoryW(subFolderDirectoryWide, NULL);
             strcpy_s(outputPath, PATHBUF - 1, subFolderDirectory);
         } else {
             strcpy_s(outputPath, PATHBUF - 1, inputPath);
@@ -249,38 +257,38 @@ errorCode_t searchDirectory(const char *directory, char *arguments[], const bool
         if (options[OPT_FORCEOVERWRITE] == false)
             preventFilenameOverwrites(fileNameNoExtension, outputFormat, outputPath);
 
-        char ffmpegParameters[LONGBUF];
+        char ffmpegProcessCall[LONGBUF];
+        wchar_t ffmpegProcessCallWide[LONGBUF];
 
-        sprintf_s(ffmpegParameters, LONGBUF, u8"ffmpeg -hide_banner %s -i \"%s\\%s\" %s \"%s\\%s.%s\"", 
+        sprintf_s(ffmpegProcessCall, LONGBUF, "ffmpeg -hide_banner %s -i \"%s\\%s\" %s \"%s\\%s.%s\"", 
             overwriteOption, inputPath, fileName, parameters, outputPath, fileNameNoExtension, outputFormat);
+        MultiByteToWideChar(CP_UTF8, 0, ffmpegProcessCall, -1, ffmpegProcessCallWide, PATHBUF);
         
         /* Setup process info structures */
-        STARTUPINFOA ffmpegStartupInformation = { sizeof(ffmpegStartupInformation) };
+        STARTUPINFOW ffmpegStartupInformation = { sizeof(ffmpegStartupInformation) };
         PROCESS_INFORMATION ffmpegProcessInformation;
 
         /* Call ffmpeg and wait for it to finish */
-        if (CreateProcessA(NULL, ffmpegParameters, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &ffmpegStartupInformation, &ffmpegProcessInformation)) {
+        if (CreateProcessW(NULL, ffmpegProcessCallWide, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &ffmpegStartupInformation, &ffmpegProcessInformation)) {
             WaitForSingleObject(ffmpegProcessInformation.hProcess, INFINITE);
-
             CloseHandle(ffmpegProcessInformation.hProcess);
             CloseHandle(ffmpegProcessInformation.hThread);
-
             ++(runtimeData->convertedFiles);
 
-            printf_s(u8"\n");
+            printf_s("\n");
         }
         
         /* Keep or delete original files */
         if (options[OPT_DELETEOLDFILES] == true) {
             char inputFilePath[PATHBUF];
 
-            sprintf_s(inputFilePath, PATHBUF, u8"%s\\%s", inputPath, fileName);
+            sprintf_s(inputFilePath, PATHBUF, "%s\\%s", inputPath, fileName);
 
             if (DeleteFileA(inputFilePath)) {
                 ++(runtimeData->deletedFiles);
             }
         }
-    } while (FindNextFileA(fileHandle, &fileData));
+    } while (FindNextFileW(fileHandle, &fileData));
 
     FindClose(fileHandle);
 
@@ -289,14 +297,14 @@ errorCode_t searchDirectory(const char *directory, char *arguments[], const bool
 
 void displayEndDialog(processInfo_t *processInformation) {
     if (processInformation->convertedFiles == 0) {
-        printError(u8"No input files were found\n");
-        printf_s(u8"\n");
+        printError("No input files were found\n");
+        printf_s("\n");
     } else {
-        printf_s(u8" %sDONE!%s\n", CHARCOLOR_RED, COLOR_DEFAULT);
-        printf_s(u8"\n");
-        printf_s(u8" %sConverted file(s): %s%llu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->convertedFiles, COLOR_DEFAULT);
-        printf_s(u8" %sDeleted file(s): %s%llu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->deletedFiles, COLOR_DEFAULT);
-        printf_s(u8" %sExecution time: %s%.2lfs%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->executionTime, COLOR_DEFAULT);
-        printf_s(u8"\n");
+        printf_s(" %sDONE!%s\n", CHARCOLOR_RED, COLOR_DEFAULT);
+        printf_s("\n");
+        printf_s(" %sConverted file(s): %s%llu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->convertedFiles, COLOR_DEFAULT);
+        printf_s(" %sDeleted file(s): %s%llu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->deletedFiles, COLOR_DEFAULT);
+        printf_s(" %sExecution time: %s%.2lfs%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->executionTime, COLOR_DEFAULT);
+        printf_s("\n");
     }
  }

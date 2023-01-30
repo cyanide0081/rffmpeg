@@ -1,7 +1,7 @@
 #ifndef H_TYPES
 #define H_TYPES
 
-#include "libs.h"
+#include "../include/libs.h"
 
 typedef struct processInformation {
     uint64_t convertedFiles;

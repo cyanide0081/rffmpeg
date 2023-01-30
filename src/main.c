@@ -1,4 +1,4 @@
-#include "libs.h"
+#include "../include/libs.h"
 
 /* TODO:    implement custom newfolder naming (--newfolder=foldername) */
 /* TODO:    (maybe) implement specific case where overwriting a file of same input fmt as output requires a temp file to be created and renamed afterwards */
@@ -15,32 +15,18 @@ int main(int argc, const char *argv[]) {
 
     bool options[MAX_OPTS] = { false };
 
-    setlocale(LC_ALL, "");
+    char originalLocale[PATHBUF] ;
+    strcpy_s(originalLocale, PATHBUF, setlocale(LC_ALL, ""));
+    setlocale(LC_ALL, ".UTF8");  
+
+    UINT originalConsoleOutputCP = GetConsoleOutputCP();
+    SetConsoleOutputCP(CP_UTF8);
 
     processInfo_t processInformation = { 0 };
     errorCode_t exitCode = ERROR_NONE;
     DWORD originalConsoleMode;
     char originalConsoleWindowTitle[PATHBUF];
-    
-    // UINT originalConsoleOutputCodePage = GetConsoleOutputCP();
-    // SetConsoleOutputCP(CP_UTF8);
-
-    // char commandLineArguments[BUFFER];
-    char *cmdArgs = GetCommandLineA();
-
-    for (int i = 0; i < argc; ++i)
-        printf("%s\n", argv[i]);
-    // size_t bytesWritten;
-
-    // WideCharToMultiByte(CP_UTF8, 0, GetCommandLineW(), wcslen(GetCommandLineW()), commandLineArguments, BUFFER, NULL, NULL);
-    
-    // wchar_t *wideArgs = GetCommandLineW();
-
-    // wprintf_s(u"%ls\n", wideArgs);
-    // printf_s(u8"%s\n", cmdArgs);
-   
-    // printf(u8"\nワンパンマン");
-
+ 
     inputMode_t inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
     enableVirtualTerminalProcessing(&originalConsoleMode);
@@ -50,7 +36,7 @@ int main(int argc, const char *argv[]) {
         SetConsoleTitleA(consoleWindowTitle);
     }
 
-    printf_s(u8"%s%s%s\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
+    printf_s("%s%s%s\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT); // print title
 
     if (inputMode == ARGUMENTS) {
         parseArguments(argc, argv, arguments, options, true, true);
@@ -81,16 +67,18 @@ int main(int argc, const char *argv[]) {
     }
 
     if (inputMode == CONSOLE) {
-        printf_s(u8" %s(Press any key to exit) %s", CHARCOLOR_WHITE, COLOR_DEFAULT);
+        printf_s(" %s(Press any key to exit) %s", CHARCOLOR_WHITE, COLOR_DEFAULT);
 
         getwchar();
 
-        printf_s(u8"\n");
+        printf_s("\n");
         SetConsoleTitleA(originalConsoleWindowTitle);
     }
 
+    setlocale(LC_ALL, originalLocale);
+
+    SetConsoleOutputCP(originalConsoleOutputCP);
     resetConsoleMode(originalConsoleMode);
-    // SetConsoleOutputCP(originalConsoleOutputCodePage);
 
      return (int)exitCode;
 }
