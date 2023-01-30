@@ -3,6 +3,6 @@
 
 #include "libs.h"
 
-int getInputFromConsole(wchar_t *arguments[], bool *options);
+int getInputFromConsole(char *arguments[], bool *options);
 
 #endif
