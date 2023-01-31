@@ -1,9 +1,11 @@
 CC=gcc
-CFLAGS=-fdiagnostics-color=always -Os -std=c17
+CFLAGS=-fdiagnostics-color=always $(OPTIMIZATIONFLAG) -Wall -Wno-unused-variable -Wno-unused-function -std=c17 -municode
 
-IDIR=../include
-ODIR=obj
-LDIR=../lib
+IDIR=./include
+ODIR=src/obj
+SDIR=src
+LDIR=lib
+OPTIMIZATIONFLAG=-Os
 
 LIBS=-lm
 
@@ -13,7 +15,7 @@ DEPS=$(patsubst %,$(IDIR)/%,$(_DEPS))
 _OBJ=main.o mainloop.o handlers.o input.o terminal.o
 OBJ=$(patsubst %,$(ODIR)/%,$(_OBJ))
 
-$(ODIR)/%.o: %.c $(DEPS)
+$(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 rffmpeg: $(OBJ)
@@ -21,4 +23,5 @@ rffmpeg: $(OBJ)
 
 .PHONY: clean
 
-clean: rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~
+clean: $(OBJ)
+	rm -f $(OBJ)/*.o

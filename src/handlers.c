@@ -1,46 +1,41 @@
 #include "../include/handlers.h"
 
-int preventFilenameOverwrites(char *pureFilename, const char *outputFormat, const char *path) {
-    char fileMask[PATHBUF];
-    wchar_t fileMaskWide[PATHBUF];
-    char fileNameNew[PATHBUF];
+int preventFilenameOverwrites(char16_t *pureFilename, const char16_t *outputFormat, const char16_t *path) {
+    char16_t fileMask[PATHBUF];
+    char16_t fileNameNew[PATHBUF];
 
-    sprintf_s(fileMask, PATHBUF, "%s\\%s.%s", path, pureFilename, outputFormat);
-    MultiByteToWideChar(CP_UTF8, 0, fileMask, -1, fileMaskWide, PATHBUF);
+    swprintf_s(fileMask, PATHBUF, u"%ls\\%ls.%ls", path, pureFilename, outputFormat);
 
     HANDLE fileHandle = INVALID_HANDLE_VALUE;
     WIN32_FIND_DATAW fileData;
 
-    if ((fileHandle = FindFirstFileW(fileMaskWide, &fileData)) != INVALID_HANDLE_VALUE) {
+    if ((fileHandle = FindFirstFileW(fileMask, &fileData)) != INVALID_HANDLE_VALUE) {
         size_t index = 0;
 
         do {
-            sprintf_s(fileMask, BUFFER, "%s\\%s-%03d.%s", path, pureFilename, ++index, outputFormat);
-            MultiByteToWideChar(CP_UTF8, 0, fileMask, -1, fileMaskWide, PATHBUF);
-        }   while ((fileHandle = FindFirstFileW(fileMaskWide, &fileData)) != INVALID_HANDLE_VALUE);
+            swprintf_s(fileMask, BUFFER, u"%ls\\%ls-%03d.%ls", path, pureFilename, ++index, outputFormat);
+        }   while ((fileHandle = FindFirstFileW(fileMask, &fileData)) != INVALID_HANDLE_VALUE);
 
-        sprintf_s(fileNameNew, PATHBUF, "%s-%03d", pureFilename, index);
-        strcpy_s(pureFilename, PATHBUF, fileNameNew);
+        swprintf_s(fileNameNew, PATHBUF, u"%ls-%03d", pureFilename, index);
+        wcscpy_s(pureFilename, PATHBUF, fileNameNew);
     }
 
     return EXIT_SUCCESS;
 }
 
-errorCode_t handleErrors(char *arguments[]) {
+errorCode_t handleErrors(char16_t *arguments[]) {
     /* Set current working directory as input path if none is provided */
     if (*arguments[ARG_INPATH] == 0) {
-        wchar_t currentDirectory[PATHBUF];
-        GetCurrentDirectoryW(PATHBUF, currentDirectory);
-        WideCharToMultiByte(CP_UTF8, 0, currentDirectory, -1, arguments[ARG_INPATH], PATHBUF, NULL, NULL);
+        GetCurrentDirectoryW(PATHBUF, arguments[ARG_INPATH]);
     }
 
-    if (*arguments[ARG_INFORMAT] == '\0') {
-        printError("no input format (null)");
+    if (*arguments[ARG_INFORMAT] == u'\0') {
+        printError(u"no input format (null)");
         return ERROR_NO_INPUT_FORMAT;
     }
 
-    if (*arguments[ARG_OUTFORMAT] == '\0') {
-        printError("no output format (null)");
+    if (*arguments[ARG_OUTFORMAT] == u'\0') {
+        printError(u"no output format (null)");
         return ERROR_NO_OUTPUT_FORMAT;
     }
 

@@ -3,9 +3,7 @@
 
 #include "libs.h"
 
-void printError(const char *msg);
-
-errno_t clearConsoleWindow(void);
+void printError(const char16_t *msg);
 
 errno_t restoreConsoleMode(DWORD originalConsoleMode);
 

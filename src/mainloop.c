@@ -1,60 +1,55 @@
 #include "../include/mainloop.h"
 
-/* NOTE: This function performs various conversions between multi-byte and wide-char versions
- of strings because the WinAPI only supports Unicode in the 'W' variants of their functions */
-errorCode_t searchDirectory(const char *directory, char *arguments[], const bool *options, processInfo_t *runtimeData) {
-    const char *inputPath         = directory == NULL ? arguments[ARG_INPATH] : directory;
-    const char *inputFormatString = arguments[ARG_INFORMAT];
-    const char *parameters        = arguments[ARG_INPARAMETERS];
-    const char *outputFormat      = arguments[ARG_OUTFORMAT];
-    const char *newFolderName     = arguments[ARG_NEWFOLDERNAME];
+errorCode_t searchDirectory(const char16_t *directory, char16_t *arguments[], const bool *options, processInfo_t *runtimeData) {
+    const char16_t *inputPath         = directory == NULL ? arguments[ARG_INPATH] : directory;
+    const char16_t *inputFormatString = arguments[ARG_INFORMAT];
+    const char16_t *parameters        = arguments[ARG_INPARAMETERS];
+    const char16_t *outputFormat      = arguments[ARG_OUTFORMAT];
+    const char16_t *newFolderName     = arguments[ARG_NEWFOLDERNAME];
 
     size_t inputFormatIndex = 0;
     static size_t numberOfInputFormats = 0;
-    static char inputFormats[SHORTBUF][SHORTBUF] = { IDENTIFIER_NO_FORMAT };
+    static char16_t inputFormats[SHORTBUF][SHORTBUF] = { IDENTIFIER_NO_FORMAT };
 
     /* Save cpu resources by only tokenizing formats once */
-    if (strcmp(inputFormats[0], IDENTIFIER_NO_FORMAT) == 0 && numberOfInputFormats == 0) {
-        char inputFormatStringBuffer[BUFFER];
+    if (wcscmp(inputFormats[0], IDENTIFIER_NO_FORMAT) == 0 && numberOfInputFormats == 0) {
+        char16_t inputFormatStringBuffer[BUFFER];
 
-        strcpy_s(inputFormatStringBuffer, BUFFER - 1, inputFormatString);
+        wcscpy_s(inputFormatStringBuffer, BUFFER - 1, inputFormatString);
 
-        char *parserState;
-        char *token = strtok_s(inputFormatStringBuffer, ", ", &parserState);
+        char16_t *parserState;
+        char16_t *token = wcstok_s(inputFormatStringBuffer, u", ", &parserState);
 
         while (token != NULL) {
-            sprintf_s(inputFormats[numberOfInputFormats++], SHORTBUF - 1, ".%s", token);
-            token = strtok_s(NULL, ", ", &parserState);
+            swprintf_s(inputFormats[numberOfInputFormats++], SHORTBUF - 1, u".%ls", token);
+            token = wcstok_s(NULL, u", ", &parserState);
         }
     }
     
     HANDLE fileHandle = INVALID_HANDLE_VALUE;
     WIN32_FIND_DATAW fileData;
-    wchar_t pathMaskWide[BUFFER];
-    wchar_t inputPathWide[PATHBUF];
-    
-    MultiByteToWideChar(CP_UTF8, 0, inputPath, -1, inputPathWide, PATHBUF);
-    swprintf_s(pathMaskWide, BUFFER, u"%ls\\*", inputPathWide);
+    char16_t pathMask[BUFFER];
 
-    if ((fileHandle = FindFirstFileW(pathMaskWide, &fileData)) == INVALID_HANDLE_VALUE) {
-        fprintf_s(stderr, "%sERROR: %sCouldn't open \'%s\' (code: %s%lu%s)\n\n",
+    swprintf_s(pathMask, BUFFER, u"%ls\\*", inputPath);
+
+    if ((fileHandle = FindFirstFileW(pathMask, &fileData)) == INVALID_HANDLE_VALUE) {
+        fwprintf_s(stderr, u"%lsERROR: %lsCouldn't open \'%ls\' (code: %ls%lu%ls)\n\n",
             CHARCOLOR_RED, CHARCOLOR_WHITE, inputPath, CHARCOLOR_RED, GetLastError(), CHARCOLOR_WHITE);
 
         return ERROR_FAILED_TO_OPEN_DIRECTORY;
     }
 
     do {
-        char fileName[PATHBUF];
-        WideCharToMultiByte(CP_UTF8, 0, fileData.cFileName, -1, fileName, PATHBUF, NULL, NULL);
+        char16_t *fileName = fileData.cFileName;
 
         /* Skip . and .. */
-        if (strcmp(fileName, ".") == 0 || strcmp(fileName, "..") == 0)
+        if (wcscmp(fileName, u".") == 0 || wcscmp(fileName, u"..") == 0)
             continue;
 
         /* Perform recursive search (or not) */
         if (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && options[OPT_DISABLERECURSION] == false) {
-            char newPathMask[PATHBUF];
-            sprintf_s(newPathMask, PATHBUF, "%s\\%s", inputPath, fileName);
+            char16_t newPathMask[PATHBUF];
+            swprintf_s(newPathMask, PATHBUF, u"%ls\\%ls", inputPath, fileName);
 
             searchDirectory(newPathMask, arguments, options, runtimeData);
 
@@ -64,7 +59,7 @@ errorCode_t searchDirectory(const char *directory, char *arguments[], const bool
         bool isOfFormat = false;
 
         for (size_t i = 0; i < numberOfInputFormats; ++i) {
-            if (strstr(fileName, inputFormats[i]) != NULL) {
+            if (wcsstr(fileName, inputFormats[i]) != NULL) {
                 isOfFormat = true;
                 inputFormatIndex = i;
                 break;
@@ -74,62 +69,55 @@ errorCode_t searchDirectory(const char *directory, char *arguments[], const bool
         if (!isOfFormat)
             continue;
 
-        char fileNameNoExtension[PATHBUF];
-        char outputPath[PATHBUF];
+        char16_t fileNameNoExtension[PATHBUF];
+        char16_t outputPath[PATHBUF];
 
-        const char *overwriteOption = options[OPT_FORCEOVERWRITE] == true ? "-y" : "";
+        const char16_t *overwriteOption = options[OPT_FORCEOVERWRITE] == true ? u"-y" : u"";
 
-        strcpy_s(fileNameNoExtension, PATHBUF - 1, fileName);
-        *(strstr(fileNameNoExtension, inputFormats[inputFormatIndex])) = L'\0'; 
+        wcscpy_s(fileNameNoExtension, PATHBUF - 1, fileName);
+        *(wcsstr(fileNameNoExtension, inputFormats[inputFormatIndex])) = u'\0'; 
 
         /* Make-a-subfolder-or-not part */
         if (options[OPT_MAKENEWFOLDER] == true) {
-            const char *folderName = options[OPT_CUSTOMFOLDERNAME] == true ? arguments[ARG_NEWFOLDERNAME] : outputFormat;
+            const char16_t *folderName = options[OPT_CUSTOMFOLDERNAME] == true ? newFolderName : outputFormat;
 
-            char subFolderDirectory[PATHBUF];
-            wchar_t subFolderDirectoryWide[PATHBUF];
-            sprintf_s(subFolderDirectory, PATHBUF, "%s\\%s", inputPath, folderName);
-            MultiByteToWideChar(CP_UTF8, 0, subFolderDirectory, -1, subFolderDirectoryWide, PATHBUF);
+            char16_t subFolderDirectory[PATHBUF];
+            swprintf_s(subFolderDirectory, PATHBUF, u"%ls\\%ls", inputPath, folderName);
 
-            CreateDirectoryW(subFolderDirectoryWide, NULL);
-            strcpy_s(outputPath, PATHBUF - 1, subFolderDirectory);
+            CreateDirectoryW(subFolderDirectory, NULL);
+            wcscpy_s(outputPath, PATHBUF, subFolderDirectory);
         } else {
-            strcpy_s(outputPath, PATHBUF - 1, inputPath);
+            wcscpy_s(outputPath, PATHBUF, inputPath);
         }
 
         if (options[OPT_FORCEOVERWRITE] == false)
             preventFilenameOverwrites(fileNameNoExtension, outputFormat, outputPath);
 
-        char ffmpegProcessCall[LONGBUF];
-        wchar_t ffmpegProcessCallWide[LONGBUF];
+        char16_t ffmpegProcessCall[LONGBUF];
 
-        sprintf_s(ffmpegProcessCall, LONGBUF, "ffmpeg -hide_banner %s -i \"%s\\%s\" %s \"%s\\%s.%s\"", 
+        swprintf_s(ffmpegProcessCall, LONGBUF, u"ffmpeg -hide_banner %ls -i \"%ls\\%ls\" %ls \"%ls\\%ls.%ls\"", 
             overwriteOption, inputPath, fileName, parameters, outputPath, fileNameNoExtension, outputFormat);
-        MultiByteToWideChar(CP_UTF8, 0, ffmpegProcessCall, -1, ffmpegProcessCallWide, PATHBUF);
-        
-        /* Setup process info structures */
+
+        /* Setup process info wcsuctures */
         STARTUPINFOW ffmpegStartupInformation = { sizeof(ffmpegStartupInformation) };
         PROCESS_INFORMATION ffmpegProcessInformation;
 
         /* Call ffmpeg and wait for it to finish */
-        if (CreateProcessW(NULL, ffmpegProcessCallWide, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &ffmpegStartupInformation, &ffmpegProcessInformation)) {
+        if (CreateProcessW(NULL, ffmpegProcessCall, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &ffmpegStartupInformation, &ffmpegProcessInformation)) {
             WaitForSingleObject(ffmpegProcessInformation.hProcess, INFINITE);
             CloseHandle(ffmpegProcessInformation.hProcess);
             CloseHandle(ffmpegProcessInformation.hThread);
             ++(runtimeData->convertedFiles);
 
-            printf_s("\n");
+            wprintf_s(u"\n");
         }
         
         /* Keep or delete original files */
         if (options[OPT_DELETEOLDFILES] == true) {
-            char inputFilePath[PATHBUF];
-            wchar_t inputFilePathWide[PATHBUF];
+            char16_t inputFilePath[PATHBUF];
+            swprintf_s(inputFilePath, PATHBUF, u"%ls\\%ls", inputPath, fileName);
 
-            sprintf_s(inputFilePath, PATHBUF, "%s\\%s", inputPath, fileName);
-            MultiByteToWideChar(CP_UTF8, 0, inputFilePath, -1, inputFilePathWide, PATHBUF);
-
-            if (DeleteFileW(inputFilePathWide)) {
+            if (DeleteFileW(inputFilePath)) {
                 ++(runtimeData->deletedFiles);
             }
         }

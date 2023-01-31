@@ -1,37 +1,7 @@
 #include "../include/terminal.h"
 
-void printError(const char *msg) {
-    fprintf(stderr, "%sERROR: %s%s%s\n\n", CHARCOLOR_RED, CHARCOLOR_WHITE, msg, COLOR_DEFAULT);
-}
-
-errno_t clearConsoleWindow(void) {
-    HANDLE handleToStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-
-    DWORD consoleMode = 0;
-
-    if (!GetConsoleMode(handleToStdOut, &consoleMode)) {
-        return GetLastError();
-    }
-
-    const DWORD originalConsoleMode = consoleMode;
-
-    consoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-
-    if (!SetConsoleMode(handleToStdOut, consoleMode)) {
-        return GetLastError();
-    }
-
-    DWORD writtenCharacters = 0;
-    PCSTR sequence = "\x1b]10d\x1b]1G";
-
-    if (!WriteConsoleA(handleToStdOut, sequence, (DWORD)strlen(sequence), &writtenCharacters, NULL)) {
-        SetConsoleMode(handleToStdOut, originalConsoleMode);
-        return GetLastError();
-    }
-
-    SetConsoleMode(handleToStdOut, originalConsoleMode);
-
-    return EXIT_SUCCESS;
+void printError(const char16_t  *msg) {
+    fwprintf_s(stderr, u"%lsERROR: %ls%ls%ls\n\n", CHARCOLOR_RED, CHARCOLOR_WHITE, msg, COLOR_DEFAULT);
 }
 
 errno_t restoreConsoleMode(DWORD originalConsoleMode) {
@@ -66,14 +36,14 @@ errno_t enableVirtualTerminalProcessing(PDWORD originalConsoleMode) {
 
 void displayEndDialog(processInfo_t *processInformation) {
     if (processInformation->convertedFiles == 0) {
-        printError("No input files were found\n");
-        printf_s("\n");
+        printError(u"No input files were found\n");
+        wprintf_s(u"\n");
     } else {
-        printf_s(" %sDONE!%s\n", CHARCOLOR_RED, COLOR_DEFAULT);
-        printf_s("\n");
-        printf_s(" %sProcessed file(s): %s%llu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->convertedFiles, COLOR_DEFAULT);
-        printf_s(" %sDeleted file(s): %s%llu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->deletedFiles, COLOR_DEFAULT);
-        printf_s(" %sExecution time: %s%.2lfs%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->executionTime, COLOR_DEFAULT);
-        printf_s("\n");
+        wprintf_s(u" %lsDONE!%ls\n", CHARCOLOR_RED, COLOR_DEFAULT);
+        wprintf_s(u"\n");
+        wprintf_s(u" %lsProcessed file(s): %ls%llu%ls\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->convertedFiles, COLOR_DEFAULT);
+        wprintf_s(u" %lsDeleted file(s): %ls%llu%ls\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->deletedFiles, COLOR_DEFAULT);
+        wprintf_s(u" %lsExecution time: %ls%.2lfs%ls\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->executionTime, COLOR_DEFAULT);
+        wprintf_s(u"\n");
     }
  }

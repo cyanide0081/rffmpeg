@@ -3,6 +3,6 @@
 
 #include "libs.h"
 
-errorCode_t searchDirectory(const char *directory, char *arguments[], const bool *options, processInfo_t *runtimeData);
+errorCode_t searchDirectory(const char16_t *directory, char16_t *arguments[], const bool *options, processInfo_t *runtimeData);
 
 #endif

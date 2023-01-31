@@ -1,47 +1,48 @@
 #include "../include/input.h"
 
-int parseArgumentsFromTerminal(char *arguments[], bool *options) {
-    printf_s("%s > %sInput path: %s", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
-    fgets(arguments[ARG_INPATH], PATHBUF, stdin);
-    arguments[ARG_INPATH][strcspn(arguments[ARG_INPATH], "\r\n")] = '\0'; // Remove trailing fgets() newline
-    
-    printf_s("%s > %sTarget format(s): %s", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
-    fgets(arguments[ARG_INFORMAT], BUFFER, stdin);
-    arguments[ARG_INFORMAT][strcspn(arguments[ARG_INFORMAT], "\r\n")] = '\0';
+int parseArgumentsFromTerminal(char16_t *arguments[], bool *options) {
+    DWORD charactersRead = 0;
+    HANDLE consoleInput = GetStdHandle(STD_INPUT_HANDLE);
 
-    printf_s("%s > %sFFmpeg options: %s", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
-    fgets(arguments[ARG_INPARAMETERS], BUFFER, stdin);
-    arguments[ARG_INPARAMETERS][strcspn(arguments[ARG_INPARAMETERS], "\r\n")] = '\0';
+    wprintf_s(u"%ls > %lsInput path: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+    ReadConsoleW(consoleInput, arguments[ARG_INPATH], PATHBUF, &charactersRead, NULL);
+    arguments[ARG_INPATH][wcscspn(arguments[ARG_INPATH], u"\r\n")] = u'\0'; // Remove trailing fgets() newline
 
-    printf_s("%s > %sOutput format: %s", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
-    fgets(arguments[ARG_OUTFORMAT], SHORTBUF, stdin);
-    arguments[ARG_OUTFORMAT][strcspn(arguments[ARG_OUTFORMAT], "\r\n")] = '\0';
+    wprintf_s(u"%ls > %lsTarget format(s): %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+    ReadConsoleW(consoleInput, arguments[ARG_INFORMAT], BUFFER, &charactersRead, NULL);
+    arguments[ARG_INFORMAT][wcscspn(arguments[ARG_INFORMAT], u"\r\n")] = u'\0';
 
-    char optionsString[BUFFER];
+    wprintf_s(u"%ls > %lsFFmpeg options: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+    ReadConsoleW(consoleInput, arguments[ARG_INPARAMETERS], BUFFER, &charactersRead, NULL);
+    arguments[ARG_INPARAMETERS][wcscspn(arguments[ARG_INPARAMETERS], u"\r\n")] = u'\0';
 
-    printf_s("%s > %sAdditional modes: %s", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
-    fgets(optionsString, BUFFER, stdin);
-    optionsString[strcspn(optionsString, "\r\n")] = '\0';
-    printf_s("\n");
+    wprintf_s(u"%ls > %lsOutput extension: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+    ReadConsoleW(consoleInput, arguments[ARG_OUTFORMAT], SHORTBUF, &charactersRead, NULL);
+    arguments[ARG_OUTFORMAT][wcscspn(arguments[ARG_OUTFORMAT], u"\r\n")] = u'\0';
+
+    char16_t optionsString[BUFFER];
+
+    wprintf_s(u"%ls > %lsAdditional flags: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+    ReadConsoleW(consoleInput, optionsString, BUFFER, &charactersRead, NULL);
+    optionsString[wcscspn(optionsString, u"\r\n")] = u'\0';
 
     uint16_t numberOfOptions = 0;
-     
-    char *optionsTokenized[MAX_OPTS];
-    char *parserState;
-    char *token = strtok_s(optionsString, ", ", &parserState);
+    char16_t *optionsTokenized[MAX_OPTS];
+    char16_t *parserState;
+    char16_t *token = wcstok_s(optionsString, u", ", &parserState);
 
     while (token) {
         optionsTokenized[numberOfOptions] = calloc(SHORTBUF, sizeof(char));
-        strcpy_s(optionsTokenized[numberOfOptions++], SHORTBUF, token);
-        
-        token = strtok_s(NULL, " ", &parserState);
+        wcscpy_s(optionsTokenized[numberOfOptions++], SHORTBUF, token);    
+
+        token = wcstok_s(NULL, u" ", &parserState);
     }
 
     if (numberOfOptions > 0) {
-        parseArguments(numberOfOptions, (const char**)optionsTokenized, arguments, options, false, true);
+        parseArguments(numberOfOptions, (const char16_t**)optionsTokenized, arguments, options, false, true);
     }
 
-    printf_s(COLOR_DEFAULT);
+    wprintf_s(COLOR_DEFAULT);
 
     for (int i = 0; i < numberOfOptions; ++i)
         free(optionsTokenized[i]);
@@ -49,18 +50,18 @@ int parseArgumentsFromTerminal(char *arguments[], bool *options) {
     return EXIT_SUCCESS;
 }
 
-void parseArguments(const int count, const char *rawArguments[], char *parsedArguments[], bool parsedOptions[], bool parseArguments, bool parseOptions) {
+void parseArguments(const int count, const char16_t *rawArguments[], char16_t *parsedArguments[], bool parsedOptions[], bool parseArguments, bool parseOptions) {
     if (parseArguments) {
         /* fmt: -i <path> -f <container> -p <params> -o <container> */
         for (size_t i = 1; i < count; ++i) {
-            if (strcmp(rawArguments[i], "-path") == 0) {
-                strncpy_s(parsedArguments[ARG_INPATH], PATHBUF - 1, rawArguments[++i], PATHBUF);
-            } else if (strcmp(rawArguments[i], "-fmt") == 0) {
-                strncpy_s(parsedArguments[ARG_INFORMAT], BUFFER - 1, rawArguments[++i], BUFFER);
-            } else if (strcmp(rawArguments[i], "-opts") == 0) {
-                strncpy_s(parsedArguments[ARG_INPARAMETERS], BUFFER - 1, rawArguments[++i], BUFFER);
-            } else if (strcmp(rawArguments[i], "-ext") == 0) {
-                strncpy_s(parsedArguments[ARG_OUTFORMAT], SHORTBUF - 1, rawArguments[++i], SHORTBUF);
+            if (wcscmp(rawArguments[i], u"-path") == 0) {
+                wcsncpy_s(parsedArguments[ARG_INPATH], PATHBUF - 1, rawArguments[++i], PATHBUF);
+            } else if (wcscmp(rawArguments[i], u"-fmt") == 0) {
+                wcsncpy_s(parsedArguments[ARG_INFORMAT], BUFFER - 1, rawArguments[++i], BUFFER);
+            } else if (wcscmp(rawArguments[i], u"-opts") == 0) {
+                wcsncpy_s(parsedArguments[ARG_INPARAMETERS], BUFFER - 1, rawArguments[++i], BUFFER);
+            } else if (wcscmp(rawArguments[i], u"-ext") == 0) {
+                wcsncpy_s(parsedArguments[ARG_OUTFORMAT], SHORTBUF - 1, rawArguments[++i], SHORTBUF);
             }
         }
     }
@@ -68,32 +69,50 @@ void parseArguments(const int count, const char *rawArguments[], char *parsedArg
     if (parseOptions) {
         /* fmt: --help, --newfolder=foldername, --delete, --norecursion, --overwrite, */
         for (size_t i = 0; i < count; ++i) {
-            if (strcmp(rawArguments[i], OPT_DISPLAYHELP_STRING) == 0) {
+            if (wcscmp(rawArguments[i], OPT_DISPLAYHELP_STRING) == 0) {
                 parsedOptions[OPT_DISPLAYHELP] = true;
-            } else if (strstr(rawArguments[i], OPT_MAKENEWFOLDER_STRING)) {
+            } else if (wcsstr(rawArguments[i], OPT_MAKENEWFOLDER_STRING)) {
                 parsedOptions[OPT_MAKENEWFOLDER] = true;
 
-                char *argumentBuffer = strdup(rawArguments[i]); // duplicate argument string for analysis
+                char16_t *argumentBuffer = wcsdup(rawArguments[i]); // duplicate argument wcsing for analysis
 
-                char *parserState;
-                char *delimiter = "=";
-                char *token = strtok_s(argumentBuffer, delimiter, &parserState);
+                char16_t *parserState;
+                char16_t *delimiter = u"=";
+                char16_t *token = wcstok_s(argumentBuffer, delimiter, &parserState);
 
                 /* If there's an '=' sign, pass the string after it to the foldername argument */
-                if ((token = strtok_s(NULL, delimiter, &parserState)) != NULL) {
+                if ((token = wcstok_s(NULL, delimiter, &parserState)) != NULL) {
                     parsedOptions[OPT_CUSTOMFOLDERNAME] = true;
-                    
-                    strcpy_s(parsedArguments[ARG_NEWFOLDERNAME], PATHBUF, token);
+                    wcscpy_s(parsedArguments[ARG_NEWFOLDERNAME], PATHBUF, token);
                 }
 
                 free(argumentBuffer);
-            } else if (strcmp(rawArguments[i], OPT_DELETEOLDFILES_STRING) == 0) {
+            } else if (wcscmp(rawArguments[i], OPT_DELETEOLDFILES_STRING) == 0) {
                 parsedOptions[OPT_DELETEOLDFILES] = true;
-            } else if (strcmp(rawArguments[i], OPT_DISABLERECURSION_STRING) == 0) {
+            } else if (wcscmp(rawArguments[i], OPT_DISABLERECURSION_STRING) == 0) {
                 parsedOptions[OPT_DISABLERECURSION] = true;
-            } else if (strcmp(rawArguments[i], OPT_FORCEOVERWRITE_STRING) == 0) {
+            } else if (wcscmp(rawArguments[i], OPT_FORCEOVERWRITE_STRING) == 0) {
                 parsedOptions[OPT_FORCEOVERWRITE] = true;
             }
         }
     }
+}
+
+int allocateArgumentBuffers(char16_t *arguments[]) {   
+    arguments[ARG_INPATH]        = calloc(PATHBUF, sizeof(char16_t));
+    arguments[ARG_INFORMAT]      = calloc(BUFFER, sizeof(char16_t));
+    arguments[ARG_INPARAMETERS]  = calloc(BUFFER, sizeof(char16_t));
+    arguments[ARG_OUTFORMAT]     = calloc(SHORTBUF, sizeof(char16_t));
+    arguments[ARG_NEWFOLDERNAME] = calloc(PATHBUF, sizeof(char16_t));
+
+    return EXIT_SUCCESS;
+}
+
+int freeArgumentBuffers(char16_t *arguments[]) {
+    for (size_t i = 0; i < MAX_ARGS; ++i) {        
+        free(arguments[i]);
+        arguments[i] = NULL;    
+    }
+
+    return EXIT_SUCCESS;
 }

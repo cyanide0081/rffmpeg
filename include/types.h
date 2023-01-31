@@ -1,8 +1,6 @@
 #ifndef H_TYPES
 #define H_TYPES
 
-#include "../include/libs.h"
-
 typedef struct processInformation {
     uint64_t convertedFiles;
     uint64_t deletedFiles;
