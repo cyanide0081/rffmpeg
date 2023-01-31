@@ -11,7 +11,7 @@
 
 #include "constants.h"
 #include "types.h"
-#include "help.h"
+#include "man/help.h"
 #include "mainloop.h"
 #include "handlers.h"
 #include "input.h"

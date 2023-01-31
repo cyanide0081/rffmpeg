@@ -20,7 +20,7 @@ int main(int argc, const char *argv[]) {
     SetConsoleOutputCP(CP_UTF8);
 
     DWORD originalConsoleMode;
-    char originalConsoleWindowTitle[PATHBUF];
+    wchar_t originalConsoleWindowTitle[PATHBUF];
  
     errorCode_t exitCode = ERROR_NONE;
     processInfo_t processInformation = { 0 };
@@ -29,8 +29,8 @@ int main(int argc, const char *argv[]) {
     enableVirtualTerminalProcessing(&originalConsoleMode);
 
     if (inputMode == CONSOLE) {
-        GetConsoleTitleA(originalConsoleWindowTitle, PATHBUF);
-        SetConsoleTitleA(consoleWindowTitle);
+        GetConsoleTitleW(originalConsoleWindowTitle, PATHBUF);
+        SetConsoleTitleW(consoleWindowTitle);
     }
 
     printf_s("%s%s%s\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT); // print title
@@ -66,7 +66,7 @@ int main(int argc, const char *argv[]) {
         getchar();
 
         printf_s("\n");
-        SetConsoleTitleA(originalConsoleWindowTitle);
+        SetConsoleTitleW(originalConsoleWindowTitle);
     }
 
     /* Restore our locale/codepage changes before leaving */

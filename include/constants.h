@@ -6,7 +6,7 @@
 #define PROGRAM_VERSION   "v0.6.1-beta"
 
 static const char *fullTitle = PROGRAM_NAME_FULL " " PROGRAM_VERSION " (ユニコード)";
-static const char *consoleWindowTitle = PROGRAM_NAME " " PROGRAM_VERSION;
+static const wchar_t *consoleWindowTitle = PROGRAM_NAME u" " PROGRAM_VERSION;
 
 /* ANSI escape chars for colored shell output (Virtual Terminal Sequences) */
 #define CHARCOLOR_WHITE      "\x1b[37m"

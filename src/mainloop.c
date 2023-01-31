@@ -1,5 +1,7 @@
 #include "../include/mainloop.h"
 
+/* NOTE: This function performs various conversions between multi-byte and wide-char versions
+ of strings because the WinAPI only supports Unicode in the 'W' variants of their functions */
 errorCode_t searchDirectory(const char *directory, char *arguments[], const bool *options, processInfo_t *runtimeData) {
     const char *inputPath         = directory == NULL ? arguments[ARG_INPATH] : directory;
     const char *inputFormatString = arguments[ARG_INFORMAT];
@@ -122,10 +124,12 @@ errorCode_t searchDirectory(const char *directory, char *arguments[], const bool
         /* Keep or delete original files */
         if (options[OPT_DELETEOLDFILES] == true) {
             char inputFilePath[PATHBUF];
+            wchar_t inputFilePathWide[PATHBUF];
 
             sprintf_s(inputFilePath, PATHBUF, "%s\\%s", inputPath, fileName);
+            MultiByteToWideChar(CP_UTF8, 0, inputFilePath, -1, inputFilePathWide, PATHBUF);
 
-            if (DeleteFileA(inputFilePath)) {
+            if (DeleteFileW(inputFilePathWide)) {
                 ++(runtimeData->deletedFiles);
             }
         }
