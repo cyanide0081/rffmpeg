@@ -7,10 +7,11 @@ int wmain(int argc, const char16_t *argv[]) {
 
     _setmode(_fileno(stdout), _O_U16TEXT); // Setup Unicode (UTF-16LE) console I/O
 
+    /* Enable virtual terminal sequences for colored console output */
     DWORD originalConsoleMode;
     char16_t originalConsoleWindowTitle[PATHBUF];
-
     enableVirtualTerminalProcessing(&originalConsoleMode);
+
     if (inputMode == CONSOLE) {
         GetConsoleTitleW(originalConsoleWindowTitle, PATHBUF);
         SetConsoleTitleW(consoleWindowTitle);
@@ -25,6 +26,7 @@ int wmain(int argc, const char16_t *argv[]) {
     } else {
         size_t consoleArgumentsCount = 0;
         char16_t *consoleArguments[SHORTBUF];
+        
         parseArgumentsFromTerminal(&consoleArgumentsCount, consoleArguments);
 
         parsedArguments = parseCommandLineArguments(consoleArgumentsCount, (const char16_t**)consoleArguments);

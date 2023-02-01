@@ -28,8 +28,8 @@ static const char16_t *consoleWindowTitle = PROGRAM_NAME u" " PROGRAM_VERSION;
 #define OPT_DISABLERECURSION_STRING u"--norecursion"
 #define OPT_FORCEOVERWRITE_STRING   u"--overwrite"
 
-/* Misc functinality identifiers */
-#define IDENTIFIER_NO_PATH   u"__ident_no_path"
-#define IDENTIFIER_NO_FORMAT u"__identifier_no_format"
+/* Empty string identifiers */
+#define IDENTIFIER_NO_PATH   u"IDNP"
+#define IDENTIFIER_NO_FORMAT u"IDNF"
 
 #endif

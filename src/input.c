@@ -1,5 +1,6 @@
 #include "../include/input.h"
 
+/* Gets the argument strings from a console menu and formats them to be parsed by parseCommandLineArguments() */
 char16_t **parseArgumentsFromTerminal(size_t *outputArgumentsCount, char16_t *outputArguments[]) {
     size_t currentIndex = 0;
     DWORD charactersRead = 0;
@@ -70,17 +71,12 @@ char16_t **parseArgumentsFromTerminal(size_t *outputArgumentsCount, char16_t *ou
 
     wchar_t *parserState = NULL;
     wchar_t *token = wcstok_s(optionsString, u", ", &parserState);
-
-    if (token == NULL) {
-        /* Still allocate memory for an empty string */
-        outputArguments[currentIndex] = calloc(1, sizeof(char16_t));
-    } else { 
-        while (token) {
-            outputArguments[currentIndex] = calloc(SHORTBUF, sizeof(char16_t));
-            wcscpy_s(outputArguments[currentIndex], SHORTBUF, token);
-            token = wcstok_s(NULL, u", ", &parserState);
-            ++currentIndex;
-        }
+ 
+    while (token) {
+        outputArguments[currentIndex] = calloc(SHORTBUF, sizeof(char16_t));
+        wcscpy_s(outputArguments[currentIndex], SHORTBUF, token);
+        token = wcstok_s(NULL, u", ", &parserState);
+        ++currentIndex;
     }
 
     *outputArgumentsCount = currentIndex;
@@ -91,6 +87,7 @@ char16_t **parseArgumentsFromTerminal(size_t *outputArgumentsCount, char16_t *ou
     return outputArguments;
 }
 
+/* Parses the arguments after they've been properly formatted into a sequenced array of strings */
 arguments_t *parseCommandLineArguments(const int count, const char16_t *rawArguments[]) {
     arguments_t *parsedArguments = initializeArguments();
 
