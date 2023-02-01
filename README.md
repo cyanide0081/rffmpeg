@@ -4,6 +4,7 @@ Windows command-line/console window tool for automating *FFmpeg* file conversion
 
 - Run with **--help** to get the full manual
 
+***
 
 ### Installation
 
@@ -15,5 +16,6 @@ Windows command-line/console window tool for automating *FFmpeg* file conversion
 
 3. (**optional**) put *rffmpeg* in your '**/ffmpeg/bin*' folder so you can call it from any directory
   
+***
 
 - **p.s.:** you will get a Windows SmartScreen warning the first time you run it (assuming you have it enabled) 
