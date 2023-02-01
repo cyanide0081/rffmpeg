@@ -1,18 +1,16 @@
-# rffmpeg
+# RFFmpeg
 
-command-line tool for automating file conversion through inside directories on Windows
+Windows command-line/console window tool for automating *FFmpeg* file conversions inside a specific directory
 
-- run with **--help** to get the full manual
+- Run with **--help** to get the full manual
 
-#### dependencies
+#### Dependencies
 
-- to use this tool you need to have [*ffmpeg*](https://ffmpeg.org/download.html) installed
+- To use this tool you need to:
+  1. install [*FFmpeg*](https://ffmpeg.org/download.html)
 
-- to run it, either:
+  2. add '**/ffmpeg/bin*' to your PATH environment variable
 
-  a. add ffmpeg\bin to your environment variables
-
-  b. copy the *ffmpeg* executable to the same directory as *rffmpeg*
+  3. (**optional**) put *rffmpeg* in your '**/ffmpeg/bin*' folder so you can call it from any directory
   
-
-- **p.s.:** for whatever reason the executable is blocked by smartscreen by default
+- **p.s.:** you will get a Windows SmartScreen warning the first time you run it (assuming you have it enabled) 
