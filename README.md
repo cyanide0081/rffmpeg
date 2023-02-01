@@ -14,7 +14,9 @@ Windows command-line/console window tool for automating *FFmpeg* file conversion
 
 2. add '**/ffmpeg/bin*' to your PATH environment variable
 
-3. (**optional**) put *rffmpeg* in your '**/ffmpeg/bin*' folder so you can call it from any directory
+3. download the latest build of the tool from the [releases](https://github.com/cyanide0081/rffmpeg/releases) page
+
+4. (**optional**) put *rffmpeg* in your '**/ffmpeg/bin*' folder so you can call it from any directory
   
 ***
 
