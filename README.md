@@ -1,13 +1,13 @@
-# RFFmpeg
+## RFFmpeg
 
 Windows command-line/console window tool for automating *FFmpeg* file conversions inside a specific directory
 
 - Run with **--help** to get the full manual
 
-#### Dependencies
+### Installation
 
 - To use this tool you need to:
-  1. install [*FFmpeg*](https://ffmpeg.org/download.html)
+  1. download a build of [*FFmpeg*](https://ffmpeg.org/download.html)
 
   2. add '**/ffmpeg/bin*' to your PATH environment variable
 
