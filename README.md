@@ -32,15 +32,17 @@
 >
 > ### Remarks:
 >
-> - `path` : must hold a valid directory or else the application will close (__*__)
+> - `path` : must hold a valid directory or else the application will close __*__
 >
 > - `fmt`  : must hold one or more formats you wish to transcode separated by commas,  
->            as in `-fmt wav,aif,flac` (__*__)
+>            as in `-fmt wav,aif,flac` __*__
 >
 > - `opts` : can hold ffmpeg options that must be sorrounded by double-quote  
 >            (**and any other argument containing whitespaces**)
 >
-> - `ext`  : must hold the extension your output files will use
+> - `ext`  : must hold the extension your output files will use __*__
+>
+> __*__ All arguments that aren't marked with an asterisk are optional
 
 
 
