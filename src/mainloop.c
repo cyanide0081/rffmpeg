@@ -1,11 +1,7 @@
 #include "../include/mainloop.h"
 
-errorCode_t searchDirectory(const char16_t *directory, char16_t *arguments[], const bool *options, processInfo_t *runtimeData) {
-    const char16_t *inputPath         = directory == NULL ? arguments[ARG_INPATH] : directory;
-    const char16_t *inputFormatString = arguments[ARG_INFORMAT];
-    const char16_t *parameters        = arguments[ARG_INPARAMETERS];
-    const char16_t *outputFormat      = arguments[ARG_OUTFORMAT];
-    const char16_t *newFolderName     = arguments[ARG_NEWFOLDERNAME];
+errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, processInfo_t *runtimeData) {
+    const char16_t *inputPath = directory == NULL ? arguments->inputPath : directory;
 
     size_t inputFormatIndex = 0;
     static size_t numberOfInputFormats = 0;
@@ -15,7 +11,7 @@ errorCode_t searchDirectory(const char16_t *directory, char16_t *arguments[], co
     if (wcscmp(inputFormats[0], IDENTIFIER_NO_FORMAT) == 0 && numberOfInputFormats == 0) {
         char16_t inputFormatStringBuffer[BUFFER];
 
-        wcscpy_s(inputFormatStringBuffer, BUFFER - 1, inputFormatString);
+        wcscpy_s(inputFormatStringBuffer, BUFFER - 1, arguments->inputFormatString);
 
         char16_t *parserState;
         char16_t *token = wcstok_s(inputFormatStringBuffer, u", ", &parserState);
@@ -47,11 +43,11 @@ errorCode_t searchDirectory(const char16_t *directory, char16_t *arguments[], co
             continue;
 
         /* Perform recursive search (or not) */
-        if (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && options[OPT_DISABLERECURSION] == false) {
+        if (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && arguments->optionDisableRecursiveSearch == false) {
             char16_t newPathMask[PATHBUF];
             swprintf_s(newPathMask, PATHBUF, u"%ls\\%ls", inputPath, fileName);
 
-            searchDirectory(newPathMask, arguments, options, runtimeData);
+            searchDirectory(newPathMask, arguments, runtimeData);
 
             continue;
         }
@@ -72,14 +68,14 @@ errorCode_t searchDirectory(const char16_t *directory, char16_t *arguments[], co
         char16_t fileNameNoExtension[PATHBUF];
         char16_t outputPath[PATHBUF];
 
-        const char16_t *overwriteOption = options[OPT_FORCEOVERWRITE] == true ? u"-y" : u"";
+        const char16_t *overwriteOption = arguments->optionForceFileOverwrites == true ? u"-y" : u"";
 
         wcscpy_s(fileNameNoExtension, PATHBUF - 1, fileName);
         *(wcsstr(fileNameNoExtension, inputFormats[inputFormatIndex])) = u'\0'; 
 
         /* Make-a-subfolder-or-not part */
-        if (options[OPT_MAKENEWFOLDER] == true) {
-            const char16_t *folderName = options[OPT_CUSTOMFOLDERNAME] == true ? newFolderName : outputFormat;
+        if (arguments->optionMakeNewFolder == true) {
+            const char16_t *folderName = arguments->optionCustomFolderName == true ? arguments->customFolderName : arguments->outputFormat;
 
             char16_t subFolderDirectory[PATHBUF];
             swprintf_s(subFolderDirectory, PATHBUF, u"%ls\\%ls", inputPath, folderName);
@@ -90,13 +86,13 @@ errorCode_t searchDirectory(const char16_t *directory, char16_t *arguments[], co
             wcscpy_s(outputPath, PATHBUF, inputPath);
         }
 
-        if (options[OPT_FORCEOVERWRITE] == false)
-            preventFilenameOverwrites(fileNameNoExtension, outputFormat, outputPath);
+        if (arguments->optionForceFileOverwrites == false)
+            preventFilenameOverwrites(fileNameNoExtension, arguments->outputFormat, outputPath);
 
         char16_t ffmpegProcessCall[LONGBUF];
 
         swprintf_s(ffmpegProcessCall, LONGBUF, u"ffmpeg -hide_banner %ls -i \"%ls\\%ls\" %ls \"%ls\\%ls.%ls\"", 
-            overwriteOption, inputPath, fileName, parameters, outputPath, fileNameNoExtension, outputFormat);
+            overwriteOption, inputPath, fileName, arguments->inputParameters, outputPath, fileNameNoExtension, arguments->outputFormat);
 
         /* Setup process info wcsuctures */
         STARTUPINFOW ffmpegStartupInformation = { sizeof(ffmpegStartupInformation) };
@@ -113,9 +109,9 @@ errorCode_t searchDirectory(const char16_t *directory, char16_t *arguments[], co
         }
         
         /* Keep or delete original files */
-        if (options[OPT_DELETEOLDFILES] == true) {
+        if (arguments->optionDeleteOriginalFiles == true) {
             char16_t inputFilePath[PATHBUF];
-            swprintf_s(inputFilePath, PATHBUF, u"%ls\\%ls", inputPath, fileName);
+            swprintf_s(inputFilePath, PATHBUF, u"%ls\\%ls", arguments->inputPath, fileName);
 
             if (DeleteFileW(inputFilePath)) {
                 ++(runtimeData->deletedFiles);

@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-fdiagnostics-color=always $(OPTIMIZATIONFLAG) -Wall -Wno-unused-variable -Wno-unused-function -std=c17 -municode
 
-IDIR=./include
+IDIR=include
 ODIR=src/obj
 SDIR=src
 LDIR=lib
@@ -9,10 +9,10 @@ OPTIMIZATIONFLAG=-Os
 
 LIBS=-lm
 
-_DEPS=libs.h man/help.h mainloop.h handlers.h constants.h terminal.h input.h
+_DEPS=libs.h constants.h mainloop.h handlers.h terminal.h input.h man/help.h types.h
 DEPS=$(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ=main.o mainloop.o handlers.o input.o terminal.o
+_OBJ=main.o typefunctions.o mainloop.o handlers.o input.o terminal.o
 OBJ=$(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(ODIR)/%.o: $(SDIR)/%.c $(DEPS)

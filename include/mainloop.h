@@ -2,7 +2,8 @@
 #define H_MAINLOOP
 
 #include "libs.h"
+#include "types.h"
 
-errorCode_t searchDirectory(const char16_t *directory, char16_t *arguments[], const bool *options, processInfo_t *runtimeData);
+errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, processInfo_t *runtimeData);
 
 #endif

@@ -2,6 +2,7 @@
 #define H_TERMINALFUNCTIONS
 
 #include "libs.h"
+#include "types.h"
 
 void printError(const char16_t *msg);
 

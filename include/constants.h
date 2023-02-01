@@ -16,29 +16,12 @@ static const char16_t *consoleWindowTitle = PROGRAM_NAME u" " PROGRAM_VERSION;
 #define COLOR_DEFAULT        u"\x1b[0m"
 
 /* Buffers and size limitations */
-#define BUFFER   (512 * sizeof(char16_t))
+#define BUFFER   (512)
 #define SHORTBUF (BUFFER / 16)
 #define LONGBUF  (BUFFER * 8)
-#define PATHBUF  (MAX_PATH * sizeof(char16_t))
+#define PATHBUF  (MAX_PATH)
 
-#define MAX_ARGS 5
-#define MAX_OPTS 6
-
-/* Argument and option arrays' index trackers */
-#define ARG_INPATH        0
-#define ARG_INFORMAT      1
-#define ARG_INPARAMETERS  2
-#define ARG_OUTFORMAT     3
-#define ARG_NEWFOLDERNAME 4
-
-#define OPT_DISPLAYHELP      0
-#define OPT_MAKENEWFOLDER    1
-#define OPT_DELETEOLDFILES   2
-#define OPT_DISABLERECURSION 3
-#define OPT_FORCEOVERWRITE   4
-#define OPT_CUSTOMFOLDERNAME 5
-
-/* Option wcsing constants */
+/* Optional flags' constants */
 #define OPT_DISPLAYHELP_STRING      u"--help"  
 #define OPT_MAKENEWFOLDER_STRING    u"--newfolder"  
 #define OPT_DELETEOLDFILES_STRING   u"--delete"  
