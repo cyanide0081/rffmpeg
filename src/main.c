@@ -19,17 +19,17 @@ int wmain(int argc, const char16_t *argv[]) {
 
     wprintf_s(u"%ls%ls%ls\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
 
-    arguments_t *parsedArguments = NULL;
+    arguments_t *parsedArguments = malloc(sizeof(arguments_t));
 
     if (inputMode == ARGUMENTS) {
-        parsedArguments = parseCommandLineArguments(argc, argv);
+        *parsedArguments = parseCommandLineArguments(argc, argv);
     } else {
         size_t consoleArgumentsCount = 0;
         char16_t *consoleArguments[SHORTBUF];
-        
+
         parseArgumentsFromTerminal(&consoleArgumentsCount, consoleArguments);
 
-        parsedArguments = parseCommandLineArguments(consoleArgumentsCount, (const char16_t**)consoleArguments);
+        *parsedArguments = parseCommandLineArguments(consoleArgumentsCount, (const char16_t**)consoleArguments);
 
         for (size_t i = 0; i < consoleArgumentsCount; ++i) {
             free(consoleArguments[i]);
@@ -59,7 +59,7 @@ int wmain(int argc, const char16_t *argv[]) {
         SetConsoleTitleW(originalConsoleWindowTitle);
     }
 
-    freeArguments(parsedArguments);
+    free(parsedArguments);
     restoreConsoleMode(originalConsoleMode);
 
     return (int)exitCode;

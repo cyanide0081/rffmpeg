@@ -88,32 +88,32 @@ char16_t **parseArgumentsFromTerminal(size_t *outputArgumentsCount, char16_t *ou
 }
 
 /* Parses the arguments after they've been properly formatted into a sequenced array of strings */
-arguments_t *parseCommandLineArguments(const int count, const char16_t *rawArguments[]) {
-    arguments_t *parsedArguments = initializeArguments();
+arguments_t parseCommandLineArguments(const int count, const char16_t *rawArguments[]) {
+    arguments_t parsedArguments;
 
     for (size_t i = 0; i < count; ++i) {
         /* fmt: -i <path> -f <container> -p <params> -o <container> */
         if (wcscmp(rawArguments[i], u"-path") == 0) {
-            wcsncpy_s(parsedArguments->inputPath, PATHBUF, rawArguments[++i], PATHBUF);
+            wcsncpy_s(parsedArguments.inputPath, PATHBUF, rawArguments[++i], PATHBUF);
         } else if (wcscmp(rawArguments[i], u"-fmt") == 0) {
-            wcsncpy_s(parsedArguments->inputFormatString, BUFFER, rawArguments[++i], BUFFER);
+            wcsncpy_s(parsedArguments.inputFormatString, SHORTBUF, rawArguments[++i], BUFFER);
         } else if (wcscmp(rawArguments[i], u"-opts") == 0) {
-            wcsncpy_s(parsedArguments->inputParameters, BUFFER, rawArguments[++i], BUFFER);
+            wcsncpy_s(parsedArguments.inputParameters, BUFFER, rawArguments[++i], BUFFER);
         } else if (wcscmp(rawArguments[i], u"-ext") == 0) {
-            wcsncpy_s(parsedArguments->outputFormat, SHORTBUF, rawArguments[++i], SHORTBUF);
+            wcsncpy_s(parsedArguments.outputFormat, SHORTBUF, rawArguments[++i], SHORTBUF);
         }
     
         /* fmt: --help, --newfolder=foldername, --delete, --norecursion, --overwrite, */
         if (wcscmp(rawArguments[i], OPT_DISPLAYHELP_STRING) == 0) {
-            parsedArguments->optionDisplayHelp = true;
+            parsedArguments.optionDisplayHelp = true;
         } else if (wcscmp(rawArguments[i], OPT_DELETEOLDFILES_STRING) == 0) {
-            parsedArguments->optionDeleteOriginalFiles = true;
+            parsedArguments.optionDeleteOriginalFiles = true;
         } else if (wcscmp(rawArguments[i], OPT_DISABLERECURSION_STRING) == 0) {
-            parsedArguments->optionDisableRecursiveSearch = true;
+            parsedArguments.optionDisableRecursiveSearch = true;
         } else if (wcscmp(rawArguments[i], OPT_FORCEOVERWRITE_STRING) == 0) {
-            parsedArguments->optionForceFileOverwrites = true;
+            parsedArguments.optionForceFileOverwrites = true;
         } else if (wcsstr(rawArguments[i], OPT_MAKENEWFOLDER_STRING)) {
-            parsedArguments->optionMakeNewFolder = true;
+            parsedArguments.optionMakeNewFolder = true;
 
             char16_t *argumentBuffer = wcsdup(rawArguments[i]); // duplicate argument string for analysis
             char16_t *parserState;
@@ -121,8 +121,8 @@ arguments_t *parseCommandLineArguments(const int count, const char16_t *rawArgum
             
             /* If there's an '=' sign, pass the string after it to the foldername argument */
             if ((token = wcstok_s(NULL, u"=", &parserState)) != NULL) {
-                parsedArguments->optionCustomFolderName = true;
-                wcscpy_s(parsedArguments->customFolderName, PATHBUF, token);
+                parsedArguments.optionCustomFolderName = true;
+                wcscpy_s(parsedArguments.customFolderName, PATHBUF, token);
             }
             
             free(argumentBuffer);

@@ -11,7 +11,7 @@ errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, p
     if (wcscmp(inputFormats[0], IDENTIFIER_NO_FORMAT) == 0 && numberOfInputFormats == 0) {
         char16_t inputFormatStringBuffer[BUFFER];
 
-        wcscpy_s(inputFormatStringBuffer, BUFFER - 1, arguments->inputFormatString);
+        wcscpy_s(inputFormatStringBuffer, SHORTBUF, arguments->inputFormatString);
 
         char16_t *parserState;
         char16_t *token = wcstok_s(inputFormatStringBuffer, u", ", &parserState);

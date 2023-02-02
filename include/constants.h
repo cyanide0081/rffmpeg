@@ -3,7 +3,7 @@
 
 #define PROGRAM_NAME      u"RFF"
 #define PROGRAM_NAME_FULL u"RFFMPEG"
-#define PROGRAM_VERSION   u"v0.6.3-beta"
+#define PROGRAM_VERSION   u"v0.6.4-beta"
 
 static const char16_t *fullTitle = PROGRAM_NAME_FULL u" " PROGRAM_VERSION u" (ユニコード)";
 static const char16_t *consoleWindowTitle = PROGRAM_NAME u" " PROGRAM_VERSION;
@@ -16,9 +16,9 @@ static const char16_t *consoleWindowTitle = PROGRAM_NAME u" " PROGRAM_VERSION;
 #define COLOR_DEFAULT        u"\x1b[0m"
 
 /* Buffers and size limitations */
+#define SHORTBUF (64)
 #define BUFFER   (512)
-#define SHORTBUF (BUFFER / 16)
-#define LONGBUF  (BUFFER * 8)
+#define LONGBUF  (1024)
 #define PATHBUF  (MAX_PATH)
 
 /* Optional flags' constants */
@@ -29,7 +29,7 @@ static const char16_t *consoleWindowTitle = PROGRAM_NAME u" " PROGRAM_VERSION;
 #define OPT_FORCEOVERWRITE_STRING   u"--overwrite"
 
 /* Empty string identifiers */
-#define IDENTIFIER_NO_PATH   u"IDNP"
-#define IDENTIFIER_NO_FORMAT u"IDNF"
+#define IDENTIFIER_NO_PATH   u"___IDENTIFIER_NO_PATH___"
+#define IDENTIFIER_NO_FORMAT u"___IDENTIFIER_NO_FORMAT___"
 
 #endif

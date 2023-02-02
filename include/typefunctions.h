@@ -3,8 +3,6 @@
 
 #include "libs.h"
 
-arguments_t *initializeArguments(void);
-
-void freeArguments(arguments_t *arguments);
+formattedTime_t formatTime(double seconds);
 
 #endif

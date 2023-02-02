@@ -1,39 +1,11 @@
 #include "../include/typefunctions.h"
 
-arguments_t *initializeArguments(void) {
-    arguments_t *newArguments = malloc(sizeof(*newArguments));
+formattedTime_t formatTime(double seconds) {
+    formattedTime_t time;
 
-    newArguments->inputPath              = calloc(PATHBUF,  sizeof(char16_t));
-    newArguments->inputFormatString      = calloc(BUFFER,   sizeof(char16_t));
-    newArguments->inputParameters        = calloc(BUFFER,   sizeof(char16_t));
-    newArguments->outputFormat           = calloc(SHORTBUF, sizeof(char16_t));
-    newArguments->customFolderName       = calloc(PATHBUF,  sizeof(char16_t));
+    time.hours = seconds / 3600;
+    time.minutes = (seconds - (time.hours * 3600)) / 60;
+    time.seconds = (double)(seconds - (time.hours * 3600) - (time.minutes * 60));
 
-    newArguments->optionDisplayHelp            = false;
-    newArguments->optionMakeNewFolder          = false;
-    newArguments->optionCustomFolderName       = false;
-    newArguments->optionDeleteOriginalFiles    = false;
-    newArguments->optionDisableRecursiveSearch = false;
-    newArguments->optionForceFileOverwrites    = false;
-
-    return newArguments;
-}
-
-void freeArguments(arguments_t *arguments) {
-    free(arguments->inputPath);
-    arguments->inputPath = NULL;
-
-    free(arguments->inputFormatString);
-    arguments->inputFormatString = NULL;
-
-    free(arguments->inputParameters);
-    arguments->inputParameters = NULL;
-
-    free(arguments->outputFormat);
-    arguments->outputFormat = NULL;
-
-    free(arguments->customFolderName);
-    arguments->customFolderName = NULL;
-
-    free(arguments);
+    return time;
 }

@@ -1,11 +1,11 @@
 CC=gcc
-CFLAGS=-fdiagnostics-color=always $(OPTIMIZATIONFLAG) -Wall -Wno-unused-variable -Wno-unused-function -std=c17 -municode
+CFLAGS=-fdiagnostics-color=always $(OPTIMIZATIONFLAGS) -Wall -Wno-unused-variable -Wno-unused-function -std=c17 -municode
 
 IDIR=include
 ODIR=src/obj
 SDIR=src
 LDIR=lib
-OPTIMIZATIONFLAG=-Os
+OPTIMIZATIONFLAGS=-s -Os -fdata-sections -ffunction-sections -Wl,--gc-sections -flto
 
 LIBS=-lm
 
