@@ -20,7 +20,7 @@ int preventFilenameOverwrites(char16_t *pureFilename, const char16_t *outputForm
         wcscpy_s(pureFilename, PATHBUF, fileNameNew);
     }
 
-    return EXIT_SUCCESS;
+    return NO_ERROR;
 }
 
 errorCode_t handleErrors(arguments_t *arguments) {

@@ -11,7 +11,7 @@ errno_t restoreConsoleMode(DWORD originalConsoleMode) {
         return GetLastError();
     }
 
-    return EXIT_SUCCESS;
+    return NO_ERROR;
 }
 
 errno_t enableVirtualTerminalProcessing(PDWORD originalConsoleMode) {
@@ -31,7 +31,7 @@ errno_t enableVirtualTerminalProcessing(PDWORD originalConsoleMode) {
         return GetLastError();
     }
 
-    return EXIT_SUCCESS;
+    return NO_ERROR;
 }
 
 void displayEndDialog(processInfo_t *processInformation) {
