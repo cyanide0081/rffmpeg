@@ -3,7 +3,7 @@
 
 #include "libs.h"
 
-formattedTime_t formatTime(double seconds);
+formattedTime formatTime(double seconds);
 
 void removeTrailingNewLine(char16_t *string);
 

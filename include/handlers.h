@@ -6,6 +6,6 @@
 
 int preventFilenameOverwrites(char16_t *pureFilename, const char16_t *outputFormat, const char16_t *path);
 
-errorCode_t handleErrors(arguments_t *arguments);
+int handleErrors(arguments *arguments);
 
 #endif

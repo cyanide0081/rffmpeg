@@ -1,7 +1,7 @@
 #include "../include/mainloop.h"
 
-errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, processInfo_t *runtimeData) {
-    const char16_t *inputPath = directory == NULL ? arguments->inputPath : directory;
+int searchDirectory(const char16_t *directory, arguments *arguments, processInfo *runtimeData) {
+    const char16_t *inputPath = directory == NULL ? arguments->inputPaths : directory;
 
     static size_t numberOfInputFormats = 0;
     static char16_t inputFormats[SHORTBUF][SHORTBUF] = { IDENTIFIER_NO_FORMAT };
@@ -11,7 +11,7 @@ errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, p
     if (wcscmp(inputFormats[0], IDENTIFIER_NO_FORMAT) == 0 && numberOfInputFormats == 0) {
         char16_t inputFormatStringBuffer[BUFFER];
 
-        wcscpy_s(inputFormatStringBuffer, SHORTBUF, arguments->inputFormatString);
+        wcscpy_s(inputFormatStringBuffer, SHORTBUF, arguments->inputFormats);
 
         char16_t *parserState;
         char16_t *token = wcstok_s(inputFormatStringBuffer, u", ", &parserState);
@@ -48,6 +48,10 @@ errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, p
         if (wcscmp(fileName, u".") == 0 || wcscmp(fileName, u"..") == 0)
             continue;
 
+        /* Avoid recursing into the brand new folder */
+        if (wcscmp(fileName, newFolderName) == 0 && arguments->optionCustomFolderName == true)
+            continue;
+
         /* Perform recursive search (or not) */
         if (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && arguments->optionDisableRecursiveSearch == false) {
             char16_t newPathMask[PATHBUF];
@@ -68,11 +72,7 @@ errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, p
             }
         }
 
-        if (!isOfFormat)
-            continue;
-
-        /* Avoid recursing into the brand new folder */
-        if (wcscmp(fileName, newFolderName) == 0 && arguments->optionCustomFolderName == true)
+        if (isOfFormat == false)
             continue;
 
         char16_t fileNameNoExtension[PATHBUF];
@@ -120,7 +120,7 @@ errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, p
         /* Keep or delete original files */
         if (arguments->optionDeleteOriginalFiles == true) {
             char16_t inputFilePath[PATHBUF];
-            swprintf_s(inputFilePath, PATHBUF, u"%ls\\%ls", arguments->inputPath, fileName);
+            swprintf_s(inputFilePath, PATHBUF, u"%ls\\%ls", arguments->inputPaths, fileName);
 
             if (DeleteFileW(inputFilePath)) {
                 ++(runtimeData->deletedFiles);

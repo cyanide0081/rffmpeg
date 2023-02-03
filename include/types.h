@@ -5,31 +5,23 @@
 
 typedef enum inputMode {
     ARGUMENTS, CONSOLE
-} inputMode_t;
-
-typedef enum errorCode {
-    ERROR_NONE,
-    ERROR_FAILED_SETCONSOLEMODE,
-    ERROR_FAILED_TO_OPEN_DIRECTORY,
-    ERROR_NO_INPUT_FORMAT,
-    ERROR_NO_OUTPUT_FORMAT
-} errorCode_t;
+} inputMode;
 
 typedef struct processInformation {
     uint64_t convertedFiles;
     uint64_t deletedFiles;
     double executionTime;
-} processInfo_t;
+} processInfo;
 
-typedef struct formattedTime_t {
+typedef struct formattedTime {
     uint64_t hours;
     uint64_t minutes;
     double seconds;
-} formattedTime_t;
+} formattedTime;
 
-typedef struct arguments_t {
-   char16_t inputPath[PATHBUF];
-   char16_t inputFormatString[SHORTBUF];
+typedef struct parsedArguments {
+   char16_t inputPaths[PATHBUF];
+   char16_t inputFormats[SHORTBUF];
    char16_t inputParameters[BUFFER];
    char16_t outputFormat[SHORTBUF];
    char16_t customFolderName[PATHBUF];
@@ -40,6 +32,6 @@ typedef struct arguments_t {
    bool optionDeleteOriginalFiles;
    bool optionDisableRecursiveSearch;
    bool optionForceFileOverwrites;
-} arguments_t;
+} arguments;
 
 #endif

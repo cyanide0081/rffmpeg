@@ -6,10 +6,10 @@
 
 void printError(const char16_t *msg);
 
-errno_t restoreConsoleMode(DWORD originalConsoleMode);
+int restoreConsoleMode(DWORD originalConsoleMode);
 
-errno_t enableVirtualTerminalProcessing(PDWORD originalConsoleMode);
+int enableVirtualTerminalProcessing(PDWORD originalConsoleMode);
 
-void displayEndDialog(processInfo_t *processInformation);
+void displayEndDialog(processInfo *processInformation);
 
 #endif

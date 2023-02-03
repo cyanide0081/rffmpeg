@@ -1,18 +1,18 @@
 #include "../include/input.h"
 
 /* Gets and parses the argument strings from console input dialogs */
-errno_t parseArgumentsFromTerminal(arguments_t *arguments) {
+int parseArgumentsFromTerminal(arguments *arguments) {
     size_t currentIndex = 0;
     DWORD charactersRead = 0;
     HANDLE consoleInput = GetStdHandle(STD_INPUT_HANDLE);
 
     wprintf_s(u"%ls > %lsInput path: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
-    ReadConsoleW(consoleInput, arguments->inputPath, PATHBUF, &charactersRead, NULL);
-    removeTrailingNewLine(arguments->inputPath);
+    ReadConsoleW(consoleInput, arguments->inputPaths, PATHBUF, &charactersRead, NULL);
+    removeTrailingNewLine(arguments->inputPaths);
 
     wprintf_s(u"%ls > %lsTarget format(s): %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
-    ReadConsoleW(consoleInput, arguments->inputFormatString, SHORTBUF, &charactersRead, NULL);
-    removeTrailingNewLine(arguments->inputFormatString);
+    ReadConsoleW(consoleInput, arguments->inputFormats, SHORTBUF, &charactersRead, NULL);
+    removeTrailingNewLine(arguments->inputFormats);
 
     wprintf_s(u"%ls > %lsFFmpeg options: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
     ReadConsoleW(consoleInput, arguments->inputParameters, BUFFER, &charactersRead, NULL);
@@ -60,17 +60,17 @@ errno_t parseArgumentsFromTerminal(arguments_t *arguments) {
 }
 
 /* Parses an array of strings to format parsedArguments accordingly */
-errno_t parseCommandLineArguments(const int count, const char16_t *rawArguments[], arguments_t *parsedArguments) {
+int parseCommandLineArguments(const int count, const char16_t *rawArguments[], arguments *parsedArguments) {
 
     for (int i = 0; i < count; ++i) {
         /* fmt: -i <path> -f <container> -p <params> -o <container> */
-        if (wcscmp(rawArguments[i], u"-path") == 0) {
-            wcsncpy_s(parsedArguments->inputPath, PATHBUF, rawArguments[++i], PATHBUF);
-        } else if (wcscmp(rawArguments[i], u"-in") == 0) {
-            wcsncpy_s(parsedArguments->inputFormatString, SHORTBUF, rawArguments[++i], BUFFER);
-        } else if (wcscmp(rawArguments[i], u"-opts") == 0) {
+        if (wcscmp(rawArguments[i], ARG_INPUTPATHS) == 0) {
+            wcsncpy_s(parsedArguments->inputPaths, PATHBUF, rawArguments[++i], PATHBUF);
+        } else if (wcscmp(rawArguments[i], ARG_INPUTFORMATS) == 0) {
+            wcsncpy_s(parsedArguments->inputFormats, SHORTBUF, rawArguments[++i], BUFFER);
+        } else if (wcscmp(rawArguments[i], ARG_INPUTPARAMETERS) == 0) {
             wcsncpy_s(parsedArguments->inputParameters, BUFFER, rawArguments[++i], BUFFER);
-        } else if (wcscmp(rawArguments[i], u"-out") == 0) {
+        } else if (wcscmp(rawArguments[i], ARG_OUTPUTFORMAT) == 0) {
             wcsncpy_s(parsedArguments->outputFormat, SHORTBUF, rawArguments[++i], SHORTBUF);
         }
     

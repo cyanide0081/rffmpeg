@@ -1,7 +1,7 @@
 #include "../include/typefunctions.h"
 
-formattedTime_t formatTime(double seconds) {
-    formattedTime_t time;
+formattedTime formatTime(double seconds) {
+    formattedTime time;
 
     time.hours = seconds / 3600;
     time.minutes = (seconds - (time.hours * 3600)) / 60;

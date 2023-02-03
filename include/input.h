@@ -3,8 +3,8 @@
 
 #include "libs.h"
 
-errno_t parseArgumentsFromTerminal(arguments_t *arguments);
+int parseArgumentsFromTerminal(arguments *arguments);
 
-errno_t parseCommandLineArguments(const int count, const char16_t *rawArguments[], arguments_t *parsedArguments);
+int parseCommandLineArguments(const int count, const char16_t *rawArguments[], arguments *parsedArguments);
 
 #endif

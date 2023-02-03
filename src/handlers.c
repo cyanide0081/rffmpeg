@@ -23,13 +23,13 @@ int preventFilenameOverwrites(char16_t *pureFilename, const char16_t *outputForm
     return NO_ERROR;
 }
 
-errorCode_t handleErrors(arguments_t *arguments) {
+int handleErrors(arguments *arguments) {
     /* Set current working directory as input path if none is provided */
-    if (*arguments->inputPath == 0) {
-        GetCurrentDirectoryW(SHORTBUF, arguments->inputPath);
+    if (*arguments->inputPaths == 0) {
+        GetCurrentDirectoryW(SHORTBUF, arguments->inputPaths);
     }
 
-    if (*arguments->inputFormatString == u'\0') {
+    if (*arguments->inputFormats == u'\0') {
         printError(u"no input format (null)");
         return ERROR_NO_INPUT_FORMAT;
     }
@@ -39,5 +39,5 @@ errorCode_t handleErrors(arguments_t *arguments) {
         return ERROR_NO_OUTPUT_FORMAT;
     }
 
-    return ERROR_NONE;
+    return NO_ERROR;
 }

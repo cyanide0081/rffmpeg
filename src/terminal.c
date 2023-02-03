@@ -4,7 +4,7 @@ void printError(const char16_t  *msg) {
     fwprintf_s(stderr, u"%lsERROR: %ls%ls%ls\n\n", CHARCOLOR_RED, CHARCOLOR_WHITE, msg, COLOR_DEFAULT);
 }
 
-errno_t restoreConsoleMode(DWORD originalConsoleMode) {
+int restoreConsoleMode(DWORD originalConsoleMode) {
     HANDLE handleToStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
     if (!SetConsoleMode(handleToStdOut, originalConsoleMode)) {
@@ -14,7 +14,7 @@ errno_t restoreConsoleMode(DWORD originalConsoleMode) {
     return NO_ERROR;
 }
 
-errno_t enableVirtualTerminalProcessing(PDWORD originalConsoleMode) {
+int enableVirtualTerminalProcessing(PDWORD originalConsoleMode) {
     HANDLE handleToStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
     DWORD consoleMode = 0;
@@ -34,11 +34,11 @@ errno_t enableVirtualTerminalProcessing(PDWORD originalConsoleMode) {
     return NO_ERROR;
 }
 
-void displayEndDialog(processInfo_t *processInformation) {
+void displayEndDialog(processInfo *processInformation) {
     if (processInformation->convertedFiles == 0) {
         printError(u"No input files were found");
     } else {
-        formattedTime_t executionTime = formatTime(processInformation->executionTime);
+        formattedTime executionTime = formatTime(processInformation->executionTime);
 
         wprintf_s(u" %lsDONE!%ls\n", CHARCOLOR_RED, COLOR_DEFAULT);
         wprintf_s(u"\n");

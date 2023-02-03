@@ -3,7 +3,7 @@
 
 #define PROGRAM_NAME      u"RFF"
 #define PROGRAM_NAME_FULL u"RFFMPEG"
-#define PROGRAM_VERSION   u"v0.6.5-beta"
+#define PROGRAM_VERSION   u"v0.6.6-beta"
 
 static const char16_t *fullTitle = PROGRAM_NAME_FULL u" " PROGRAM_VERSION u" (ユニコード)";
 static const char16_t *consoleWindowTitle = PROGRAM_NAME u" " PROGRAM_VERSION;
@@ -21,6 +21,12 @@ static const char16_t *consoleWindowTitle = PROGRAM_NAME u" " PROGRAM_VERSION;
 #define LONGBUF  (1024)
 #define PATHBUF  (MAX_PATH)
 
+/* Argument identifiers' constants */
+#define ARG_INPUTPATHS      u"-path"
+#define ARG_INPUTFORMATS    u"-in"
+#define ARG_INPUTPARAMETERS u"-opts"
+#define ARG_OUTPUTFORMAT    u"-out"
+
 /* Optional flags' constants */
 #define OPT_DISPLAYHELP_STRING      u"--help"  
 #define OPT_MAKENEWFOLDER_STRING    u"--newfolder"  
@@ -31,5 +37,10 @@ static const char16_t *consoleWindowTitle = PROGRAM_NAME u" " PROGRAM_VERSION;
 /* Empty string identifiers */
 #define IDENTIFIER_NO_PATH   u"___IDENTIFIER_NO_PATH___"
 #define IDENTIFIER_NO_FORMAT u"___IDENTIFIER_NO_FORMAT___"
+
+#define ERROR_FAILED_SETCONSOLEMODE     81000
+#define ERROR_FAILED_TO_OPEN_DIRECTORY  81001
+#define ERROR_NO_INPUT_FORMAT           81002
+#define ERROR_NO_OUTPUT_FORMAT          81003
 
 #endif

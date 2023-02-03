@@ -4,6 +4,6 @@
 #include "libs.h"
 #include "types.h"
 
-errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, processInfo_t *runtimeData);
+int searchDirectory(const char16_t *directory, arguments *arguments, processInfo *runtimeData);
 
 #endif

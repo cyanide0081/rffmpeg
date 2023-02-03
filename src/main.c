@@ -1,9 +1,9 @@
 #include "../include/libs.h"
 
 int wmain(int argc, const char16_t *argv[]) {
-    errorCode_t exitCode = ERROR_NONE;
-    processInfo_t processInformation = { 0 };
-    inputMode_t inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
+    int exitCode = NO_ERROR;
+    processInfo processInformation = { 0 };
+    inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
     _setmode(_fileno(stdout), _O_U16TEXT); // Setup Unicode (UTF-16LE) console I/O
 
@@ -19,7 +19,7 @@ int wmain(int argc, const char16_t *argv[]) {
 
     wprintf_s(u"%ls%ls%ls\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
 
-    arguments_t *parsedArguments = calloc(1, sizeof(arguments_t));
+    arguments *parsedArguments = calloc(1, sizeof(arguments));
 
     if (parsedArguments == NULL) {
         printError(u"not enough memory");
@@ -35,12 +35,12 @@ int wmain(int argc, const char16_t *argv[]) {
 
     if (parsedArguments->optionDisplayHelp == true && inputMode == ARGUMENTS) {
         displayHelp();
-    } else if ((exitCode = handleErrors(parsedArguments)) == ERROR_NONE) {
+    } else if ((exitCode = handleErrors(parsedArguments)) == NO_ERROR) {
         clock_t startTime = clock();
         exitCode = searchDirectory(NULL, parsedArguments, &processInformation);
         clock_t endTime = clock();
 
-        if (exitCode == ERROR_NONE) {
+        if (exitCode == NO_ERROR) {
             processInformation.executionTime = (double)(endTime - startTime) / CLOCKS_PER_SEC;
             
             displayEndDialog(&processInformation);
