@@ -8,9 +8,9 @@ static void displayHelp(void) {
     wprintf_s(u"\n");
     wprintf_s(u" Arguments:\n");
     wprintf_s(u"\t%-25lsthe directory containing your input files (defaults to current working path if left empty)\n", u"-path <path>");
-    wprintf_s(u"\t%-25lsthe file format(s) you want to find and convert (e.g.: mp4,mov)\n", "-fmt <format(s)>");
+    wprintf_s(u"\t%-25lsthe file format(s) you want to find and convert, separated by commas (e.g.: mp4,mov)\n", u"-in <format(s)>");
     wprintf_s(u"\t%-25lsthe ffmpeg conversion-related options (e.g.: -c:v libx264 -c:a aac -f matroska)\n", u"-opts <options>");
-    wprintf_s(u"\t%-25lsthe output extension (e.g.: mkv)\n", u"-ext <extension>");
+    wprintf_s(u"\t%-25lsthe extension of your output files (e.g.: mkv)\n", u"-out <extension>");
     wprintf_s(u"\n");
     wprintf_s(u" Additional flags:\n");
     wprintf_s(u"\t%-25lsstore converted files in a new folder - you can choose a folder name with '--newfolder=foldername'\n", OPT_MAKENEWFOLDER_STRING);

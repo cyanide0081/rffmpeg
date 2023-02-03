@@ -66,11 +66,11 @@ errno_t parseCommandLineArguments(const int count, const char16_t *rawArguments[
         /* fmt: -i <path> -f <container> -p <params> -o <container> */
         if (wcscmp(rawArguments[i], u"-path") == 0) {
             wcsncpy_s(parsedArguments->inputPath, PATHBUF, rawArguments[++i], PATHBUF);
-        } else if (wcscmp(rawArguments[i], u"-fmt") == 0) {
+        } else if (wcscmp(rawArguments[i], u"-in") == 0) {
             wcsncpy_s(parsedArguments->inputFormatString, SHORTBUF, rawArguments[++i], BUFFER);
         } else if (wcscmp(rawArguments[i], u"-opts") == 0) {
             wcsncpy_s(parsedArguments->inputParameters, BUFFER, rawArguments[++i], BUFFER);
-        } else if (wcscmp(rawArguments[i], u"-ext") == 0) {
+        } else if (wcscmp(rawArguments[i], u"-out") == 0) {
             wcsncpy_s(parsedArguments->outputFormat, SHORTBUF, rawArguments[++i], SHORTBUF);
         }
     
