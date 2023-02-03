@@ -26,7 +26,7 @@ int preventFilenameOverwrites(char16_t *pureFilename, const char16_t *outputForm
 errorCode_t handleErrors(arguments_t *arguments) {
     /* Set current working directory as input path if none is provided */
     if (*arguments->inputPath == 0) {
-        GetCurrentDirectoryW(SHORTBUF, arguments->inputFormatString);
+        GetCurrentDirectoryW(SHORTBUF, arguments->inputPath);
     }
 
     if (*arguments->inputFormatString == u'\0') {

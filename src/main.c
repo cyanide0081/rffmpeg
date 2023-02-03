@@ -19,22 +19,18 @@ int wmain(int argc, const char16_t *argv[]) {
 
     wprintf_s(u"%ls%ls%ls\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
 
-    arguments_t *parsedArguments = malloc(sizeof(arguments_t));
+    arguments_t *parsedArguments = calloc(1, sizeof(arguments_t));
+
+    if (parsedArguments == NULL) {
+        printError(u"not enough memory");
+
+        return ERROR_NOT_ENOUGH_MEMORY;
+    }
 
     if (inputMode == ARGUMENTS) {
-        *parsedArguments = parseCommandLineArguments(argc, argv);
+        parseCommandLineArguments(argc, argv, parsedArguments);
     } else {
-        size_t consoleArgumentsCount = 0;
-        char16_t *consoleArguments[SHORTBUF];
-
-        parseArgumentsFromTerminal(&consoleArgumentsCount, consoleArguments);
-
-        *parsedArguments = parseCommandLineArguments(consoleArgumentsCount, (const char16_t**)consoleArguments);
-
-        for (size_t i = 0; i < consoleArgumentsCount; ++i) {
-            free(consoleArguments[i]);
-            consoleArguments[i] = NULL;
-        }
+        parseArgumentsFromTerminal(parsedArguments);
     }
 
     if (parsedArguments->optionDisplayHelp == true && inputMode == ARGUMENTS) {

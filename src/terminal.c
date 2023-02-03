@@ -36,8 +36,7 @@ errno_t enableVirtualTerminalProcessing(PDWORD originalConsoleMode) {
 
 void displayEndDialog(processInfo_t *processInformation) {
     if (processInformation->convertedFiles == 0) {
-        printError(u"No input files were found\n");
-        wprintf_s(u"\n");
+        printError(u"No input files were found");
     } else {
         formattedTime_t executionTime = formatTime(processInformation->executionTime);
 

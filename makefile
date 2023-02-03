@@ -1,27 +1,38 @@
 CC=gcc
-CFLAGS=-fdiagnostics-color=always $(OPTIMIZATIONFLAGS) -Wall -Wno-unused-variable -Wno-unused-function -std=c17 -municode
+BIN=rffmpeg
 
-IDIR=include
-ODIR=src/obj
-SDIR=src
-LDIR=lib
-OPTIMIZATIONFLAGS=-s -Os -fdata-sections -ffunction-sections -Wl,--gc-sections -flto
+CDIRS=./src
+ODIRS=./src/obj
+DDIRS=./src/dep
+INCDIRS=./include ./include/man
 
-LIBS=-lm
+# This build system builds a file ready to be debugged by default. If you want to use its size optimizations
+# for a final build, uncomment OPTFLAGS, comment DBGFLAGS, use `make clean` and just run `make`
 
-_DEPS=libs.h constants.h mainloop.h handlers.h terminal.h input.h man/help.h types.h
-DEPS=$(patsubst %,$(IDIR)/%,$(_DEPS))
+DBGFLAGS=#-g
+OPTFLAGS=-s -Os -fdata-sections -ffunction-sections -Wl,--gc-sections -flto
+DEPFLAGS=-MP -MD
+CCFLAGS=-Wall -Wno-unused-variable -Wno-unused-function -std=c17 -municode -fdiagnostics-color=always -municode $(foreach D,$(INCDIRS),-I$(D)) $(DEPFLAGS)
 
-_OBJ=main.o typefunctions.o mainloop.o handlers.o input.o terminal.o
-OBJ=$(patsubst %,$(ODIR)/%,$(_OBJ))
+CFILES=$(foreach D,$(CDIRS),$(wildcard $(D)/*.c))
+HFILES=$(foreach D,$(INCDIRS),$(wildcard $(D)/*.h))
+OFILES=$(patsubst $(CDIRS)/%.c, $(ODIRS)/%.o, $(CFILES))
+DFILES=$(patsubst $(ODIRS)/%.o, $(DDIRS)/%.d, $(OFILES))
 
-$(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+all: $(BIN)
 
-rffmpeg: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+$(BIN): $(OFILES)
+	$(CC) $(CCFLAGS) $(OPTFLAGS) $(DBGFLAGS) -o $@ $^
+
+-include $(DFILES)
+
+%.o: ../%.c makefile $(HFILES)
+	$(CC) $(CCFLAGS) $(OPTFLAGS) $(DBGFLAGS) -c -o $@ $<
 
 .PHONY: clean
 
-clean: $(OBJ)
-	rm -f $(OBJ)/*.o
+clean:
+	del /Q .\\src\\obj\\*
+#	del /Q .\\src\\dep\\*
+	del .\\rffmpeg.exe
+	del .\\debug.exe

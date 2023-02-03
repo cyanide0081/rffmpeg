@@ -2,10 +2,9 @@
 #define H_INPUTFUNCTIONS
 
 #include "libs.h"
-#include "types.h"
 
-char16_t **parseArgumentsFromTerminal(size_t *outputArgumentsCount, char16_t *outputArguments[]);
+errno_t parseArgumentsFromTerminal(arguments_t *arguments);
 
-arguments_t parseCommandLineArguments(const int count, const char16_t *rawArguments[]);
+errno_t parseCommandLineArguments(const int count, const char16_t *rawArguments[], arguments_t *parsedArguments);
 
 #endif

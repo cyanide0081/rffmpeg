@@ -1,39 +1,52 @@
-# RFFmpeg
+# **RFFmpeg**
 
-Windows command-line/console window tool for automating *FFmpeg* file conversions inside a specific directory
+    Windows command-line/console window tool for automating FFmpeg file conversions inside a specific directory
 
 * Run with `--help` to read the help page
 
+<br>
 
+## **Installation**
 
-## Installation
+    In order to use this tool you will first need to install FFmpeg, so here are two ways to do it:
 
-> In order to use this tool you will have to:
-> 
-> 1. download a build of [**FFmpeg**](https://ffmpeg.org/download.html)
-> 
-> 2. add **_*/ffmpeg/bin_** to your `PATH` environment variable
-> 
-> 3. download the latest build of this tool [**here**](https://github.com/cyanide0081/rffmpeg/releases)
-> 
-> 4. (**optional**) put **_rffmpeg.exe_** in your **_*/ffmpeg/bin_** folder so you can call it from any directory
+<br>
 
+### **Method 1:** Using _winget_ (recommended)
 
+    If you're using Windows 10.1709 or newer, you can install it by simply opening PowerShell and running: 
 
-## Usage
+> \> `winget install ffmpeg`
 
-> - This tool's argument syntax is not that different from FFmpeg itself, with the basic structure being:
-> 
-> `rffmpeg -path <in-path> -fmt <in-fmt(s)> -opts <parameters> -ext <out-ext>`
+<br>
+
+### **Method 2:** Downloading it directly
+
 >
-> - Here's a basic RFFmpeg command that looks for **.wav** files and converts them to **mp3**:
+>1. download the latest Windows build of [**FFmpeg**](https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip)
+>     
+> 2. Extract the archive and add the _C:\ffmpeg\bin_ folder - the one containing the executables - to your `PATH`  by running PS as admin and pasting the following command: 
+>    
+>  \> `[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\ffmpeg\bin", [EnvironmentVariableTarget]::Machine)`
+>   
+> 3. (**optional**) move _rffmpeg.exe_ to your _C:\ffmpeg\bin_ folder so you can call it from any directory
+
+<br>
+
+## **Usage**
+
+    This tool's argument syntax is not that different from FFmpeg itself, with the basic structure being:
+> 
+> \> `rffmpeg -path <in-path> -fmt <in-fmt(s)> -opts <parameters> -ext <out-ext>`
 >
-> `rffmpeg -path C:\Users\Music -fmt wav -ext mp3`
->  
->  
->  
-> ### Arguments:
+    Here's a basic RFFmpeg command that looks for wav files and converts them to mp3:
 >
+> \> `rffmpeg -path C:\Users\Music -fmt wav -ext mp3`
+>  
+
+<br>
+
+ ## **Arguments**
 > - **path** : must hold a valid directory or else the application will close __*__
 >
 > - **fmt**  : must hold one or more formats you wish to transcode separated by commas,  
@@ -44,12 +57,11 @@ Windows command-line/console window tool for automating *FFmpeg* file conversion
 >
 > - **ext**  : must hold the extension your output files will use __*__
 >
-> __*__ All arguments marked with an asterisk are required for the tool to work
->  
->  
->  
-> ### Additional Flags
->
+     * All arguments marked with an asterisk are required for the tool to work
+
+<br>
+
+ ## **Additional Flags**
 > You can also pass any of the flags below to help you organize your batch conversions a little
 >
 > - **--newfolder**   : puts your converted files inside a new folder to which you can assign a custom name,  
@@ -63,6 +75,10 @@ Windows command-line/console window tool for automating *FFmpeg* file conversion
 > - **--norecursion** : disables file searches inside subfolders, in case your directory contains many folders you  
 >                     don't want to mess with
 
+<br>
+
 ***
 
- - **p.s.:** you will get a Windows SmartScreen warning the first time you run it (assuming you have it enabled) 
+<br>
+
+    p.s.: you will get a Windows SmartScreen warning the first time you run it(assuming you have it enabled) 

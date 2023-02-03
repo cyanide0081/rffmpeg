@@ -5,4 +5,6 @@
 
 formattedTime_t formatTime(double seconds);
 
+void removeTrailingNewLine(char16_t *string);
+
 #endif
