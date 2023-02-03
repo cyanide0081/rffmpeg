@@ -3,9 +3,9 @@
 errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, processInfo_t *runtimeData) {
     const char16_t *inputPath = directory == NULL ? arguments->inputPath : directory;
 
-    size_t inputFormatIndex = 0;
     static size_t numberOfInputFormats = 0;
     static char16_t inputFormats[SHORTBUF][SHORTBUF] = { IDENTIFIER_NO_FORMAT };
+    size_t inputFormatIndex = 0;
 
     /* Save cpu resources by only tokenizing formats once */
     if (wcscmp(inputFormats[0], IDENTIFIER_NO_FORMAT) == 0 && numberOfInputFormats == 0) {
@@ -21,6 +21,12 @@ errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, p
             token = wcstok_s(NULL, u", ", &parserState);
         }
     }
+
+    /* Do the same for the custom foldername */
+    static char16_t *newFolderName = NULL;
+
+    if (newFolderName == NULL)
+        newFolderName = arguments->optionCustomFolderName == true ? arguments->customFolderName : arguments->outputFormat;
     
     HANDLE fileHandle = INVALID_HANDLE_VALUE;
     WIN32_FIND_DATAW fileData;
@@ -65,6 +71,10 @@ errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, p
         if (!isOfFormat)
             continue;
 
+        /* Avoid recursing into the brand new folder */
+        if (wcscmp(fileName, newFolderName) == 0 && arguments->optionCustomFolderName == true)
+            continue;
+
         char16_t fileNameNoExtension[PATHBUF];
         char16_t outputPath[PATHBUF];
 
@@ -75,10 +85,9 @@ errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, p
 
         /* Make-a-subfolder-or-not part */
         if (arguments->optionMakeNewFolder == true) {
-            const char16_t *folderName = arguments->optionCustomFolderName == true ? arguments->customFolderName : arguments->outputFormat;
 
             char16_t subFolderDirectory[PATHBUF];
-            swprintf_s(subFolderDirectory, PATHBUF, u"%ls\\%ls", inputPath, folderName);
+            swprintf_s(subFolderDirectory, PATHBUF, u"%ls\\%ls", inputPath, newFolderName);
 
             CreateDirectoryW(subFolderDirectory, NULL);
             wcscpy_s(outputPath, PATHBUF, subFolderDirectory);
@@ -121,5 +130,5 @@ errorCode_t searchDirectory(const char16_t *directory, arguments_t *arguments, p
 
     FindClose(fileHandle);
 
-    return EXIT_SUCCESS;
+    return NO_ERROR;
 }
