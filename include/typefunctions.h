@@ -3,8 +3,10 @@
 
 #include "libs.h"
 
+void destroyArguments(arguments *arguments);
+
 formattedTime formatTime(double seconds);
 
-void removeTrailingNewLine(char16_t *string);
+void trimSpaces(char16_t *string);
 
 #endif

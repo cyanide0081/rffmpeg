@@ -25,11 +25,13 @@ int preventFilenameOverwrites(char16_t *pureFilename, const char16_t *outputForm
 
 int handleErrors(arguments *arguments) {
     /* Set current working directory as input path if none is provided */
-    if (*arguments->inputPaths == 0) {
-        GetCurrentDirectoryW(SHORTBUF, arguments->inputPaths);
+    if (*arguments->inputPaths[0] == 0) {
+        arguments->inputPaths[0] = malloc(SHORTBUF * sizeof(char));
+        GetCurrentDirectoryW(SHORTBUF, arguments->inputPaths[0]);
+        arguments->inputPathsCount++;
     }
 
-    if (*arguments->inputFormats == u'\0') {
+    if (*arguments->inputFormats[0] == u'\0') {
         printError(u"no input format (null)");
         return ERROR_NO_INPUT_FORMAT;
     }

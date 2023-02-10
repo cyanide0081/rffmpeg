@@ -3,8 +3,8 @@
 
 #include "libs.h"
 
-int parseArgumentsFromTerminal(arguments *arguments);
+int parseConsoleInput(arguments *arguments);
 
-int parseCommandLineArguments(const int count, const char16_t *rawArguments[], arguments *parsedArguments);
+int parseArguments(const int count, char16_t *rawArguments[], arguments *parsedArguments);
 
 #endif

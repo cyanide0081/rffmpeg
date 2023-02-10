@@ -1,32 +1,13 @@
 #include "../include/mainloop.h"
 
 int searchDirectory(const char16_t *directory, arguments *arguments, processInfo *runtimeData) {
-    const char16_t *inputPath = directory == NULL ? arguments->inputPaths : directory;
-
-    static size_t numberOfInputFormats = 0;
-    static char16_t inputFormats[SHORTBUF][SHORTBUF] = { IDENTIFIER_NO_FORMAT };
+    const char16_t *inputPath = directory == NULL ? arguments->inputPaths[0] : directory;
     size_t inputFormatIndex = 0;
 
-    /* Save cpu resources by only tokenizing formats once */
-    if (wcscmp(inputFormats[0], IDENTIFIER_NO_FORMAT) == 0 && numberOfInputFormats == 0) {
-        char16_t inputFormatStringBuffer[BUFFER];
-
-        wcscpy_s(inputFormatStringBuffer, SHORTBUF, arguments->inputFormats);
-
-        char16_t *parserState;
-        char16_t *token = wcstok_s(inputFormatStringBuffer, u", ", &parserState);
-
-        while (token != NULL) {
-            swprintf_s(inputFormats[numberOfInputFormats++], SHORTBUF - 1, u".%ls", token);
-            token = wcstok_s(NULL, u", ", &parserState);
-        }
-    }
-
-    /* Do the same for the custom foldername */
     static char16_t *newFolderName = NULL;
 
     if (newFolderName == NULL)
-        newFolderName = arguments->optionCustomFolderName == true ? arguments->customFolderName : arguments->outputFormat;
+        newFolderName = arguments->options & OPT_CUSTOMFOLDERNAME ? arguments->customFolderName : arguments->outputFormat;
     
     HANDLE fileHandle = INVALID_HANDLE_VALUE;
     WIN32_FIND_DATAW fileData;
@@ -49,11 +30,11 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
             continue;
 
         /* Avoid recursing into the brand new folder */
-        if (wcscmp(fileName, newFolderName) == 0 && arguments->optionCustomFolderName == true)
+        if (wcscmp(fileName, newFolderName) == 0 && arguments->options & OPT_MAKENEWFOLDER)
             continue;
 
         /* Perform recursive search (or not) */
-        if (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && arguments->optionDisableRecursiveSearch == false) {
+        if (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && (arguments->options & OPT_DISABLERECURSION) == false) {
             char16_t newPathMask[PATHBUF];
             swprintf_s(newPathMask, PATHBUF, u"%ls\\%ls", inputPath, fileName);
 
@@ -64,8 +45,8 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
 
         bool isOfFormat = false;
 
-        for (size_t i = 0; i < numberOfInputFormats; ++i) {
-            if (wcsstr(fileName, inputFormats[i]) != NULL) {
+        for (int i = 0; i < arguments->inputFormatsCount; i++) {
+            if (wcsstr(fileName, arguments->inputFormats[i]) != NULL) {
                 isOfFormat = true;
                 inputFormatIndex = i;
                 break;
@@ -75,16 +56,16 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
         if (isOfFormat == false)
             continue;
 
+        const char16_t *overwriteOption = arguments->options & OPT_FORCEFILEOVERWRITES ? u"-y" : u"";
+
+        /* Copy filename except the extension */
         char16_t fileNameNoExtension[PATHBUF];
+        wcsncpy_s(fileNameNoExtension, PATHBUF - 1, fileName, (wcslen(fileName) - wcslen(arguments->inputFormats[inputFormatIndex]) - 1));
+
         char16_t outputPath[PATHBUF];
 
-        const char16_t *overwriteOption = arguments->optionForceFileOverwrites == true ? u"-y" : u"";
-
-        wcscpy_s(fileNameNoExtension, PATHBUF - 1, fileName);
-        *(wcsstr(fileNameNoExtension, inputFormats[inputFormatIndex])) = u'\0'; 
-
         /* Make-a-subfolder-or-not part */
-        if (arguments->optionMakeNewFolder == true) {
+        if (arguments->options & OPT_MAKENEWFOLDER) {
 
             char16_t subFolderDirectory[PATHBUF];
             swprintf_s(subFolderDirectory, PATHBUF, u"%ls\\%ls", inputPath, newFolderName);
@@ -95,13 +76,13 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
             wcscpy_s(outputPath, PATHBUF, inputPath);
         }
 
-        if (arguments->optionForceFileOverwrites == false)
+        if ((arguments->options & OPT_FORCEFILEOVERWRITES) == false)
             preventFilenameOverwrites(fileNameNoExtension, arguments->outputFormat, outputPath);
 
         char16_t ffmpegProcessCall[LONGBUF];
 
         swprintf_s(ffmpegProcessCall, LONGBUF, u"ffmpeg -hide_banner %ls -i \"%ls\\%ls\" %ls \"%ls\\%ls.%ls\"", 
-            overwriteOption, inputPath, fileName, arguments->inputParameters, outputPath, fileNameNoExtension, arguments->outputFormat);
+            overwriteOption, inputPath, fileName, arguments->ffmpegOptions, outputPath, fileNameNoExtension, arguments->outputFormat);
 
         /* Setup process info wcsuctures */
         STARTUPINFOW ffmpegStartupInformation = { sizeof(ffmpegStartupInformation) };
@@ -112,18 +93,18 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
             WaitForSingleObject(ffmpegProcessInformation.hProcess, INFINITE);
             CloseHandle(ffmpegProcessInformation.hProcess);
             CloseHandle(ffmpegProcessInformation.hThread);
-            ++(runtimeData->convertedFiles);
+            runtimeData->convertedFiles++;
 
             wprintf_s(u"\n");
         }
         
         /* Keep or delete original files */
-        if (arguments->optionDeleteOriginalFiles == true) {
+        if (arguments->options & OPT_DELETEORIGINALFILES) {
             char16_t inputFilePath[PATHBUF];
             swprintf_s(inputFilePath, PATHBUF, u"%ls\\%ls", arguments->inputPaths, fileName);
 
             if (DeleteFileW(inputFilePath)) {
-                ++(runtimeData->deletedFiles);
+                runtimeData->deletedFiles++;
             }
         }
     } while (FindNextFileW(fileHandle, &fileData));

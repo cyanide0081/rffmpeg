@@ -1,38 +1,55 @@
+# Compiler / binaries
 CC=gcc
 BIN=rffmpeg
 
+# Compiler flags
+OPTFLAGS=-g -DDEBUG
+DEPFLAGS=-MP -MD
+CCFLAGS=-Wall -Wno-unused-variable -Wno-unused-function -std=c17 -fdiagnostics-color=always -municode $(foreach D,$(INCDIRS),-I$(D)) $(DEPFLAGS) $(OPTFLAGS)
+
+# Directories
 CDIRS=./src
 ODIRS=./src/obj
 DDIRS=./src/dep
 INCDIRS=./include ./include/man
+TESTDIRS=./tests
+TESTBINDIRS=./tests/obj
 
-# This build system builds a file ready to be debugged by default. If you want to use its size optimizations
-# for a final build, uncomment OPTFLAGS, comment DBGFLAGS, use `make clean` and just run `make`
+# Source files
+CFILES=$(foreach D, $(CDIRS), $(wildcard $(D)/*.c))
+HFILES=$(foreach D, $(INCDIRS), $(wildcard $(D)/*.h))
 
-DBGFLAGS=-g
-OPTFLAGS=#-s -Os -fdata-sections -ffunction-sections -Wl,--gc-sections -flto
-DEPFLAGS=-MP -MD
-CCFLAGS=-Wall -Wno-unused-variable -Wno-unused-function -std=c17 -municode -fdiagnostics-color=always -municode $(foreach D,$(INCDIRS),-I$(D)) $(DEPFLAGS)
-
-CFILES=$(foreach D,$(CDIRS),$(wildcard $(D)/*.c))
-HFILES=$(foreach D,$(INCDIRS),$(wildcard $(D)/*.h))
+# Object and CC dependency files
 OFILES=$(patsubst $(CDIRS)/%.c, $(ODIRS)/%.o, $(CFILES))
 DFILES=$(patsubst $(ODIRS)/%.o, $(DDIRS)/%.d, $(OFILES))
 
+# Test files
+TESTFILES=$(foreach D, $(TESTDIRS), $(wildcard $(TESTDIRS)/*.c))
+TESTBINS=$(patsubst $(TESTDIRS)/%.c, $(TESTBINDIRS)/%, $(TESTFILES))
+
 all: $(BIN)
 
+# Release mode toggles optimization switches and disables debug info generation
+release: OPTFLAGS=-DNDEBUG -s -Os -fdata-sections -ffunction-sections -Wl,--gc-sections -flto
+release: clean
+release: $(BIN)
+
+$(TESTBINDIRS)/%: $(TESTDIRS)/%.c
+	$(CC) $(CCFLAGS) -o $@ $< $(OFILES)
+
+test: $(TESTBINS)
+	for test in $(TESTBINS) ; do ./$$test ; done
+
 $(BIN): $(OFILES)
-	$(CC) $(CCFLAGS) $(OPTFLAGS) $(DBGFLAGS) -o $@ $^
+	$(CC) $(CCFLAGS) -o $@ $^
 
 -include $(DFILES)
 
 %.o: ../%.c makefile $(HFILES)
-	$(CC) $(CCFLAGS) $(OPTFLAGS) $(DBGFLAGS) -c -o $@ $<
+	$(CC) $(CCFLAGS) -c -o $@ $<
 
 .PHONY: clean
 
 clean:
 	del /Q .\\src\\obj\\*
-#	del /Q .\\src\\dep\\*
 	del .\\rffmpeg.exe
-	del .\\debug.exe

@@ -1,7 +1,7 @@
 #include "../include/libs.h"
 
-int wmain(int argc, const char16_t *argv[]) {
-    int exitCode = NO_ERROR;
+int wmain(int argc, char16_t *argv[]) {
+    int exitCode = EXIT_SUCCESS;
     processInfo processInformation = { 0 };
     inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
@@ -18,7 +18,7 @@ int wmain(int argc, const char16_t *argv[]) {
     }
 
     wprintf_s(u"%ls%ls%ls\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
-
+    
     arguments *parsedArguments = calloc(1, sizeof(arguments));
 
     if (parsedArguments == NULL) {
@@ -28,19 +28,23 @@ int wmain(int argc, const char16_t *argv[]) {
     }
 
     if (inputMode == ARGUMENTS) {
-        parseCommandLineArguments(argc, argv, parsedArguments);
+        parseArguments(argc, argv, parsedArguments);
     } else {
-        parseArgumentsFromTerminal(parsedArguments);
+        parseConsoleInput(parsedArguments);
     }
 
-    if (parsedArguments->optionDisplayHelp == true && inputMode == ARGUMENTS) {
+    if (parsedArguments->options & OPT_DISPLAYHELP && inputMode == ARGUMENTS) {
         displayHelp();
-    } else if ((exitCode = handleErrors(parsedArguments)) == NO_ERROR) {
+    } else if ((exitCode = handleErrors(parsedArguments)) == EXIT_SUCCESS) {
         clock_t startTime = clock();
-        exitCode = searchDirectory(NULL, parsedArguments, &processInformation);
+
+        /* TODO: remove this loop later (ugly way of looping through paths) */
+        for (int i = 0; i < parsedArguments->inputPathsCount; i++)
+            exitCode = searchDirectory(parsedArguments->inputPaths[i], parsedArguments, &processInformation);
+
         clock_t endTime = clock();
 
-        if (exitCode == NO_ERROR) {
+        if (exitCode == EXIT_SUCCESS) {
             processInformation.executionTime = (double)(endTime - startTime) / CLOCKS_PER_SEC;
             
             displayEndDialog(&processInformation);
@@ -55,8 +59,8 @@ int wmain(int argc, const char16_t *argv[]) {
         SetConsoleTitleW(originalConsoleWindowTitle);
     }
 
-    free(parsedArguments);
+    destroyArguments(parsedArguments);
     restoreConsoleMode(originalConsoleMode);
 
-    return (int)exitCode;
+    return exitCode;
 }
