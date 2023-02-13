@@ -1,25 +1,28 @@
 #include "../include/libs.h"
+#include "../include/headers.h"
 
 int wmain(int argc, char16_t *argv[]) {
+    #ifdef _WIN32
+        _setmode(_fileno(stdout), _O_U16TEXT); // Setup Unicode (UTF-16LE) console I/O for Windows
+    #endif
+    
     int exitCode = EXIT_SUCCESS;
     processInfo processInformation = { 0 };
     inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
-    _setmode(_fileno(stdout), _O_U16TEXT); // Setup Unicode (UTF-16LE) console I/O
-
     /* Enable virtual terminal sequences for colored console output */
     DWORD originalConsoleMode;
-    char16_t originalConsoleWindowTitle[PATHBUF];
+    char16_t originalConsoleWindowTitle[PATH_BUFFER];
     enableVirtualTerminalProcessing(&originalConsoleMode);
 
     if (inputMode == CONSOLE) {
-        GetConsoleTitleW(originalConsoleWindowTitle, PATHBUF);
+        GetConsoleTitleW(originalConsoleWindowTitle, PATH_BUFFER);
         SetConsoleTitleW(consoleWindowTitle);
     }
 
     wprintf_s(u"%ls%ls%ls\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
     
-    arguments *parsedArguments = calloc(1, sizeof(arguments));
+    arguments *parsedArguments = initializeArguments();
 
     if (parsedArguments == NULL) {
         printError(u"not enough memory");

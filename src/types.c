@@ -1,4 +1,17 @@
-#include "../include/typefunctions.h"
+#include "../include/types.h"
+#include "../include/terminal.h"
+
+arguments *initializeArguments(void) {
+    arguments *instance = calloc(1, sizeof(*instance));
+
+    if (instance == NULL) {
+        printError(u"not enough memory");
+
+        return NULL;
+    }
+    
+    return instance;
+}
 
 void destroyArguments(arguments *arguments) {
     if (arguments == NULL)
@@ -26,7 +39,7 @@ formattedTime formatTime(double seconds) {
 }
 
 /* Trim leading and trailing empty characters from a string */
-void trimSpaces(char16_t *string) {
+void trimWhiteSpaces(char16_t *string) {
     size_t length = wcslen(string);
 
     char16_t *start = string;

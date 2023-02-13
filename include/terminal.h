@@ -1,5 +1,5 @@
-#ifndef H_TERMINALFUNCTIONS
-#define H_TERMINALFUNCTIONS
+#ifndef H_TERMINAL
+#define H_TERMINAL
 
 #include "libs.h"
 #include "types.h"
@@ -12,4 +12,4 @@ int enableVirtualTerminalProcessing(PDWORD originalConsoleMode);
 
 void displayEndDialog(processInfo *processInformation);
 
-#endif
+#endif // H_TERMINAL

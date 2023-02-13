@@ -1,4 +1,4 @@
-#include "../include/mainloop.h"
+#include "../include/search.h"
 
 int searchDirectory(const char16_t *directory, arguments *arguments, processInfo *runtimeData) {
     const char16_t *inputPath = directory == NULL ? arguments->inputPaths[0] : directory;
@@ -35,8 +35,8 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
 
         /* Perform recursive search (or not) */
         if (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && (arguments->options & OPT_DISABLERECURSION) == false) {
-            char16_t newPathMask[PATHBUF];
-            swprintf_s(newPathMask, PATHBUF, u"%ls\\%ls", inputPath, fileName);
+            char16_t newPathMask[PATH_BUFFER];
+            swprintf_s(newPathMask, PATH_BUFFER, u"%ls\\%ls", inputPath, fileName);
 
             searchDirectory(newPathMask, arguments, runtimeData);
 
@@ -59,21 +59,21 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
         const char16_t *overwriteOption = arguments->options & OPT_FORCEFILEOVERWRITES ? u"-y" : u"";
 
         /* Copy filename except the extension */
-        char16_t fileNameNoExtension[PATHBUF];
-        wcsncpy_s(fileNameNoExtension, PATHBUF - 1, fileName, (wcslen(fileName) - wcslen(arguments->inputFormats[inputFormatIndex]) - 1));
+        char16_t fileNameNoExtension[PATH_BUFFER];
+        wcsncpy_s(fileNameNoExtension, PATH_BUFFER - 1, fileName, (wcslen(fileName) - wcslen(arguments->inputFormats[inputFormatIndex]) - 1));
 
-        char16_t outputPath[PATHBUF];
+        char16_t outputPath[PATH_BUFFER];
 
         /* Make-a-subfolder-or-not part */
         if (arguments->options & OPT_MAKENEWFOLDER) {
 
-            char16_t subFolderDirectory[PATHBUF];
-            swprintf_s(subFolderDirectory, PATHBUF, u"%ls\\%ls", inputPath, newFolderName);
+            char16_t subFolderDirectory[PATH_BUFFER];
+            swprintf_s(subFolderDirectory, PATH_BUFFER, u"%ls\\%ls", inputPath, newFolderName);
 
             CreateDirectoryW(subFolderDirectory, NULL);
-            wcscpy_s(outputPath, PATHBUF, subFolderDirectory);
+            wcscpy_s(outputPath, PATH_BUFFER, subFolderDirectory);
         } else {
-            wcscpy_s(outputPath, PATHBUF, inputPath);
+            wcscpy_s(outputPath, PATH_BUFFER, inputPath);
         }
 
         if ((arguments->options & OPT_FORCEFILEOVERWRITES) == false)
@@ -100,8 +100,8 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
         
         /* Keep or delete original files */
         if (arguments->options & OPT_DELETEORIGINALFILES) {
-            char16_t inputFilePath[PATHBUF];
-            swprintf_s(inputFilePath, PATHBUF, u"%ls\\%ls", arguments->inputPaths, fileName);
+            char16_t inputFilePath[PATH_BUFFER];
+            swprintf_s(inputFilePath, PATH_BUFFER, u"%ls\\%ls", arguments->inputPaths, fileName);
 
             if (DeleteFileW(inputFilePath)) {
                 runtimeData->deletedFiles++;

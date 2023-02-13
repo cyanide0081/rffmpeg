@@ -1,4 +1,4 @@
-#include "../include/input.h"
+#include "../include/parsers.h"
 
 static int _tokenizeArguments(char16_t *string, const char16_t *delimiter, char16_t *destinationList[], size_t *destinationItemsCount);
 
@@ -9,11 +9,11 @@ int parseConsoleInput(arguments *arguments) {
     DWORD charactersRead = 0;
     HANDLE consoleInput = GetStdHandle(STD_INPUT_HANDLE);
     
-    char16_t inputPathsString[SHORTBUF * PATHBUF];
+    char16_t inputPathsString[SHORTBUF * PATH_BUFFER];
 
     wprintf_s(u"%ls > %lsInput path(s): %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
-    ReadConsoleW(consoleInput, inputPathsString, PATHBUF, &charactersRead, NULL);
-    trimSpaces(inputPathsString);
+    ReadConsoleW(consoleInput, inputPathsString, PATH_BUFFER, &charactersRead, NULL);
+    trimWhiteSpaces(inputPathsString);
 
     if ((errorCode = _tokenizeArguments(inputPathsString, u"*", arguments->inputPaths, &(arguments->inputPathsCount))) != NO_ERROR)
         return errorCode;
@@ -22,24 +22,24 @@ int parseConsoleInput(arguments *arguments) {
 
     wprintf_s(u"%ls > %lsTarget format(s): %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
     ReadConsoleW(consoleInput, inputFormatsString, SHORTBUF, &charactersRead, NULL);
-    trimSpaces(inputFormatsString);
+    trimWhiteSpaces(inputFormatsString);
 
     if ((errorCode = _tokenizeArguments(inputFormatsString, u", ", arguments->inputFormats, &(arguments->inputFormatsCount))) != NO_ERROR)
         return errorCode;
 
     wprintf_s(u"%ls > %lsFFmpeg options: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
     ReadConsoleW(consoleInput, arguments->ffmpegOptions, BUFFER, &charactersRead, NULL);
-    trimSpaces(arguments->ffmpegOptions);
-
+    trimWhiteSpaces(arguments->ffmpegOptions);
+    
     wprintf_s(u"%ls > %lsOutput extension: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
     ReadConsoleW(consoleInput, arguments->outputFormat, SHORTBUF, &charactersRead, NULL);
-    trimSpaces(arguments->outputFormat);
+    trimWhiteSpaces(arguments->outputFormat);
 
     char16_t optionsString[BUFFER];
 
     wprintf_s(u"%ls > %lsAdditional flags: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
     ReadConsoleW(consoleInput, optionsString, BUFFER, &charactersRead, NULL);
-    trimSpaces(optionsString);
+    trimWhiteSpaces(optionsString);
 
     char16_t *optionsList[SHORTBUF] = { NULL };
     size_t optionsCount = 0;
@@ -68,27 +68,27 @@ int parseArguments(const int count, char16_t *rawArguments[], arguments *parsedA
     if (parsedArguments->inputPaths[0] == NULL)
         parsedArguments->inputPaths[0] = u"";
     if (parsedArguments->inputFormats[0] == NULL)
-    parsedArguments->inputFormats[0] = u"";
+        parsedArguments->inputFormats[0] = u"";
 
     for (int i = 0; i < count; i++) {
         /* fmt: -i <path> -f <container> -p <params> -o <container> */
-        if (wcscmp(rawArguments[i], ARG_INPUTPATHS) == 0) {
+        if (wcsicmp(rawArguments[i], ARG_INPUTPATHS) == 0) {
             if ((errorCode = _tokenizeArguments(rawArguments[++i], u"*", parsedArguments->inputPaths, &(parsedArguments->inputPathsCount))) != NO_ERROR)
                 return errorCode;
-        } else if (wcscmp(rawArguments[i], ARG_INPUTFORMATS) == 0) {
+        } else if (wcsicmp(rawArguments[i], ARG_INPUTFORMATS) == 0) {
             if ((errorCode = _tokenizeArguments(rawArguments[++i], u", ", parsedArguments->inputFormats, &(parsedArguments->inputFormatsCount))) != NO_ERROR)
                 return errorCode;
-        } else if (wcscmp(rawArguments[i], ARG_INPUTPARAMETERS) == 0) {
+        } else if (wcsicmp(rawArguments[i], ARG_INPUTPARAMETERS) == 0) {
             wcsncpy_s(parsedArguments->ffmpegOptions, BUFFER, rawArguments[++i], BUFFER);
-        } else if (wcscmp(rawArguments[i], ARG_OUTPUTFORMAT) == 0) {
+        } else if (wcsicmp(rawArguments[i], ARG_OUTPUTFORMAT) == 0) {
             wcsncpy_s(parsedArguments->outputFormat, SHORTBUF, rawArguments[++i], SHORTBUF);
-        } else if (wcscmp(rawArguments[i], OPT_DISPLAYHELP_STRING) == 0) {
+        } else if (wcsicmp(rawArguments[i], OPT_DISPLAYHELP_STRING) == 0) {
             parsedArguments->options |= OPT_DISPLAYHELP;
-        } else if (wcscmp(rawArguments[i], OPT_DELETEOLDFILES_STRING) == 0) {
+        } else if (wcsicmp(rawArguments[i], OPT_DELETEOLDFILES_STRING) == 0) {
             parsedArguments->options |= OPT_DELETEORIGINALFILES;
-        } else if (wcscmp(rawArguments[i], OPT_DISABLERECURSION_STRING) == 0) {
+        } else if (wcsicmp(rawArguments[i], OPT_DISABLERECURSION_STRING) == 0) {
             parsedArguments->options |= OPT_DISABLERECURSION;
-        } else if (wcscmp(rawArguments[i], OPT_FORCEOVERWRITE_STRING) == 0) {
+        } else if (wcsicmp(rawArguments[i], OPT_FORCEOVERWRITE_STRING) == 0) {
             parsedArguments->options |= OPT_FORCEFILEOVERWRITES;
         } else if (wcsstr(rawArguments[i], OPT_MAKENEWFOLDER_STRING)) {
             parsedArguments->options |= OPT_MAKENEWFOLDER;
@@ -98,7 +98,7 @@ int parseArguments(const int count, char16_t *rawArguments[], arguments *parsedA
             if ((delimiterSection = wcsstr(rawArguments[i], u"=")) != NULL) {
                 parsedArguments->options |= OPT_CUSTOMFOLDERNAME;
                 
-                wcscpy_s(parsedArguments->customFolderName, PATHBUF, ++delimiterSection);
+                wcscpy_s(parsedArguments->customFolderName, PATH_BUFFER, ++delimiterSection);
             }
         }
     }
@@ -119,8 +119,8 @@ static int _tokenizeArguments(char16_t *string, const char16_t *delimiter, char1
             return ERROR_NOT_ENOUGH_MEMORY;
         }
 
-        trimSpaces(token);
-        wcscpy_s(destinationList[(*destinationItemsCount)++], PATHBUF, token);
+        trimWhiteSpaces(token);
+        wcscpy_s(destinationList[(*destinationItemsCount)++], PATH_BUFFER, token);
         token = wcstok_s(NULL, u"*", &parserState);
     }
 

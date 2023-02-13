@@ -17,9 +17,14 @@ static const char16_t *consoleWindowTitle = PROGRAM_NAME u" " PROGRAM_VERSION;
 
 /* Buffers and size limitations */
 #define SHORTBUF (64)
-#define BUFFER   (512)
-#define LONGBUF  (1024)
-#define PATHBUF  (MAX_PATH)
+#define BUFFER   (2048)
+#define LONGBUF  (4096)
+
+#if defined _WIN32
+    #define PATH_BUFFER (MAX_PATH)  
+#else
+    #define PATH_BUFFER (UINT8_MAX)
+#endif
 
 /* Option bitmasks */
 #define OPT_DISPLAYHELP         0x01
@@ -51,4 +56,4 @@ static const char16_t *consoleWindowTitle = PROGRAM_NAME u" " PROGRAM_VERSION;
 #define ERROR_FAILED_SETCONSOLEMODE    81002
 #define ERROR_FAILED_TO_OPEN_DIRECTORY 81003
 
-#endif
+#endif // H_CONSTS

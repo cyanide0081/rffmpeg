@@ -7,20 +7,12 @@
 #include <stdbool.h>
 #include <uchar.h>
 #include <time.h>
-#include <locale.h>
-#include <windows.h>
 
-/* Libraries for enabling sketchy UTF-16 console input */
-#include <fcntl.h>
-#include <io.h>
-
-#include "constants.h"
-#include "types.h"
-#include "typefunctions.h"
-#include "input.h"
-#include "handlers.h"
-#include "mainloop.h"
-#include "terminal.h"
-#include "man/help.h"
-
+/* OS-dependent headers */
+#ifdef _WIN32
+    #include <windows.h>
+    #include <fcntl.h>
+    #include <io.h>
 #endif
+
+#endif // H_LIBS

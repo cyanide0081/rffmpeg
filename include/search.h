@@ -3,7 +3,9 @@
 
 #include "libs.h"
 #include "types.h"
+#include "handlers.h"
+#include "terminal.h"
 
 int searchDirectory(const char16_t *directory, arguments *arguments, processInfo *runtimeData);
 
-#endif
+#endif // H_MAINLOOP i
