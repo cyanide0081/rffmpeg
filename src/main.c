@@ -1,6 +1,9 @@
 #include "../include/libs.h"
 #include "../include/headers.h"
 
+/* TODO: restructure the whole code to make use of portable I/O
+ functions and become ready for compiling for Unix-like OSes */
+
 int wmain(int argc, char16_t *argv[]) {
     #ifdef _WIN32
         _setmode(_fileno(stdout), _O_U16TEXT); // Setup Unicode (UTF-16LE) console I/O for Windows

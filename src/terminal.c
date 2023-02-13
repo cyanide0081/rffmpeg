@@ -42,10 +42,12 @@ void displayEndDialog(processInfo *processInformation) {
 
         wprintf_s(u" %lsDONE!%ls\n", CHARCOLOR_RED, COLOR_DEFAULT);
         wprintf_s(u"\n");
-        wprintf_s(u" %lsProcessed files: %ls%llu%ls\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->convertedFiles, COLOR_DEFAULT);
-        wprintf_s(u" %lsDeleted files:   %ls%llu%ls\n", CHARCOLOR_WHITE, CHARCOLOR_RED, processInformation->deletedFiles, COLOR_DEFAULT);
+        wprintf_s(u" %lsProcessed files: %ls%llu%ls\n", CHARCOLOR_WHITE, CHARCOLOR_RED, 
+         processInformation->convertedFiles, COLOR_DEFAULT);
+        wprintf_s(u" %lsDeleted files:   %ls%llu%ls\n", CHARCOLOR_WHITE, CHARCOLOR_RED, 
+         processInformation->deletedFiles, COLOR_DEFAULT);
         wprintf_s(u" %lsElapsed time:    %ls%02llu:%02llu:%05.2lf%ls\n", CHARCOLOR_WHITE,
-            CHARCOLOR_RED, executionTime.hours, executionTime.minutes, executionTime.seconds, COLOR_DEFAULT);
+         CHARCOLOR_RED, executionTime.hours, executionTime.minutes, executionTime.seconds, COLOR_DEFAULT);
         wprintf_s(u"\n");
     }
  }

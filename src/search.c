@@ -7,7 +7,8 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
     static char16_t *newFolderName = NULL;
 
     if (newFolderName == NULL)
-        newFolderName = arguments->options & OPT_CUSTOMFOLDERNAME ? arguments->customFolderName : arguments->outputFormat;
+        newFolderName = arguments->options & OPT_CUSTOMFOLDERNAME ?
+         arguments->customFolderName : arguments->outputFormat;
     
     HANDLE fileHandle = INVALID_HANDLE_VALUE;
     WIN32_FIND_DATAW fileData;
@@ -17,7 +18,7 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
 
     if ((fileHandle = FindFirstFileW(pathMask, &fileData)) == INVALID_HANDLE_VALUE) {
         fwprintf_s(stderr, u"%lsERROR: %lsCouldn't open \'%ls\' (code: %ls%lu%ls)\n\n",
-            CHARCOLOR_RED, CHARCOLOR_WHITE, inputPath, CHARCOLOR_RED, GetLastError(), CHARCOLOR_WHITE);
+         CHARCOLOR_RED, CHARCOLOR_WHITE, inputPath, CHARCOLOR_RED, GetLastError(), CHARCOLOR_WHITE);
 
         return ERROR_FAILED_TO_OPEN_DIRECTORY;
     }
@@ -34,7 +35,8 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
             continue;
 
         /* Perform recursive search (or not) */
-        if (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && (arguments->options & OPT_DISABLERECURSION) == false) {
+        if (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && (arguments->options
+         & OPT_DISABLERECURSION) == false) {
             char16_t newPathMask[PATH_BUFFER];
             swprintf_s(newPathMask, PATH_BUFFER, u"%ls\\%ls", inputPath, fileName);
 
@@ -60,7 +62,8 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
 
         /* Copy filename except the extension */
         char16_t pureFileName[PATH_BUFFER];
-        wcsncpy_s(pureFileName, PATH_BUFFER - 1, fileName, (wcslen(fileName) - wcslen(arguments->inputFormats[inputFormatIndex]) - 1));
+        wcsncpy_s(pureFileName, PATH_BUFFER - 1, fileName,
+         (wcslen(fileName) - wcslen(arguments->inputFormats[inputFormatIndex]) - 1));
 
         char16_t outputPath[PATH_BUFFER];
 
@@ -81,15 +84,17 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
 
         char16_t ffmpegProcessCall[LONGBUF];
 
-        swprintf_s(ffmpegProcessCall, LONGBUF, u"ffmpeg -hide_banner %ls -i \"%ls\\%ls\" %ls \"%ls\\%ls.%ls\"", 
-            overwriteOption, inputPath, fileName, arguments->ffmpegOptions, outputPath, pureFileName, arguments->outputFormat);
+        swprintf_s(ffmpegProcessCall, LONGBUF,
+         u"ffmpeg -hide_banner %ls -i \"%ls\\%ls\" %ls \"%ls\\%ls.%ls\"", overwriteOption, inputPath,
+         fileName, arguments->ffmpegOptions, outputPath, pureFileName, arguments->outputFormat);
 
         /* Setup process info wcsuctures */
         STARTUPINFOW ffmpegStartupInformation = { sizeof(ffmpegStartupInformation) };
         PROCESS_INFORMATION ffmpegProcessInformation;
 
         /* Call ffmpeg and wait for it to finish */
-        if (CreateProcessW(NULL, ffmpegProcessCall, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &ffmpegStartupInformation, &ffmpegProcessInformation)) {
+        if (CreateProcessW(NULL, ffmpegProcessCall, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS,
+         NULL, NULL, &ffmpegStartupInformation, &ffmpegProcessInformation)) {               
             WaitForSingleObject(ffmpegProcessInformation.hProcess, INFINITE);
             CloseHandle(ffmpegProcessInformation.hProcess);
             CloseHandle(ffmpegProcessInformation.hThread);

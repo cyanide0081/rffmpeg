@@ -1,6 +1,7 @@
 #include "../include/parsers.h"
 
-static int _tokenizeArguments(char16_t *string, const char16_t *delimiter, char16_t *destinationList[], size_t *destinationItemsCount);
+static int _tokenizeArguments(char16_t *string, const char16_t *delimiter, char16_t *destinationList[],
+ size_t *destinationItemsCount);
 
 /* Parses the argument strings from direct console input in case no argument is given */
 int parseConsoleInput(arguments *arguments) {
@@ -15,7 +16,8 @@ int parseConsoleInput(arguments *arguments) {
     ReadConsoleW(consoleInput, inputPathsString, PATH_BUFFER, &charactersRead, NULL);
     trimWhiteSpaces(inputPathsString);
 
-    if ((errorCode = _tokenizeArguments(inputPathsString, u"*", arguments->inputPaths, &(arguments->inputPathsCount))) != NO_ERROR)
+    if ((errorCode = _tokenizeArguments(inputPathsString, u"*",
+     arguments->inputPaths, &(arguments->inputPathsCount))) != NO_ERROR)
         return errorCode;
 
     char16_t inputFormatsString[SHORTBUF * 8];
@@ -24,7 +26,8 @@ int parseConsoleInput(arguments *arguments) {
     ReadConsoleW(consoleInput, inputFormatsString, SHORTBUF, &charactersRead, NULL);
     trimWhiteSpaces(inputFormatsString);
 
-    if ((errorCode = _tokenizeArguments(inputFormatsString, u", ", arguments->inputFormats, &(arguments->inputFormatsCount))) != NO_ERROR)
+    if ((errorCode = _tokenizeArguments(inputFormatsString, u", ",
+     arguments->inputFormats, &(arguments->inputFormatsCount))) != NO_ERROR)
         return errorCode;
 
     wprintf_s(u"%ls > %lsFFmpeg options: %ls", CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
@@ -58,8 +61,8 @@ int parseConsoleInput(arguments *arguments) {
     wprintf_s(COLOR_DEFAULT);
 
     return errorCode;
-
 }
+
 /* Parses an array of strings to format an (arguments*) accordingly */
 int parseArguments(const int count, char16_t *rawArguments[], arguments *parsedArguments) {
     int errorCode = NO_ERROR;
@@ -73,11 +76,11 @@ int parseArguments(const int count, char16_t *rawArguments[], arguments *parsedA
     for (int i = 0; i < count; i++) {
         /* fmt: -i <path> -f <container> -p <params> -o <container> */
         if (wcsicmp(rawArguments[i], ARG_INPUTPATHS) == 0) {
-            if ((errorCode = _tokenizeArguments(rawArguments[++i], u"*", parsedArguments->inputPaths, &(parsedArguments->inputPathsCount))) != NO_ERROR)
-                return errorCode;
+            _tokenizeArguments(rawArguments[++i], u"*", parsedArguments->inputPaths,
+             &(parsedArguments->inputPathsCount));
         } else if (wcsicmp(rawArguments[i], ARG_INPUTFORMATS) == 0) {
-            if ((errorCode = _tokenizeArguments(rawArguments[++i], u", ", parsedArguments->inputFormats, &(parsedArguments->inputFormatsCount))) != NO_ERROR)
-                return errorCode;
+            _tokenizeArguments(rawArguments[++i], u", ",
+             parsedArguments->inputFormats, &(parsedArguments->inputFormatsCount));
         } else if (wcsicmp(rawArguments[i], ARG_INPUTPARAMETERS) == 0) {
             wcsncpy_s(parsedArguments->ffmpegOptions, BUFFER, rawArguments[++i], BUFFER);
         } else if (wcsicmp(rawArguments[i], ARG_OUTPUTFORMAT) == 0) {
@@ -106,7 +109,8 @@ int parseArguments(const int count, char16_t *rawArguments[], arguments *parsedA
     return errorCode;
 }
 
-static int _tokenizeArguments(char16_t *string, const char16_t *delimiter, char16_t *destinationList[], size_t *destinationItemsCount) {
+static int _tokenizeArguments(char16_t *string, const char16_t *delimiter, char16_t *destinationList[],
+ size_t *destinationItemsCount) {
     char16_t *parserState = NULL;
     char16_t *token = wcstok_s(string, delimiter, &parserState);
 
