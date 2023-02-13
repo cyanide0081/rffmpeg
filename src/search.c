@@ -11,9 +11,9 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
     
     HANDLE fileHandle = INVALID_HANDLE_VALUE;
     WIN32_FIND_DATAW fileData;
-    char16_t pathMask[BUFFER];
+    char16_t pathMask[PATH_BUFFER];
 
-    swprintf_s(pathMask, BUFFER, u"%ls\\*", inputPath);
+    swprintf_s(pathMask, PATH_BUFFER, u"%ls\\*", inputPath);
 
     if ((fileHandle = FindFirstFileW(pathMask, &fileData)) == INVALID_HANDLE_VALUE) {
         fwprintf_s(stderr, u"%lsERROR: %lsCouldn't open \'%ls\' (code: %ls%lu%ls)\n\n",
@@ -59,8 +59,8 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
         const char16_t *overwriteOption = arguments->options & OPT_FORCEFILEOVERWRITES ? u"-y" : u"";
 
         /* Copy filename except the extension */
-        char16_t fileNameNoExtension[PATH_BUFFER];
-        wcsncpy_s(fileNameNoExtension, PATH_BUFFER - 1, fileName, (wcslen(fileName) - wcslen(arguments->inputFormats[inputFormatIndex]) - 1));
+        char16_t pureFileName[PATH_BUFFER];
+        wcsncpy_s(pureFileName, PATH_BUFFER - 1, fileName, (wcslen(fileName) - wcslen(arguments->inputFormats[inputFormatIndex]) - 1));
 
         char16_t outputPath[PATH_BUFFER];
 
@@ -77,12 +77,12 @@ int searchDirectory(const char16_t *directory, arguments *arguments, processInfo
         }
 
         if ((arguments->options & OPT_FORCEFILEOVERWRITES) == false)
-            preventFilenameOverwrites(fileNameNoExtension, arguments->outputFormat, outputPath);
+            preventFilenameOverwrites(pureFileName, arguments->outputFormat, outputPath);
 
         char16_t ffmpegProcessCall[LONGBUF];
 
         swprintf_s(ffmpegProcessCall, LONGBUF, u"ffmpeg -hide_banner %ls -i \"%ls\\%ls\" %ls \"%ls\\%ls.%ls\"", 
-            overwriteOption, inputPath, fileName, arguments->ffmpegOptions, outputPath, fileNameNoExtension, arguments->outputFormat);
+            overwriteOption, inputPath, fileName, arguments->ffmpegOptions, outputPath, pureFileName, arguments->outputFormat);
 
         /* Setup process info wcsuctures */
         STARTUPINFOW ffmpegStartupInformation = { sizeof(ffmpegStartupInformation) };
