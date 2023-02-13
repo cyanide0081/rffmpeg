@@ -1,5 +1,5 @@
-#ifndef H_TYPES_PRIV
-#define H_TYPES_PRIV
+#ifndef H_TYPES
+#define H_TYPES
 
 #include "libs.h"
 #include "constants.h"
@@ -37,12 +37,14 @@ typedef struct arguments {
     uint16_t options; // Bit fields for the optional arguments
 } arguments;
 
-extern arguments *initializeArguments(void);
+arguments *initializeArguments(void);
 
-extern void destroyArguments(arguments *arguments);
+void destroyArguments(arguments *arguments);
 
-extern formattedTime formatTime(double seconds);
+formattedTime formatTime(double seconds);
 
-extern void trimWhiteSpaces(char16_t *string);
+void trimWhiteSpaces(char16_t *string);
 
-#endif
+void *xcalloc(size_t numberOfElements, size_t sizeOfElements);
+
+#endif // H_TYPES

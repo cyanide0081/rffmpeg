@@ -1,5 +1,5 @@
-#ifndef HEADER_HELP
-#define HEADER_HELP
+#ifndef H_HELP_PAGE
+#define H_HELP_PAGE
 
 #include "../libs.h"
 
@@ -24,4 +24,4 @@ static void displayHelp(void) {
     wprintf_s(u"\n");
 }
 
-#endif
+#endif // H_HELP_PAGE

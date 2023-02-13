@@ -2,13 +2,7 @@
 #include "../include/terminal.h"
 
 arguments *initializeArguments(void) {
-    arguments *instance = calloc(1, sizeof(*instance));
-
-    if (instance == NULL) {
-        printError(u"not enough memory");
-
-        return NULL;
-    }
+    arguments *instance = xcalloc(1, sizeof(*instance));
     
     return instance;
 }
@@ -18,12 +12,10 @@ void destroyArguments(arguments *arguments) {
         return;
 
     for (int i = 0; i < arguments->inputPathsCount; i++) 
-        if (arguments->inputPaths[i])
-            free(arguments->inputPaths[i]);
+        free(arguments->inputPaths[i]);
 
     for (int i = 0; i < arguments->inputFormatsCount; i++)
-        if (arguments->inputFormats[i])
-            free(arguments->inputFormats[i]);
+        free(arguments->inputFormats[i]);
 
     free(arguments);
 }
@@ -59,4 +51,17 @@ void trimWhiteSpaces(char16_t *string) {
         memmove(string, start, length + 1);  
         memset(string + wcslen(string) + 1, u'\0', start - string); // Fill the extra bytes with 0s
     }
+}
+
+/* Extended calloc() that terminates program on failure */
+void *xcalloc(size_t numberOfElements, size_t sizeOfElements) {
+    void *memory = calloc(numberOfElements, sizeOfElements);
+
+    if (memory == NULL) {
+        printError(u"not enough memory");
+
+        exit(EXIT_FAILURE); // Immediate termination
+    }
+
+    return memory;
 }

@@ -2,7 +2,7 @@
 
 static int _tokenizeArguments(char16_t *string, const char16_t *delimiter, char16_t *destinationList[], size_t *destinationItemsCount);
 
-/* Gets and parses the argument strings from console input dialogs */
+/* Parses the argument strings from direct console input in case no argument is given */
 int parseConsoleInput(arguments *arguments) {
     int errorCode = NO_ERROR;
     size_t currentIndex = 0;
@@ -60,7 +60,7 @@ int parseConsoleInput(arguments *arguments) {
     return errorCode;
 
 }
-/* Parses an array of strings to format parsedArguments accordingly */
+/* Parses an array of strings to format an (arguments*) accordingly */
 int parseArguments(const int count, char16_t *rawArguments[], arguments *parsedArguments) {
     int errorCode = NO_ERROR;
 
@@ -113,12 +113,8 @@ static int _tokenizeArguments(char16_t *string, const char16_t *delimiter, char1
     *destinationItemsCount = 0;
 
     while (token != NULL) {
-        if ((destinationList[*destinationItemsCount] = malloc((wcslen(token) + 1) * sizeof(char16_t))) == NULL) {
-            printError(u"not enough memory");
-
-            return ERROR_NOT_ENOUGH_MEMORY;
-        }
-
+        destinationList[*destinationItemsCount] = xcalloc((wcslen(token) + 1), sizeof(char16_t));
+    
         trimWhiteSpaces(token);
         wcscpy_s(destinationList[(*destinationItemsCount)++], PATH_BUFFER, token);
         token = wcstok_s(NULL, u"*", &parserState);

@@ -11,7 +11,7 @@ CCFLAGS=-Wall -Wno-unused-variable -Wno-unused-function -std=c17 -fdiagnostics-c
 CDIRS=./src
 ODIRS=./src/obj
 DDIRS=./src/dep
-INCDIRS=./include ./include/man
+INCDIRS=./include ./include/help
 TESTDIRS=./tests
 TESTBINDIRS=./tests/obj
 

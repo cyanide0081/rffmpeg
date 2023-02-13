@@ -24,12 +24,6 @@ int wmain(int argc, char16_t *argv[]) {
     
     arguments *parsedArguments = initializeArguments();
 
-    if (parsedArguments == NULL) {
-        printError(u"not enough memory");
-
-        return ERROR_NOT_ENOUGH_MEMORY;
-    }
-
     if (inputMode == ARGUMENTS) {
         parseArguments(argc, argv, parsedArguments);
     } else {

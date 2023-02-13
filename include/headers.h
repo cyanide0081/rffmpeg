@@ -8,6 +8,6 @@
 #include "handlers.h"
 #include "search.h"
 #include "terminal.h"
-#include "man/help.h"
+#include "help/help.h"
 
 #endif // H_HEADERS_INTERNAL
