@@ -21,18 +21,18 @@ typedef struct formattedTime {
 } formattedTime;
 
 typedef struct arguments {
-    char16_t *inputPaths[SHORTBUF];
-    char16_t *inputFormats[SHORTBUF];
-    char16_t ffmpegOptions[BUFFER];
-    char16_t outputFormat[SHORTBUF];
+    char16_t *inPaths[SHORTBUF];
+    char16_t *inFormats[SHORTBUF];
+    char16_t ffOptions[BUFFER];
+    char16_t outFormat[SHORTBUF];
 
     union {
         char16_t customFolderName[PATH_BUFFER];
         char16_t customPathName[PATH_BUFFER];
     };
 
-    size_t inputPathsCount;
-    size_t inputFormatsCount;
+    size_t inPathsCount;
+    size_t inFormatsCount;
 
     uint16_t options; // Bit fields for the optional arguments
 } arguments;

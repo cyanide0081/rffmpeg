@@ -11,11 +11,11 @@ void destroyArguments(arguments *arguments) {
     if (arguments == NULL)
         return;
 
-    for (int i = 0; i < arguments->inputPathsCount; i++) 
-        free(arguments->inputPaths[i]);
+    for (int i = 0; i < arguments->inPathsCount; i++) 
+        free(arguments->inPaths[i]);
 
-    for (int i = 0; i < arguments->inputFormatsCount; i++)
-        free(arguments->inputFormats[i]);
+    for (int i = 0; i < arguments->inFormatsCount; i++)
+        free(arguments->inFormats[i]);
 
     free(arguments);
 }

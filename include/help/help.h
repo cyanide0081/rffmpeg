@@ -13,10 +13,10 @@ static void displayHelp(void) {
     wprintf_s(u"\t%-25lsthe extension of your output files (e.g.: mkv)\n", u"-out <extension>");
     wprintf_s(u"\n");
     wprintf_s(u" Additional flags:\n");
-    wprintf_s(u"\t%-25lsstore converted files in a new folder - you can choose a folder name with '--newfolder=foldername'\n", OPT_MAKENEWFOLDER_STRING);
-    wprintf_s(u"\t%-25lsauto-overwrite existing output files (default behaviour appends an index)\n", OPT_FORCEOVERWRITE_STRING);
-    wprintf_s(u"\t%-25lsdelete original files after conversion (PERMANENT) \n", OPT_DELETEOLDFILES_STRING);
-    wprintf_s(u"\t%-25lsdisable recursive subfolder search\n", OPT_DISABLERECURSION_STRING);
+    wprintf_s(u"\t%-25lsstore converted files in a new folder - you can choose a folder name with '--newfolder=foldername'\n", OPT_NEWFOLDER_STRING);
+    wprintf_s(u"\t%-25lsauto-overwrite existing output files (default behaviour appends an index)\n", OPT_OVERWRITE_STRING);
+    wprintf_s(u"\t%-25lsdelete original files after conversion (PERMANENT) \n", OPT_CLEANUP_STRING);
+    wprintf_s(u"\t%-25lsdisable recursive subfolder search\n", OPT_NORECURSION_STRING);
     wprintf_s(u"\n");
     wprintf_s(u" Example: rffmpeg -path C:\\Users\\Music -fmt wav,aif -opts \"-c:a libmp3lame\" -ext mp3 --newfolder\n");
     wprintf_s(u"\n");

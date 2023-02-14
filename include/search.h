@@ -3,6 +3,7 @@
 
 #include "libs.h"
 #include "types.h"
+#include "parsers.h"
 #include "handlers.h"
 #include "terminal.h"
 

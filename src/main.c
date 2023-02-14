@@ -1,15 +1,21 @@
 #include "../include/libs.h"
 #include "../include/headers.h"
 
-/* TODO: restructure the whole code to make use of portable I/O
- functions and become ready for compiling for Unix-like OSes */
+/* NOTE: this code adheres to a not-so-strict 100-column margin */
+
+/* TODO: 
+ * - restructure the whole code to only make use of portable I/O
+ *   functions and become ready for compiling for Unix-like OS's
+ * 
+ * - replace the for-loop-enclosed call to searchDirectory() with
+ *   a wrapper function
+ */
 
 int wmain(int argc, char16_t *argv[]) {
     #ifdef _WIN32
         _setmode(_fileno(stdout), _O_U16TEXT); // Setup Unicode (UTF-16LE) console I/O for Windows
     #endif
     
-    int exitCode = EXIT_SUCCESS;
     processInfo processInformation = { 0 };
     inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
@@ -25,6 +31,8 @@ int wmain(int argc, char16_t *argv[]) {
 
     wprintf_s(u"%ls%ls%ls\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
     
+    int exitCode = createTestProcess();
+
     arguments *parsedArguments = initializeArguments();
 
     if (inputMode == ARGUMENTS) {
@@ -35,12 +43,12 @@ int wmain(int argc, char16_t *argv[]) {
 
     if (parsedArguments->options & OPT_DISPLAYHELP && inputMode == ARGUMENTS) {
         displayHelp();
-    } else if ((exitCode = handleErrors(parsedArguments)) == EXIT_SUCCESS) {
+    } else if ((exitCode = handleArgumentErrors(parsedArguments)) == EXIT_SUCCESS) {
         clock_t startTime = clock();
 
-        /* TODO: remove this loop later (ugly way of looping through paths) */
-        for (int i = 0; i < parsedArguments->inputPathsCount; i++)
-            exitCode = searchDirectory(parsedArguments->inputPaths[i], parsedArguments, &processInformation);
+        for (int i = 0; i < parsedArguments->inPathsCount; i++)
+            exitCode = searchDirectory(parsedArguments->inPaths[i], parsedArguments,
+             &processInformation);
 
         clock_t endTime = clock();
 
