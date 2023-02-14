@@ -3,7 +3,7 @@
 
 #define PROGRAM_NAME      u"RFF"
 #define PROGRAM_NAME_FULL u"RFFMPEG"
-#define PROGRAM_VERSION   u"v0.7.0-beta"
+#define PROGRAM_VERSION   u"v0.7.1-beta"
 
 static const char16_t *fullTitle = PROGRAM_NAME_FULL u" " PROGRAM_VERSION u" (ユニコード)";
 static const char16_t *consoleWindowTitle = PROGRAM_NAME u" " PROGRAM_VERSION;
