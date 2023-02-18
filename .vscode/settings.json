@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "libs.h": "c",
+        "types.h": "c",
+        "terminal.h": "c",
+        "stdio.h": "c",
+        "parsers.h": "c",
+        "handlers.h": "c",
+        "string.h": "c",
+        "ctype.h": "c"
+    }
+}

@@ -1,22 +1,24 @@
-#ifndef H_PARSERS
-#define H_PARSERS
+#ifndef H_PARSERS_P
+#define H_PARSERS_P
 
 #include "libs.h"
 #include "types.h"
 #include "terminal.h"
 
+#include <string.h>
+
 /* Argument identifiers' constants */
-#define ARG_INPUTPATHS         u"-path"
-#define ARG_INPUTFORMATS       u"-in"
-#define ARG_INPUTPARAMETERS    u"-opts"
-#define ARG_OUTPUTFORMAT       u"-out"
+#define ARG_INPUTPATHS         "-path"
+#define ARG_INPUTFORMATS       "-in"
+#define ARG_INPUTPARAMETERS    "-opts"
+#define ARG_OUTPUTFORMAT       "-out"
 
 /* Optional flags' constants */
-#define OPT_DISPLAYHELP_STRING u"--help"  
-#define OPT_NEWFOLDER_STRING   u"--newfolder"  
-#define OPT_CLEANUP_STRING     u"--cleanup"  
-#define OPT_NORECURSION_STRING u"--norecursion"
-#define OPT_OVERWRITE_STRING   u"--overwrite"
+#define OPT_DISPLAYHELP_STRING "--help"  
+#define OPT_NEWFOLDER_STRING   "--newfolder"  
+#define OPT_CLEANUP_STRING     "--cleanup"  
+#define OPT_NORECURSION_STRING "--norecursion"
+#define OPT_OVERWRITE_STRING   "--overwrite"
 
 /* Option bitmasks */
 #define OPT_DISPLAYHELP        0x01
@@ -31,6 +33,6 @@
 
 int parseConsoleInput(arguments *arguments);
 
-int parseArguments(const int count, char16_t *rawArguments[], arguments *parsedArguments);
+int parseArguments(const int count, char *rawArguments[], arguments *parsedArguments);
 
-#endif // H_PARSERS
+#endif // H_PARSERS_P

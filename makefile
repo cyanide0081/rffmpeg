@@ -5,7 +5,7 @@ BIN=rffmpeg
 # Compiler flags
 OPTFLAGS=-g -DDEBUG
 DEPFLAGS=-MP -MD
-CCFLAGS=-Wall -Wno-unused-variable -Wno-unused-function -std=c17 -fdiagnostics-color=always -municode $(foreach D,$(INCDIRS),-I$(D)) $(DEPFLAGS) $(OPTFLAGS)
+CCFLAGS=-Wall -Wno-unused-variable -Wno-unused-result -std=gnu17 -fdiagnostics-color=always $(foreach D,$(INCDIRS),-I$(D)) $(DEPFLAGS) $(OPTFLAGS)
 
 # Directories
 CDIRS=./src
@@ -51,5 +51,5 @@ $(BIN): $(OFILES)
 .PHONY: clean
 
 clean:
-	del /Q .\\src\\obj\\*
-	del .\\rffmpeg.exe
+	rm ./src/obj/*
+	rm ./rffmpeg

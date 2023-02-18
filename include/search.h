@@ -7,6 +7,6 @@
 #include "handlers.h"
 #include "terminal.h"
 
-int searchDirectory(const char16_t *directory, arguments *arguments, processInfo *runtimeData);
+int searchDirectory(const char *directory, arguments *args, processInfo *runtimeData);
 
 #endif // H_MAINLOOP i

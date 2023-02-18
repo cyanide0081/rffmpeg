@@ -4,12 +4,14 @@
 #include "libs.h"
 #include "types.h"
 
-void printError(const char16_t *msg);
-
-int restoreConsoleMode(DWORD originalConsoleMode);
-
-int enableVirtualTerminalProcessing(PDWORD originalConsoleMode);
+void printError(const char *msg);
 
 void displayEndDialog(processInfo *processInformation);
+
+#ifdef _WIN32
+    int restoreConsoleMode(DWORD originalConsoleMode);
+
+    int enableVirtualTerminalProcessing(PDWORD originalConsoleMode);
+#endif
 
 #endif // H_TERMINAL

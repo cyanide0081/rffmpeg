@@ -1,130 +1,150 @@
 #include "../include/search.h"
 
-int searchDirectory(const char16_t *directory, arguments *arguments, processInfo *runtimeData) {
-    const char16_t *inputPath = directory == NULL ? arguments->inPaths[0] : directory;
-    size_t inputFormatIndex = 0;
 
-    static char16_t *newFolderName = NULL;
+bool isDirectory(const char *pathToFile);
+
+int searchDirectory(const char *directory, arguments *args, processInfo *runtimeData) {
+    const char *inputPath = directory == NULL ? args->inPaths[0] : directory;
+    size_t inFormatIndex = 0;
+
+    static char *newFolderName = NULL;
 
     if (newFolderName == NULL)
-        newFolderName = arguments->options & OPT_CUSTOMFOLDERNAME ?
-         arguments->customFolderName : arguments->outFormat;
+        newFolderName = args->options & OPT_CUSTOMFOLDERNAME ?
+         args->customFolderName : args->outFormat;
     
-    HANDLE fileHandle = INVALID_HANDLE_VALUE;
-    WIN32_FIND_DATAW fileData;
-    char16_t pathMask[PATH_BUFFER];
 
-    swprintf_s(pathMask, PATH_BUFFER, u"%ls\\*", inputPath);
+    DIR *dir = opendir(inputPath);
+    struct dirent *entry = NULL;
 
-    if ((fileHandle = FindFirstFileW(pathMask, &fileData)) == INVALID_HANDLE_VALUE) {
-        fwprintf_s(stderr, u"%lsERROR: %lsCouldn't open \'%ls\' (code: %ls%lu%ls)\n\n",
-         CHARCOLOR_RED, CHARCOLOR_WHITE, inputPath, CHARCOLOR_RED, GetLastError(), CHARCOLOR_WHITE);
+    if (dir == NULL) {
+        fprintf(stderr, "%sERROR: %sCouldn't open \'%s\' (%s%s%s)\n\n",
+         CHARCOLOR_RED, CHARCOLOR_WHITE, inputPath, CHARCOLOR_RED, strerror(errno), CHARCOLOR_WHITE);
 
         return ERROR_FAILED_TO_OPEN_DIRECTORY;
     }
 
-    do {
-        char16_t *fileName = fileData.cFileName;
+    while ((entry = readdir(dir)) != NULL) {
+        const char *fileName = entry->d_name;
+        const char *inputFormat = NULL;
 
         /* Skip . and .. */
-        if (wcscmp(fileName, u".") == 0 || wcscmp(fileName, u"..") == 0)
+        if (strcmp(fileName, ".") == 0 || strcmp(fileName, "..") == 0)
             continue;
 
         /* Avoid recursing into the brand new folder */
-        if (wcscmp(fileName, newFolderName) == 0 && arguments->options & OPT_NEWFOLDER)
+        if (strcmp(fileName, newFolderName) == 0 && args->options & OPT_NEWFOLDER)
             continue;
 
+        size_t fullInPathSize = snprintf(NULL, 0, "%s/%s", inputPath, fileName) + 1;
+
+        char *fullInPath = xcalloc(fullInPathSize, sizeof(char));
+        sprintf(fullInPath, "%s/%s", inputPath, fileName);
+
         /* Perform recursive search (or not) */
-        if (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && (arguments->options
-         & OPT_NORECURSION) == false) {
-            char16_t newPathMask[PATH_BUFFER];
-            swprintf_s(newPathMask, PATH_BUFFER, u"%ls\\%ls", inputPath, fileName);
+        if (isDirectory(fullInPath) && !(args->options & OPT_NORECURSION)) {
+            searchDirectory(fullInPath, args, runtimeData);
 
-            searchDirectory(newPathMask, arguments, runtimeData);
-
+            free(fullInPath);
             continue;
         }
 
         bool isOfFormat = false;
 
-        for (int i = 0; i < arguments->inFormatsCount; i++) {
-            if (wcsstr(fileName, arguments->inFormats[i]) != NULL) {
+        for (int i = 0; args->inFormats[i]; i++) {
+            if (strstr(fileName, args->inFormats[i]) != NULL) {
                 isOfFormat = true;
-                inputFormatIndex = i;
+                inFormatIndex = i;
                 break;
             }
         }
 
-        if (isOfFormat == false)
+        if (!isOfFormat) {
+            free(fullInPath);
             continue;
-
-        const char16_t *overwriteOption = arguments->options & OPT_OVERWRITE ? u"-y" : u"";
+        }
 
         /* Copy filename except the extension */
-        char16_t pureFileName[PATH_BUFFER];
-        wcsncpy_s(pureFileName, PATH_BUFFER - 1, fileName,
-         (wcslen(fileName) - wcslen(arguments->inFormats[inputFormatIndex]) - 1));
+        char pureFileName[FILE_BUFFER];
+        strncpy(pureFileName, fileName,
+         (strlen(fileName) - strlen(args->inFormats[inFormatIndex]) - 1));
 
-        char16_t outputPath[PATH_BUFFER];
-        char16_t newFolderPath[PATH_BUFFER];
+        char *outPath = NULL;
 
         /* Make-a-subfolder-or-not part */
-        if (arguments->options & OPT_NEWFOLDER) {
-            swprintf_s(newFolderPath, PATH_BUFFER, u"%ls\\%ls", inputPath, newFolderName);
+        /* TODO: implement the newpath alternative */
+        if (args->options & OPT_NEWFOLDER) {
+            size_t newPathSize = snprintf(NULL, 0, "%s/%s", inputPath, newFolderName) + 1;
+            char *newPath = xcalloc(newPathSize, sizeof(char));
 
-            CreateDirectoryW(newFolderPath, NULL);
-            wcscpy_s(outputPath, PATH_BUFFER, newFolderPath);
+            sprintf(newPath, "%s/%s", inputPath, newFolderName);
+
+            FILE *f = fopen(newPath, "w"); // Create directory
+
+            outPath = newPath;
         } else {
-            wcscpy_s(outputPath, PATH_BUFFER, inputPath);
+            outPath = strdup(inputPath);
         }
 
-        if ((arguments->options & OPT_OVERWRITE) == false)
-            preventFilenameOverwrites(pureFileName, arguments->outFormat, outputPath);
+        char *overwriteFlag = args->options & OPT_OVERWRITE ? strdup("-y") : strdup("");
 
-        char16_t ffmpegProcessCall[LONGBUF];
+        if (!(args->options & OPT_OVERWRITE))
+            preventFilenameOverwrites(pureFileName, args->outFormat, outPath);
 
-        swprintf_s(ffmpegProcessCall, LONGBUF,
-         u"ffmpeg -hide_banner %ls -i \"%ls\\%ls\" %ls \"%ls\\%ls.%ls\"", overwriteOption, inputPath,
-         fileName, arguments->ffOptions, outputPath, pureFileName, arguments->outFormat);
+        size_t fullOutPathSize = snprintf(NULL, 0,
+         "%s/%s.%s", outPath, pureFileName, args->outFormat) + 1;
 
-        /* Setup process info wcsuctures */
-        STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
-        PROCESS_INFORMATION ffmpegProcessInfo;
+        char *fullOutPath = xcalloc(fullOutPathSize, sizeof(char));//uuu
 
-        /* Call ffmpeg and wait for it to finish */
-        bool createdProcess = CreateProcessW(NULL, ffmpegProcessCall, NULL,
-         NULL, FALSE, 0, NULL, NULL, &ffmpegStartupInfo, &ffmpegProcessInfo);
+        sprintf(fullOutPath, "%s/%s.%s", outPath, pureFileName, args->outFormat);
 
-        if (createdProcess == false) {
-            fwprintf_s(stderr, u"%lsERROR:%ls call to FFmpeg failed (code: %ls%lu%ls)\n\n",
-             CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_RED, GetLastError(), CHARCOLOR_WHITE);
+        size_t ffmpegCallSize = snprintf(NULL, 0, "ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
+         overwriteFlag, fullInPath, args->ffOptions, fullOutPath) + 1;
 
-            continue;
-        }
+        char *ffmpegCall = xcalloc(ffmpegCallSize, sizeof(char));
+        sprintf(ffmpegCall, "ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
+         overwriteFlag, fullInPath, args->ffOptions, fullOutPath);
+
+        int systemCode = system(ffmpegCall);
         
-        WaitForSingleObject(ffmpegProcessInfo.hProcess, INFINITE);
-        CloseHandle(ffmpegProcessInfo.hProcess);
-        CloseHandle(ffmpegProcessInfo.hThread);
+        if (systemCode != EXIT_SUCCESS) {
+            fprintf(stderr, "%sERROR:%s call to FFmpeg failed (%s%s%s)\n\n",
+             CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_RED, strerror(errno), CHARCOLOR_WHITE);
+        } else {
+            runtimeData->convertedFiles++;
+        }
 
-        runtimeData->convertedFiles++;
-
-        wprintf_s(u"\n");
+        printf("\n");
         
         /* Keep or delete original files */
-        if (arguments->options & OPT_CLEANUP) {
-            char16_t inputFilePath[PATH_BUFFER];
-            swprintf_s(inputFilePath, PATH_BUFFER, u"%ls\\%ls", arguments->inPaths, fileName);
-
-            if (DeleteFileW(inputFilePath))
+        if (args->options & OPT_CLEANUP) {
+            if (remove(fullInPath) != 0) {
+                fprintf(stderr, "%sERROR:%s couldn't delete original file (%s%s%s)\n\n",
+             CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_RED, strerror(errno), CHARCOLOR_WHITE);
+            } else {
                 runtimeData->deletedFiles++;
+            }
         }
 
         /* Delete new folder in case it exists and no conversions succeeded */
-        if (arguments->options & OPT_NEWFOLDER && runtimeData->convertedFiles == 0)
-            DeleteFileW(newFolderPath);
-    } while (FindNextFileW(fileHandle, &fileData));
+        if (args->options & OPT_NEWFOLDER && runtimeData->convertedFiles == 0)
+            remove(outPath);
 
-    FindClose(fileHandle);
+        free(fullInPath);
+        free(overwriteFlag);
+        free(outPath);
+        free(fullOutPath);
+        free(ffmpegCall);
+    }
 
-    return NO_ERROR;
+    closedir(dir);
+
+    return EXIT_SUCCESS;
+}
+
+bool isDirectory(const char *pathToFile) {
+    struct stat pathStats;
+    stat(pathToFile, &pathStats);
+
+    return S_ISREG(pathStats.st_mode) == 0 ? true : false;
 }

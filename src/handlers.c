@@ -1,65 +1,99 @@
 #include "../include/handlers.h"
 
-int preventFilenameOverwrites(char16_t *pureName, const char16_t *format, const char16_t *path) {
-    char16_t fileMask[PATH_BUFFER];
-    char16_t newName[PATH_BUFFER];
+bool _fileExists(const char *fileName);
 
-    swprintf_s(fileMask, PATH_BUFFER, u"%ls\\%ls.%ls", path, pureName, format);
+int preventFilenameOverwrites(char *pureName, const char *fileFormat, const char *path) {
+    size_t fullPathSize = snprintf(NULL, 0, "%s/%s.%s", path, pureName, fileFormat) + 1;
 
-    HANDLE fileHandle = INVALID_HANDLE_VALUE;
-    WIN32_FIND_DATAW fileData;
+    char *fullPath = xcalloc(fullPathSize + strlen("-xxx"), sizeof(char));
+    sprintf(fullPath, "%s/%s.%s", path, pureName, fileFormat);
 
-    if ((fileHandle = FindFirstFileW(fileMask, &fileData)) != INVALID_HANDLE_VALUE) {
+    char newName[FILE_BUFFER];
+
+    /* Keep appending indexes until it results in a unique file name */
+    if (_fileExists(fullPath)) {
         size_t index = 0;
 
-        do {
-            swprintf_s(fileMask, BUFFER, u"%ls\\%ls-%03d.%ls", path, pureName, ++index, format);
-        }   while ((fileHandle = FindFirstFileW(fileMask, &fileData)) != INVALID_HANDLE_VALUE);
+        while (_fileExists(fullPath))
+            sprintf(fullPath, "%s/%s-%03zu.%s", path, pureName, ++index, fileFormat);  
 
-        swprintf_s(newName, PATH_BUFFER, u"%ls-%03d", pureName, index);
-        wcscpy_s(pureName, PATH_BUFFER, newName);
+        snprintf(newName, FILE_BUFFER, "%s-%03zu", pureName, index);
+        memccpy(pureName, newName, '\0', FILE_BUFFER);
     }
 
-    return NO_ERROR;
+    free(fullPath);
+
+    return EXIT_SUCCESS;
 }
 
 int handleArgumentErrors(arguments *arguments) {
     /* Set current working directory as input path if none is provided */
-    if (*arguments->inPaths[0] == 0) {
-        arguments->inPaths[0] = malloc(SHORTBUF * sizeof(char));
-        GetCurrentDirectoryW(SHORTBUF, arguments->inPaths[0]);
-        arguments->inPathsCount++;
+    if (arguments->inPaths[0] == NULL) {
+        arguments->inPaths[0] = getcwd(NULL, 0);
+        
+        #ifdef _WIN32
+            GetCurrentDirectoryW(SHORTBUF, arguments->inPaths[0]);
+        #endif
     }
 
-    if (*arguments->inFormats[0] == u'\0') {
-        printError(u"no input format (null)");
+    if (arguments->inFormats[0] == NULL) {
+        printError("no input format (null)");
         return ERROR_NO_INPUT_FORMAT;
     }
 
-    if (*arguments->outFormat == u'\0') {
-        printError(u"no output format (null)");
+    if (arguments->outFormat == NULL) {
+        printError("no output format (null)");
         return ERROR_NO_OUTPUT_FORMAT;
     }
 
-    return NO_ERROR;
+    return EXIT_SUCCESS;
+}
+
+bool _fileExists(const char *fileName) {
+    struct stat statBuffer;
+    return stat(fileName, &statBuffer) == 0 ? true : false;
 }
 
 int createTestProcess(void) {
-    STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
-    PROCESS_INFORMATION ffmpegProcessInfo;
-    char16_t ffmpegProcessCall[] = u"ffmpeg -loglevel quiet";
+    #ifdef _WIN32
+        STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
+        PROCESS_INFORMATION ffmpegProcessInfo;
 
-    if (CreateProcessW(NULL, ffmpegProcessCall, NULL, NULL,
-     FALSE, 0, NULL, NULL, &ffmpegStartupInfo, &ffmpegProcessInfo)) {
-        WaitForSingleObject(ffmpegProcessInfo.hProcess, INFINITE);
-        CloseHandle(ffmpegProcessInfo.hProcess);
-        CloseHandle(ffmpegProcessInfo.hThread);
+        const char ffmpegProcessCall[] = "ffmpeg -loglevel quiet";
 
-        return EXIT_SUCCESS;
-    }
+        if (CreateProcessW(NULL, ffmpegProcessCall, NULL, NULL,
+        FALSE, 0, NULL, NULL, &ffmpegStartupInfo, &ffmpegProcessInfo)) {
+            WaitForSingleObject(ffmpegProcessInfo.hProcess, INFINITE);
+            CloseHandle(ffmpegProcessInfo.hProcess);
+            CloseHandle(ffmpegProcessInfo.hThread);
 
-    fwprintf_s(stderr, u"%lsERROR:%ls couldn't find FFmpeg (code: %ls%lu%ls)\n\n",
-     CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_RED, GetLastError(), CHARCOLOR_WHITE);
+            return EXIT_SUCCESS;
+        }
 
-    exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
+    #else
+        pid_t processID = fork();
+
+        if (processID == 0) {
+            execlp("ffmpeg", "ffmpeg", "-loglevel", "quiet", (char*)NULL);
+            exit(errno);
+        } else {
+            int status;  
+            waitpid(processID, &status, 0);
+
+            int exitStatus = 0;
+            
+            if (WIFEXITED(status))
+                exitStatus = WEXITSTATUS(status);
+
+            /* Status 1 means the call succeeded and ffmpeg
+            returned an error, and 2 means it wasn't found */
+            if (exitStatus > 1)
+                return EXIT_FAILURE;
+        }
+    #endif
+
+    /* TODO: implement os-not-supported error message */
+
+    return EXIT_SUCCESS;
 }
