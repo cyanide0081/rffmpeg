@@ -1,9 +1,20 @@
 #include "../include/search.h"
 
+static int _searchDirectory(const char *directory, arguments *args, processInfo *runtimeData);
 
-bool isDirectory(const char *pathToFile);
+static bool _isDirectory(const char *pathToFile);
 
-int searchDirectory(const char *directory, arguments *args, processInfo *runtimeData) {
+int searchDirectories(arguments *args, processInfo *runtimeData) {
+    int code;
+
+    for (int i = 0; args->inPaths[i] != NULL; i++) {
+        code = _searchDirectory(args->inPaths[i], args, runtimeData);
+    }
+
+    return code;
+}
+
+static int _searchDirectory(const char *directory, arguments *args, processInfo *runtimeData) {
     const char *inputPath = directory;
     static char *newFolderName = NULL;
 
@@ -35,8 +46,8 @@ int searchDirectory(const char *directory, arguments *args, processInfo *runtime
         char *fullInPath = asprintf("%s/%s", inputPath, fileName);
 
         /* Perform recursive search (or not) */
-        if (isDirectory(fullInPath) && !(args->options & OPT_NORECURSION)) {
-            searchDirectory(fullInPath, args, runtimeData);
+        if (_isDirectory(fullInPath) && !(args->options & OPT_NORECURSION)) {
+            _searchDirectory(fullInPath, args, runtimeData);
 
             free(fullInPath);
             continue;
@@ -130,7 +141,7 @@ int searchDirectory(const char *directory, arguments *args, processInfo *runtime
     return EXIT_SUCCESS;
 }
 
-bool isDirectory(const char *pathToFile) {
+static bool _isDirectory(const char *pathToFile) {
     struct stat pathStats;
     stat(pathToFile, &pathStats);
 

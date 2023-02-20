@@ -31,7 +31,7 @@
 #define OPT_NEWPATH            0x40
 #define OPT_CUSTOMPATHNAME     0x80
 
-int parseConsoleInput(arguments *arguments);
+void parseConsoleInput(arguments *args);
 
 void parseArguments(const int count, char *rawArguments[], arguments *parsedArguments);
 

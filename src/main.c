@@ -1,13 +1,6 @@
 #include "../include/libs.h"
 #include "../include/headers.h"
 
-/* TODO: 
- * - replace the for-loop-enclosed call to searchDirectory() with
- *   a wrapper function
- */
-
-/* TODO: trim short buffer to 3 and test if reallocation of list sizes works */
-
 int main(int argc, char *argv[]) {
     #ifdef _WIN32
         #define UNICODE
@@ -53,9 +46,7 @@ int main(int argc, char *argv[]) {
         struct timespec startTime, endTime;
         clock_gettime(CLOCK_MONOTONIC_RAW, &startTime);
 
-        for (int i = 0; parsedArguments->inPaths[i]; i++)
-            exitCode = searchDirectory(parsedArguments->inPaths[i], parsedArguments,
-             &processInformation);
+        exitCode = searchDirectories(parsedArguments, &processInformation);
 
         clock_gettime(CLOCK_MONOTONIC_RAW, &endTime);
         

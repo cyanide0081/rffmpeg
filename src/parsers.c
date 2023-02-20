@@ -1,13 +1,9 @@
 #include "../include/parsers.h"
 
-int _tokenizeArguments(char *string, const char *delimiter, char **destinationAddress[],
- size_t numberOfItems);
+static char **_tokenizeArguments(char *string, const char *delimiter);
  
 /* Parses the argument strings from direct console input in case no argument is given */
-int parseConsoleInput(arguments *arguments) {
-    int errorCode = EXIT_SUCCESS;
-    size_t currentIndex = 0;
-    
+void parseConsoleInput(arguments *args) {
     char *inputPathsString = NULL;
     size_t inputPathsSize = 0;
 
@@ -15,9 +11,9 @@ int parseConsoleInput(arguments *arguments) {
      CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
     getline(&inputPathsString, &inputPathsSize, stdin);
-
     trimWhiteSpaces(inputPathsString);
-    _tokenizeArguments(inputPathsString, ":", &arguments->inPaths, LIST_BUFFER);
+
+    args->inPaths = _tokenizeArguments(inputPathsString, ":");
 
     free(inputPathsString);
 
@@ -27,10 +23,11 @@ int parseConsoleInput(arguments *arguments) {
     printf("%s > %sTarget format(s): %s",
      CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
-    getline(&inputFormatsString, &inputFormatsSize, stdin);
 
+    getline(&inputFormatsString, &inputFormatsSize, stdin);
     trimWhiteSpaces(inputFormatsString);
-    _tokenizeArguments(inputFormatsString, ", ", &arguments->inFormats, LIST_BUFFER);
+
+    args->inFormats = _tokenizeArguments(inputFormatsString, ", ");
 
     free(inputFormatsString);
 
@@ -39,16 +36,16 @@ int parseConsoleInput(arguments *arguments) {
     printf("%s > %sFFmpeg options: %s",
      CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
-    getline(&arguments->ffOptions, &ffOptionsSize, stdin);
-    trimWhiteSpaces(arguments->ffOptions);
+    getline(&args->ffOptions, &ffOptionsSize, stdin);
+    trimWhiteSpaces(args->ffOptions);
 
     size_t outFormatSize = 0;
 
     printf("%s > %sOutput extension: %s",
      CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
-    getline(&arguments->outFormat, &outFormatSize, stdin);
-    trimWhiteSpaces(arguments->outFormat);
+    getline(&args->outFormat, &outFormatSize, stdin);
+    trimWhiteSpaces(args->outFormat);
 
     char *optionsString = NULL;
     size_t optionsStringSize = 0;
@@ -59,20 +56,16 @@ int parseConsoleInput(arguments *arguments) {
     getline(&optionsString, &optionsStringSize, stdin);
     trimWhiteSpaces(optionsString);
 
-    char **optionsList = xcalloc(LIST_BUFFER, sizeof(char*));
-
-    _tokenizeArguments(optionsString, ", ", &optionsList, LIST_BUFFER);
-    parseArguments(0, optionsList, arguments);
-
-    for (int i = 0; optionsList[i]; i++) {
-        free(optionsList[i]);
-        optionsList[i] = NULL;
-    }
-
     printf("\n");
     printf(COLOR_DEFAULT);
 
-    return errorCode;
+    char **optionsList = _tokenizeArguments(optionsString, ", ");
+    parseArguments(0, optionsList, args);
+
+    for (int i = 0; optionsList[i] != NULL; i++)
+        free(optionsList[i]);
+
+    free(optionsList);
 }
 
 /* Parses an array of strings to format an (arguments*) accordingly */
@@ -82,11 +75,11 @@ void parseArguments(const int listSize, char *rawArguments[], arguments *parsedA
     for (int i = 0; i < count && rawArguments[i] != NULL; i++) {
         /* fmt: -path <path> -in <container> -opts <params> -out <container> */
         if (strcasecmp(rawArguments[i], ARG_INPUTPATHS) == 0) {
-            _tokenizeArguments(rawArguments[++i], ":", &parsedArgs->inPaths, LIST_BUFFER);
+            parsedArgs->inPaths = _tokenizeArguments(rawArguments[++i], ":");
         }
         
         else if (strcasecmp(rawArguments[i], ARG_INPUTFORMATS) == 0) {
-            _tokenizeArguments(rawArguments[++i], ", ", &parsedArgs->inFormats, LIST_BUFFER);
+            parsedArgs->inFormats = _tokenizeArguments(rawArguments[++i], ", ");
         }
         
         else if (strcasecmp(rawArguments[i], ARG_INPUTPARAMETERS) == 0) {
@@ -137,34 +130,37 @@ void parseArguments(const int listSize, char *rawArguments[], arguments *parsedA
     }
 }
 
-int _tokenizeArguments(char *string, const char *delimiter, char **destinationAddress[],
- size_t numberOfItems) {
+static char **_tokenizeArguments(char *string, const char *delimiter) {
     char *parserState = NULL;
     char *token = strtok_r(string, delimiter, &parserState);
+
+    size_t items = LIST_BUFFER;
+
+    char **list = xcalloc(items, sizeof(char*));
 
     size_t i;
 
     for (i = 0; token != NULL; i++) {
         /* Reallocate in case the list needs to be longer */
-        if (i >= (numberOfItems - 1)) {
-            numberOfItems += LIST_BUFFER;
+        if (i >= (items - 1)) {
+            items += LIST_BUFFER;
 
-            char **newBlock = realloc(*destinationAddress, numberOfItems * sizeof(char*));
+            char **newBlock = realloc(list, items * sizeof(char*));
 
             if (newBlock != NULL)
-                *destinationAddress = newBlock;
+                list = newBlock;
             else    
-                return EXIT_FAILURE;
+                return NULL;
         }
 
         trimWhiteSpaces(token);
 
-        (*destinationAddress)[i] = strdup(token);
+        (list)[i] = strdup(token);
 
         token = strtok_r(NULL, delimiter, &parserState);
     }
 
-    (*destinationAddress)[i] = NULL; // NULL ptr to mark the end of the list
+    (list)[i] = NULL; // NULL ptr to mark the end of the list
 
-    return EXIT_SUCCESS;
+    return list;
 }

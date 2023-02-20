@@ -1,6 +1,6 @@
 #include "../include/handlers.h"
 
-bool _fileExists(const char *fileName);
+static bool _fileExists(const char *fileName);
 
 int preventFilenameOverwrites(char *pureName, const char *fileFormat, const char *path) {
     size_t fullPathSize = snprintf(NULL, 0, "%s/%s.-xxx%s", path, pureName, fileFormat) + 1;
@@ -78,11 +78,6 @@ int handleArgumentErrors(arguments *args) {
     return EXIT_SUCCESS;
 }
 
-bool _fileExists(const char *fileName) {
-    struct stat statBuffer;
-    return stat(fileName, &statBuffer) == 0 ? true : false;
-}
-
 int createTestProcess(void) {
     #ifdef _WIN32
         STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
@@ -127,4 +122,9 @@ int createTestProcess(void) {
     /* TODO: implement os-not-supported error message */
 
     return EXIT_FAILURE;
+}
+
+static bool _fileExists(const char *fileName) {
+    struct stat statBuffer;
+    return stat(fileName, &statBuffer) == 0 ? true : false;
 }
