@@ -15,7 +15,8 @@
 
 /* Optional flags' constants */
 #define OPT_DISPLAYHELP_STRING "--help"  
-#define OPT_NEWFOLDER_STRING   "--newfolder"  
+#define OPT_NEWFOLDER_STRING   "--newfolder"
+#define OPT_NEWPATH_STRING     "--newpath"  
 #define OPT_CLEANUP_STRING     "--cleanup"  
 #define OPT_NORECURSION_STRING "--norecursion"
 #define OPT_OVERWRITE_STRING   "--overwrite"
@@ -27,12 +28,11 @@
 #define OPT_CLEANUP            0x08
 #define OPT_NEWFOLDER          0x10
 #define OPT_CUSTOMFOLDERNAME   0x20
-// #define OPT_NEWPATH            0x40
-// #define OPT_CUSTOMPATHNAME     0x80
-/* ^^^ UNIMPLEMENTED ^^^ */
+#define OPT_NEWPATH            0x40
+#define OPT_CUSTOMPATHNAME     0x80
 
 int parseConsoleInput(arguments *arguments);
 
-int parseArguments(const int count, char *rawArguments[], arguments *parsedArguments);
+void parseArguments(const int count, char *rawArguments[], arguments *parsedArguments);
 
 #endif // H_PARSERS_P

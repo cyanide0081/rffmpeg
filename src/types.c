@@ -4,33 +4,29 @@
 arguments *initializeArguments(void) {
     arguments *instance = xcalloc(1, sizeof(*instance));
 
-    instance->inPaths = xcalloc(SHORTBUF, sizeof(char*));
-    instance->inFormats = xcalloc(SHORTBUF, sizeof(char*));
-    
-    instance->ffOptions = xcalloc(BUFFER, sizeof(char));
-    instance->outFormat = xcalloc(SHORTBUF, sizeof(char));
-    instance->customFolderName = xcalloc(FILE_BUFFER, sizeof(char));
+    instance->inPaths = xcalloc(LIST_BUFFER, sizeof(char*));
+    instance->inFormats = xcalloc(LIST_BUFFER, sizeof(char*));
     
     return instance;
 }
 
-void destroyArguments(arguments *arguments) {
-    if (arguments == NULL)
+void destroyArguments(arguments *args) {
+    if (args == NULL)
         return;
 
-    for (int i = 0; arguments->inPaths[i]; i++) 
-        free(arguments->inPaths[i]);
+    for (int i = 0; args->inPaths[i] != NULL; i++) 
+        free(args->inPaths[i]);
 
-    for (int i = 0; arguments->inFormats[i]; i++)
-        free(arguments->inFormats[i]);
+    for (int i = 0; args->inFormats[i] != NULL; i++)
+        free(args->inFormats[i]);
 
-    free(arguments->inPaths);
-    free(arguments->inFormats);
-    free(arguments->ffOptions);
-    free(arguments->outFormat);
-    free(arguments->customFolderName);
+    free(args->inPaths);
+    free(args->inFormats);
+    free(args->ffOptions);
+    free(args->outFormat);
+    free(args->customFolderName);
 
-    free(arguments);
+    free(args);
 }
 
 formattedTime formatTime(double seconds) {
@@ -71,10 +67,39 @@ void *xcalloc(size_t numberOfElements, size_t sizeOfElements) {
     void *memory = calloc(numberOfElements, sizeOfElements);
 
     if (memory == NULL) {
-        printError("exception while allocating memory");
+        printError("not enough memory", strerror(errno));
 
         exit(errno); // Immediate termination
     }
 
+    // #ifdef DEBUG
+    //     static size_t totalBytes = 0;
+
+    //     totalBytes += numberOfElements * sizeOfElements;
+
+    //     printf("\t> Total memory allocation (xcalloc): %zuKB\n\n", totalBytes / 0x400);
+    // #endif
+
     return memory;
+}
+
+char *asprintf(const char *format, ...) {
+    char *string = NULL;
+
+    /* 2 va_lists for 2 calls to sprintf() */
+    va_list args, args2;
+
+    va_start(args, format);
+    va_copy(args2, args);
+    
+    size_t bytes = vsnprintf(NULL, 0, format, args) + 1;
+
+    string = xcalloc(bytes, sizeof(char));
+
+    vsprintf(string, format, args2);
+
+    va_end(args);
+    va_end(args2);
+
+    return string;
 }

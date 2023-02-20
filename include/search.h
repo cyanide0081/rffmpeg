@@ -9,4 +9,4 @@
 
 int searchDirectory(const char *directory, arguments *args, processInfo *runtimeData);
 
-#endif // H_MAINLOOP i
+#endif // H_MAINLOOP

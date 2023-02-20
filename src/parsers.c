@@ -1,6 +1,6 @@
 #include "../include/parsers.h"
 
-static int _tokenizeArguments(char *string, const char *delimiter, char *destination[],
+int _tokenizeArguments(char *string, const char *delimiter, char **destinationAddress[],
  size_t numberOfItems);
  
 /* Parses the argument strings from direct console input in case no argument is given */
@@ -17,7 +17,7 @@ int parseConsoleInput(arguments *arguments) {
     getline(&inputPathsString, &inputPathsSize, stdin);
 
     trimWhiteSpaces(inputPathsString);
-    _tokenizeArguments(inputPathsString, ":", arguments->inPaths, SHORTBUF);
+    _tokenizeArguments(inputPathsString, ":", &arguments->inPaths, LIST_BUFFER);
 
     free(inputPathsString);
 
@@ -30,11 +30,11 @@ int parseConsoleInput(arguments *arguments) {
     getline(&inputFormatsString, &inputFormatsSize, stdin);
 
     trimWhiteSpaces(inputFormatsString);
-    _tokenizeArguments(inputFormatsString, ", ", arguments->inFormats, SHORTBUF);
+    _tokenizeArguments(inputFormatsString, ", ", &arguments->inFormats, LIST_BUFFER);
 
     free(inputFormatsString);
 
-    size_t ffOptionsSize = BUFFER;
+    size_t ffOptionsSize = 0;
 
     printf("%s > %sFFmpeg options: %s",
      CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
@@ -42,7 +42,7 @@ int parseConsoleInput(arguments *arguments) {
     getline(&arguments->ffOptions, &ffOptionsSize, stdin);
     trimWhiteSpaces(arguments->ffOptions);
 
-    size_t outFormatSize = SHORTBUF;
+    size_t outFormatSize = 0;
 
     printf("%s > %sOutput extension: %s",
      CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
@@ -59,9 +59,9 @@ int parseConsoleInput(arguments *arguments) {
     getline(&optionsString, &optionsStringSize, stdin);
     trimWhiteSpaces(optionsString);
 
-    char *optionsList[SHORTBUF];
+    char **optionsList = xcalloc(LIST_BUFFER, sizeof(char*));
 
-    _tokenizeArguments(optionsString, ", ", optionsList, SHORTBUF);
+    _tokenizeArguments(optionsString, ", ", &optionsList, LIST_BUFFER);
     parseArguments(0, optionsList, arguments);
 
     for (int i = 0; optionsList[i]; i++) {
@@ -76,68 +76,95 @@ int parseConsoleInput(arguments *arguments) {
 }
 
 /* Parses an array of strings to format an (arguments*) accordingly */
-int parseArguments(const int listSize, char *rawArguments[], arguments *parsedArguments) {
-    int errorCode = EXIT_SUCCESS;
-
+void parseArguments(const int listSize, char *rawArguments[], arguments *parsedArgs) {
     size_t count = listSize == 0 ? SIZE_MAX : listSize;
     
-    for (int i = 0; i < count && rawArguments[i]; i++) {
-        /* fmt: -i <path> -f <container> -p <params> -o <container> */
+    for (int i = 0; i < count && rawArguments[i] != NULL; i++) {
+        /* fmt: -path <path> -in <container> -opts <params> -out <container> */
         if (strcasecmp(rawArguments[i], ARG_INPUTPATHS) == 0) {
-            _tokenizeArguments(rawArguments[++i], ":", parsedArguments->inPaths, SHORTBUF);
-        } else if (strcasecmp(rawArguments[i], ARG_INPUTFORMATS) == 0) {
-            _tokenizeArguments(rawArguments[++i], ", ", parsedArguments->inFormats, SHORTBUF);
-        } else if (strcasecmp(rawArguments[i], ARG_INPUTPARAMETERS) == 0) {
-            memccpy(parsedArguments->ffOptions, rawArguments[++i], '\0', BUFFER);
-            /* TODO: test this one (also allocate for the arguments here) ^^^^^^ */
-        } else if (strcasecmp(rawArguments[i], ARG_OUTPUTFORMAT) == 0) {
-            memccpy(parsedArguments->outFormat, rawArguments[++i], '\0', SHORTBUF);
-        } else if (strcasecmp(rawArguments[i], OPT_DISPLAYHELP_STRING) == 0) {
-            parsedArguments->options |= OPT_DISPLAYHELP;
-        } else if (strcasecmp(rawArguments[i], OPT_CLEANUP_STRING) == 0) {
-            parsedArguments->options |= OPT_CLEANUP;
-        } else if (strcasecmp(rawArguments[i], OPT_NORECURSION_STRING) == 0) {
-            parsedArguments->options |= OPT_NORECURSION;
-        } else if (strcasecmp(rawArguments[i], OPT_OVERWRITE_STRING) == 0) {
-            parsedArguments->options |= OPT_OVERWRITE;
-        } else if (strstr(rawArguments[i], OPT_NEWFOLDER_STRING)) {
-            parsedArguments->options |= OPT_NEWFOLDER;
+            _tokenizeArguments(rawArguments[++i], ":", &parsedArgs->inPaths, LIST_BUFFER);
+        }
+        
+        else if (strcasecmp(rawArguments[i], ARG_INPUTFORMATS) == 0) {
+            _tokenizeArguments(rawArguments[++i], ", ", &parsedArgs->inFormats, LIST_BUFFER);
+        }
+        
+        else if (strcasecmp(rawArguments[i], ARG_INPUTPARAMETERS) == 0) {
+            parsedArgs->ffOptions = strdup(rawArguments[++i]);
+        }
+        
+        else if (strcasecmp(rawArguments[i], ARG_OUTPUTFORMAT) == 0) {
+            parsedArgs->outFormat = strdup(rawArguments[++i]);
+        }
+        
+        else if (strcasecmp(rawArguments[i], OPT_DISPLAYHELP_STRING) == 0) {
+            parsedArgs->options |= OPT_DISPLAYHELP;
+        }
+        
+        else if (strcasecmp(rawArguments[i], OPT_CLEANUP_STRING) == 0) {
+            parsedArgs->options |= OPT_CLEANUP;
+        }
+        
+        else if (strcasecmp(rawArguments[i], OPT_NORECURSION_STRING) == 0) {
+            parsedArgs->options |= OPT_NORECURSION;
+        }
+        
+        else if (strcasecmp(rawArguments[i], OPT_OVERWRITE_STRING) == 0) {
+            parsedArgs->options |= OPT_OVERWRITE;
+        }
+        
+        else if (strstr(rawArguments[i], OPT_NEWFOLDER_STRING)) {
+            parsedArgs->options |= OPT_NEWFOLDER;
 
-            char *delimiterSection = NULL;
+            char *delimiterSection = strstr(rawArguments[i], "=");
 
-            if ((delimiterSection = strstr(rawArguments[i], "=")) != NULL) {
-                parsedArguments->options |= OPT_CUSTOMFOLDERNAME;
+            if (delimiterSection != NULL) {
+                parsedArgs->options |= OPT_CUSTOMFOLDERNAME;
                 
-                memccpy(parsedArguments->customFolderName, ++delimiterSection, '\0', FILE_BUFFER);
+                parsedArgs->customFolderName = strdup(++delimiterSection);
+            }
+        }
+        
+        else if (strstr(rawArguments[i], OPT_NEWPATH_STRING)) {
+            parsedArgs->options |= OPT_NEWPATH;
+
+            char *delimiterSection = strstr(rawArguments[i], "=");
+
+            if (delimiterSection != NULL) {
+                parsedArgs->customPathName = strdup(++delimiterSection);
             }
         }
     }
-
-    return errorCode;
 }
 
-static int _tokenizeArguments(char *string, const char *delimiter, char *destination[],
+int _tokenizeArguments(char *string, const char *delimiter, char **destinationAddress[],
  size_t numberOfItems) {
     char *parserState = NULL;
     char *token = strtok_r(string, delimiter, &parserState);
 
-    size_t index = 0;
+    size_t i;
 
-    while (token != NULL) {
+    for (i = 0; token != NULL; i++) {
         /* Reallocate in case the list needs to be longer */
-        if (index > (numberOfItems - 2)) {
-            numberOfItems += numberOfItems / 2;
-            destination = realloc(destination, numberOfItems * sizeof(char*));
+        if (i >= (numberOfItems - 1)) {
+            numberOfItems += LIST_BUFFER;
+
+            char **newBlock = realloc(*destinationAddress, numberOfItems * sizeof(char*));
+
+            if (newBlock != NULL)
+                *destinationAddress = newBlock;
+            else    
+                return EXIT_FAILURE;
         }
 
-        destination[index] = xcalloc((strlen(token) + 1), sizeof(char));
-    
         trimWhiteSpaces(token);
-        memccpy(destination[(index)++], token, '\0', strlen(token) + 1);
+
+        (*destinationAddress)[i] = strdup(token);
+
         token = strtok_r(NULL, delimiter, &parserState);
     }
 
-    destination[index] = NULL; // NULL ptr to mark the end of the list
+    (*destinationAddress)[i] = NULL; // NULL ptr to mark the end of the list
 
     return EXIT_SUCCESS;
 }

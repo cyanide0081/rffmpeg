@@ -6,10 +6,15 @@
  *   a wrapper function
  */
 
+/* TODO: trim short buffer to 3 and test if reallocation of list sizes works */
+
 int main(int argc, char *argv[]) {
     #ifdef _WIN32
+        #define UNICODE
+        #define _UNICODE
+
         /* Setup Unicode (UTF-16LE) console I/O for Windows */
-        etmode(_fileno(stdout), _O_U16TEXT); 
+        setmode(_fileno(stdout), _O_U16TEXT); 
 
         /* Enable virtual terminal sequences for colored console output */
         DWORD originalConsoleMode;
@@ -18,19 +23,19 @@ int main(int argc, char *argv[]) {
 
         if (inputMode == CONSOLE) {
             GetConsoleTitleW(originalConsoleWindowTitle, PATH_BUFFER);
-            SetConsoleTitleW(consoleWindowTitle);
+            SetConsoleTitleW(CONSOLE_WINDOW_TITLE);
         }
     #endif
 
     processInfo processInformation = { 0 };
     inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
-    printf("%s%s%s\n\n", CHARCOLOR_RED, fullTitle, COLOR_DEFAULT);
+    printf("%s%s%s\n\n", CHARCOLOR_RED, FULL_PROGRAM_TITLE, COLOR_DEFAULT);
     
     int exitCode = createTestProcess();
 
     if (exitCode == EXIT_FAILURE) {  
-        fprintf(stderr, "%sERROR:%s couldn't find FFmpeg\n\n", CHARCOLOR_RED, COLOR_DEFAULT);
+        printError("couldn't find FFmpeg", strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -62,10 +67,10 @@ int main(int argc, char *argv[]) {
     }
 
     if (inputMode == CONSOLE) {
-            printf(" %s(Press any key to exit) %s", CHARCOLOR_WHITE, COLOR_DEFAULT);
-            getchar();
+        printf(" %s(Press any key to exit) %s", CHARCOLOR_WHITE, COLOR_DEFAULT);
+        getchar();
 
-            printf("\n");
+        printf("\n");
     }
 
     #ifdef _WIN32

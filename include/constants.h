@@ -5,8 +5,8 @@
 #define PROGRAM_NAME_FULL "RFFMPEG"
 #define PROGRAM_VERSION   "v0.7.1-beta"
 
-static const char *fullTitle = PROGRAM_NAME_FULL " " PROGRAM_VERSION " (ユニコード)";
-static const char *consoleWindowTitle = PROGRAM_NAME " " PROGRAM_VERSION;
+#define FULL_PROGRAM_TITLE   (PROGRAM_NAME_FULL " " PROGRAM_VERSION " (ユニコード)")
+#define CONSOLE_WINDOW_TITLE (PROGRAM_NAME " " PROGRAM_VERSION)
 
 /* ANSI escape chars for colored shell output (Virtual Terminal Sequences) */
 #define COLOR_DEFAULT        "\x1b[0m"
@@ -15,17 +15,14 @@ static const char *consoleWindowTitle = PROGRAM_NAME " " PROGRAM_VERSION;
 #define CHARCOLOR_RED_BOLD   "\x1b[91m"
 #define CHARCOLOR_WHITE_BOLD "\x1b[97m"
 
-/* Buffers for string handling */
-#define SHORTBUF (64)
-#define BUFFER   (1024)
-#define LONGBUF  (4096)
+#define LIST_BUFFER 8 // Reasonably large initial buffer for number of list elements
 
 #if defined _WIN32
-    #define FILE_BUFFER (MAX_PATH)
-    #define PATH_BUFFER (MAX_PATH)
+    #define FILE_BUFFER MAX_PATH
+    #define PATH_BUFFER MAX_PATH
 #else
-    #define FILE_BUFFER (UINT8_MAX)
-    #define PATH_BUFFER (512) /* An arbitrary initial buffer for a theoretically unlimited path size */
+    #define FILE_BUFFER NAME_MAX
+    #define PATH_BUFFER PATH_MAX
 #endif
 
 #endif // H_CONSTS

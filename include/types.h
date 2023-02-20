@@ -4,6 +4,8 @@
 #include "libs.h"
 #include "constants.h"
 
+#include <stdarg.h>
+
 typedef enum inputMode {
     ARGUMENTS, CONSOLE
 } inputMode;
@@ -31,7 +33,7 @@ typedef struct arguments {
         char *customPathName;
     };
 
-    uint16_t options; // Bit fields for the optional arguments
+    uint8_t options; // Bit fields for the optional arguments
 } arguments;
 
 arguments *initializeArguments(void);
@@ -43,5 +45,7 @@ formattedTime formatTime(double seconds);
 void trimWhiteSpaces(char *string);
 
 void *xcalloc(size_t numberOfElements, size_t sizeOfElements);
+
+char *asprintf(const char *format, ...);
 
 #endif // H_TYPES

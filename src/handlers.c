@@ -3,9 +3,9 @@
 bool _fileExists(const char *fileName);
 
 int preventFilenameOverwrites(char *pureName, const char *fileFormat, const char *path) {
-    size_t fullPathSize = snprintf(NULL, 0, "%s/%s.%s", path, pureName, fileFormat) + 1;
+    size_t fullPathSize = snprintf(NULL, 0, "%s/%s.-xxx%s", path, pureName, fileFormat) + 1;
 
-    char *fullPath = xcalloc(fullPathSize + strlen("-xxx"), sizeof(char));
+    char *fullPath = xcalloc(fullPathSize, sizeof(char));
     sprintf(fullPath, "%s/%s.%s", path, pureName, fileFormat);
 
     char newName[FILE_BUFFER];
@@ -26,24 +26,53 @@ int preventFilenameOverwrites(char *pureName, const char *fileFormat, const char
     return EXIT_SUCCESS;
 }
 
-int handleArgumentErrors(arguments *arguments) {
+int handleArgumentErrors(arguments *args) {
     /* Set current working directory as input path if none is provided */
-    if (arguments->inPaths[0] == NULL) {
-        arguments->inPaths[0] = getcwd(NULL, 0);
-        
-        #ifdef _WIN32
-            GetCurrentDirectoryW(SHORTBUF, arguments->inPaths[0]);
+    if (args->inPaths[0] == NULL) {
+        #ifdef __linux__
+            args->inPaths[0] = getcwd(NULL, 0);
+        #elif defined _WIN32
+            GetCurrentDirectoryW(PATH_BUFFER, args->inPaths[0]);
         #endif
     }
 
-    if (arguments->inFormats[0] == NULL) {
-        printError("no input format (null)");
-        return ERROR_NO_INPUT_FORMAT;
+    if (args->ffOptions == NULL)
+        args->ffOptions = strdup("");
+
+    if (args->inFormats[0] == NULL) {
+        printError("no input format", "null");
+        return EXIT_FAILURE;
     }
 
-    if (arguments->outFormat == NULL) {
-        printError("no output format (null)");
-        return ERROR_NO_OUTPUT_FORMAT;
+    if (args->outFormat == NULL) {
+        printError("no output format", "null");
+        return EXIT_FAILURE;
+    }
+
+    if ((args->options & OPT_NEWFOLDER) && (strlen(args->customFolderName) >= FILE_BUFFER - 1)) {
+        char *maxLength = asprintf("%d", FILE_BUFFER - 1);
+
+        printError("custom folder name exceeds maximum allowed length", maxLength);
+        free(maxLength);
+
+        return EXIT_FAILURE;
+    }
+
+    if (args->options & OPT_NEWPATH) {
+        if (args->customPathName == NULL) {
+            printError("empty custom pathname field", "usage: --newpath=name");
+
+            return EXIT_FAILURE;
+        }
+
+        if (strlen(args->customPathName) >= PATH_BUFFER) {
+            char *maxLength = asprintf("%d", PATH_BUFFER - 1);
+
+            printError("custom path name exceeds maximum allowed length", maxLength);
+            free(maxLength);
+
+            return EXIT_FAILURE;
+        }
     }
 
     return EXIT_SUCCESS;
@@ -70,8 +99,8 @@ int createTestProcess(void) {
             return EXIT_SUCCESS;
         }
 
-        return EXIT_FAILURE;
-    #else
+        return EXIT_FAILURE;   
+    #elif defined __linux__
         pid_t processID = fork();
 
         if (processID == 0) {
@@ -91,9 +120,11 @@ int createTestProcess(void) {
             if (exitStatus > 1)
                 return EXIT_FAILURE;
         }
+
+        return EXIT_SUCCESS;
     #endif
 
     /* TODO: implement os-not-supported error message */
 
-    return EXIT_SUCCESS;
+    return EXIT_FAILURE;
 }

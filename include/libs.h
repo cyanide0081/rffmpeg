@@ -5,14 +5,16 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <uchar.h>
-#include <time.h>
-#include <ctype.h>
+// #include <uchar.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
+#include <ctype.h>
+#include <time.h>
 #include <dirent.h>
 #include <errno.h>
+// #include <sys/types.h>
+#include <sys/stat.h>
+// #include <sys/time.h>
+#include <sys/wait.h>
 
 /* OS-dependent headers */
 #ifdef _WIN32
@@ -21,8 +23,6 @@
     #include <io.h>
 #else
     #include <unistd.h>
-    #include <sys/types.h>
-    #include <sys/time.h>
 #endif
 
 #endif // H_LIBS

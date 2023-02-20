@@ -1,13 +1,16 @@
 #include "../include/terminal.h"
 
-void printError(const char  *msg) {
-    fprintf(stderr, "%sERROR: %s%s%s\n\n",
-     CHARCOLOR_RED, CHARCOLOR_WHITE, msg, COLOR_DEFAULT);
+void printError(const char *message, const char *descriptor) {
+    fprintf(stderr, "%sERROR: %s%s (%s%s%s)\n\n",
+     CHARCOLOR_RED,
+     CHARCOLOR_WHITE, message,
+     CHARCOLOR_RED, descriptor,
+     COLOR_DEFAULT);
 }
 
 void displayEndDialog(processInfo *processInformation) {
     if (processInformation->convertedFiles == 0) {
-        printError("no input files were found");
+        printError("no input files were found", "check if the entered path is correct");
     } else {
         formattedTime executionTime = formatTime(processInformation->executionTime);
 
