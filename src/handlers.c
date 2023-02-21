@@ -95,7 +95,7 @@ int createTestProcess(void) {
         }
 
         return EXIT_FAILURE;   
-    #elif defined __linux__
+    #else
         pid_t processID = fork();
 
         if (processID == 0) {
@@ -118,8 +118,6 @@ int createTestProcess(void) {
 
         return EXIT_SUCCESS;
     #endif
-
-    /* TODO: implement os-not-supported error message */
 
     return EXIT_FAILURE;
 }
