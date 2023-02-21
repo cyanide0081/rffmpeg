@@ -124,6 +124,20 @@ int createTestProcess(void) {
     return EXIT_FAILURE;
 }
 
+int getCurrentOS(void) {
+    int os = OS_UNKNOWN;
+
+    #ifdef _WIN32
+        os = OS_WINDOWS;
+    #elif defined __APPLE__
+        os = OS_MACOS;
+    #elif defined __linux__
+        os = OS_LINUX;
+    #endif 
+
+    return os;
+}
+
 static bool _fileExists(const char *fileName) {
     struct stat statBuffer;
     return stat(fileName, &statBuffer) == 0 ? true : false;

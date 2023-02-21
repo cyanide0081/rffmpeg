@@ -11,4 +11,6 @@ int handleArgumentErrors(arguments *arguments);
 
 int createTestProcess(void);
 
+int getCurrentOS(void);
+
 #endif // H_HANDLERS

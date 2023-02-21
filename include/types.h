@@ -16,11 +16,11 @@ typedef struct processInfo {
     double executionTime;
 } processInfo;
 
-typedef struct formattedTime {
+typedef struct duration {
     uint64_t hours;
     uint64_t minutes;
     double seconds;
-} formattedTime;
+} duration;
 
 typedef struct arguments {
     char **inPaths;
@@ -40,7 +40,7 @@ arguments *initializeArguments(void);
 
 void destroyArguments(arguments *arguments);
 
-formattedTime formatTime(double seconds);
+duration getDuration(double seconds);
 
 void trimWhiteSpaces(char *string);
 

@@ -12,7 +12,7 @@ void displayEndDialog(processInfo *processInformation) {
     if (processInformation->convertedFiles == 0) {
         printError("no input files were found", "check if the entered path is correct");
     } else {
-        formattedTime executionTime = formatTime(processInformation->executionTime);
+        duration executionTime = getDuration(processInformation->executionTime);
 
         printf(" %sDONE!%s\n", CHARCOLOR_RED, COLOR_DEFAULT);
         printf("\n");

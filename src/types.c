@@ -29,8 +29,8 @@ void destroyArguments(arguments *args) {
     free(args);
 }
 
-formattedTime formatTime(double seconds) {
-    formattedTime time;
+duration getDuration(double seconds) {
+    duration time;
 
     time.hours = seconds / 3600;
     time.minutes = (seconds - (time.hours * 3600)) / 60;
@@ -57,7 +57,7 @@ void trimWhiteSpaces(char *string) {
 
     /* Shift spaceless part to the start */ 
     if (start != string) {
-        memmove(string, start, length + 1);  
+        memmove(string, start, strlen(start) + 1);  
         memset(string + strlen(string) + 1, u'\0', start - string); // Fill the extra bytes with 0s
     }
 }
@@ -72,34 +72,23 @@ void *xcalloc(size_t numberOfElements, size_t sizeOfElements) {
         exit(errno); // Immediate termination
     }
 
-    // #ifdef DEBUG
-    //     static size_t totalBytes = 0;
-
-    //     totalBytes += numberOfElements * sizeOfElements;
-
-    //     printf("\t> Total memory allocation (xcalloc): %zuKB\n\n", totalBytes / 0x400);
-    // #endif
-
     return memory;
 }
 
 char *asprintf(const char *format, ...) {
-    char *string = NULL;
-
-    /* 2 va_lists for 2 calls to sprintf() */
-    va_list args, args2;
-
+    va_list args;
     va_start(args, format);
-    va_copy(args2, args);
-    
+
     size_t bytes = vsnprintf(NULL, 0, format, args) + 1;
 
-    string = xcalloc(bytes, sizeof(char));
-
-    vsprintf(string, format, args2);
+    char *string = xcalloc(bytes, sizeof(char));
 
     va_end(args);
-    va_end(args2);
+    va_start(args, format);
+
+    vsprintf(string, format, args);
+
+    va_end(args);
 
     return string;
 }
