@@ -2,7 +2,7 @@
 
 static bool _fileExists(const char *fileName);
 
-int preventFilenameOverwrites(char *pureName, const char *fileFormat, const char *path) {
+int handleFileNameConflicts(char *pureName, const char *fileFormat, const char *path) {
     size_t fullPathSize = snprintf(NULL, 0, "%s/%s.-xxx%s", path, pureName, fileFormat) + 1;
 
     char *fullPath = xcalloc(fullPathSize, sizeof(char));
@@ -26,7 +26,7 @@ int preventFilenameOverwrites(char *pureName, const char *fileFormat, const char
     return EXIT_SUCCESS;
 }
 
-int handleArgumentErrors(arguments *args) {
+int handleArgErrors(arguments *args) {
     /* Set current working directory as input path if none is provided */
     if (args->inPaths[0] == NULL) {
         #ifdef __linux__

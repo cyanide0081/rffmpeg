@@ -1,20 +1,22 @@
 #include "../include/search.h"
 
-static int _searchDirectory(const char *directory, arguments *args, processInfo *runtimeData);
+static int _searchDir(const char *directory, arguments *args, processInfo *runtimeData);
 
 static bool _isDirectory(const char *pathToFile);
 
-int searchDirectories(arguments *args, processInfo *runtimeData) {
+/* runs _searchDir() in a list of directories */
+int searchDirs(arguments *args, processInfo *runtimeData) {
     int code;
 
     for (int i = 0; args->inPaths[i] != NULL; i++) {
-        code = _searchDirectory(args->inPaths[i], args, runtimeData);
+        code = _searchDir(args->inPaths[i], args, runtimeData);
     }
 
     return code;
 }
 
-static int _searchDirectory(const char *directory, arguments *args, processInfo *runtimeData) {
+/* Searches for files inside 'directory' and converts them with the given parameters */
+static int _searchDir(const char *directory, arguments *args, processInfo *runtimeData) {
     const char *inputPath = directory;
     static char *newFolderName = NULL;
 
@@ -47,7 +49,7 @@ static int _searchDirectory(const char *directory, arguments *args, processInfo 
 
         /* Perform recursive search (or not) */
         if (_isDirectory(fullInPath) && !(args->options & OPT_NORECURSION)) {
-            _searchDirectory(fullInPath, args, runtimeData);
+            _searchDir(fullInPath, args, runtimeData);
 
             free(fullInPath);
             continue;
@@ -99,7 +101,7 @@ static int _searchDirectory(const char *directory, arguments *args, processInfo 
         char *overwriteFlag = args->options & OPT_OVERWRITE ? strdup("-y") : strdup("");
 
         if (!(args->options & OPT_OVERWRITE))
-            preventFilenameOverwrites(pureFileName, args->outFormat, outPath);
+            handleFileNameConflicts(pureFileName, args->outFormat, outPath);
 
         char *fullOutPath = asprintf("%s/%s.%s", outPath, pureFileName, args->outFormat);
 

@@ -16,11 +16,11 @@ typedef struct processInfo {
     double executionTime;
 } processInfo;
 
-typedef struct duration {
+typedef struct fmtTime {
     uint64_t hours;
     uint64_t minutes;
     double seconds;
-} duration;
+} fmtTime;
 
 typedef struct arguments {
     char **inPaths;
@@ -40,9 +40,9 @@ arguments *initializeArguments(void);
 
 void destroyArguments(arguments *arguments);
 
-duration getDuration(double seconds);
+fmtTime formatTime(double seconds);
 
-void trimWhiteSpaces(char *string);
+void trimSpaces(char *string);
 
 void *xcalloc(size_t numberOfElements, size_t sizeOfElements);
 

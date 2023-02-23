@@ -11,7 +11,7 @@ void parseConsoleInput(arguments *args) {
      CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
     getline(&inputPathsString, &inputPathsSize, stdin);
-    trimWhiteSpaces(inputPathsString);
+    trimSpaces(inputPathsString);
 
     args->inPaths = _tokenizeArguments(inputPathsString, ":");
 
@@ -25,7 +25,7 @@ void parseConsoleInput(arguments *args) {
 
 
     getline(&inputFormatsString, &inputFormatsSize, stdin);
-    trimWhiteSpaces(inputFormatsString);
+    trimSpaces(inputFormatsString);
 
     args->inFormats = _tokenizeArguments(inputFormatsString, ", ");
 
@@ -37,7 +37,7 @@ void parseConsoleInput(arguments *args) {
      CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
     getline(&args->ffOptions, &ffOptionsSize, stdin);
-    trimWhiteSpaces(args->ffOptions);
+    trimSpaces(args->ffOptions);
 
     size_t outFormatSize = 0;
 
@@ -45,7 +45,7 @@ void parseConsoleInput(arguments *args) {
      CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
     getline(&args->outFormat, &outFormatSize, stdin);
-    trimWhiteSpaces(args->outFormat);
+    trimSpaces(args->outFormat);
 
     char *optionsString = NULL;
     size_t optionsStringSize = 0;
@@ -54,13 +54,13 @@ void parseConsoleInput(arguments *args) {
      CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
     getline(&optionsString, &optionsStringSize, stdin);
-    trimWhiteSpaces(optionsString);
+    trimSpaces(optionsString);
 
     printf("\n");
     printf(COLOR_DEFAULT);
 
     char **optionsList = _tokenizeArguments(optionsString, ", ");
-    parseArguments(0, optionsList, args);
+    parseArgs(0, optionsList, args);
 
     for (int i = 0; optionsList[i] != NULL; i++)
         free(optionsList[i]);
@@ -69,7 +69,7 @@ void parseConsoleInput(arguments *args) {
 }
 
 /* Parses an array of strings to format an (arguments*) accordingly */
-void parseArguments(const int listSize, char *rawArguments[], arguments *parsedArgs) {
+void parseArgs(const int listSize, char *rawArguments[], arguments *parsedArgs) {
     size_t count = listSize == 0 ? SIZE_MAX : listSize;
     
     for (int i = 0; i < count && rawArguments[i] != NULL; i++) {
@@ -153,7 +153,7 @@ static char **_tokenizeArguments(char *string, const char *delimiter) {
                 return NULL;
         }
 
-        trimWhiteSpaces(token);
+        trimSpaces(token);
 
         (list)[i] = strdup(token);
 

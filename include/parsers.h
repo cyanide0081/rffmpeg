@@ -33,6 +33,6 @@
 
 void parseConsoleInput(arguments *args);
 
-void parseArguments(const int count, char *rawArguments[], arguments *parsedArguments);
+void parseArgs(const int count, char *rawArguments[], arguments *parsedArguments);
 
 #endif // H_PARSERS_P

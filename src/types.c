@@ -29,18 +29,19 @@ void destroyArguments(arguments *args) {
     free(args);
 }
 
-duration getDuration(double seconds) {
-    duration time;
-
-    time.hours = seconds / 3600;
-    time.minutes = (seconds - (time.hours * 3600)) / 60;
-    time.seconds = (double)(seconds - (time.hours * 3600) - (time.minutes * 60));
+/* Returns a time structure formatted in hours, minutes and seconds */
+fmtTime formatTime(double seconds) {
+    fmtTime time = {
+        .hours = seconds / 3600,
+        .minutes = (seconds - (time.hours * 3600)) / 60,
+        .seconds = (double)(seconds - (time.hours * 3600) - (time.minutes * 60)),
+    };
 
     return time;
 }
 
 /* Trim leading and trailing empty characters from a string */
-void trimWhiteSpaces(char *string) {
+void trimSpaces(char *string) {
     size_t length = strlen(string);
 
     char *start = string;

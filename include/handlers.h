@@ -5,9 +5,9 @@
 #include "terminal.h"
 #include "parsers.h"
 
-int preventFilenameOverwrites(char *pureFilename, const char *outputFormat, const char *path);
+int handleFileNameConflicts(char *pureFilename, const char *outputFormat, const char *path);
 
-int handleArgumentErrors(arguments *arguments);
+int handleArgErrors(arguments *arguments);
 
 int createTestProcess(void);
 

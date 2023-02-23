@@ -35,18 +35,18 @@ int main(int argc, char *argv[]) {
     arguments *parsedArguments = initializeArguments();
 
     if (inputMode == ARGUMENTS) {
-        parseArguments(argc, argv, parsedArguments);
+        parseArgs(argc, argv, parsedArguments);
     } else {
         parseConsoleInput(parsedArguments);
     }
 
     if (parsedArguments->options & OPT_DISPLAYHELP && inputMode == ARGUMENTS) {
         displayHelp();
-    } else if ((exitCode = handleArgumentErrors(parsedArguments)) == EXIT_SUCCESS) {
+    } else if ((exitCode = handleArgErrors(parsedArguments)) == EXIT_SUCCESS) {
         struct timespec startTime, endTime;
         clock_gettime(CLOCK_MONOTONIC_RAW, &startTime);
 
-        exitCode = searchDirectories(parsedArguments, &processInformation);
+        exitCode = searchDirs(parsedArguments, &processInformation);
 
         clock_gettime(CLOCK_MONOTONIC_RAW, &endTime);
         
