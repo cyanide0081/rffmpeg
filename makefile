@@ -51,6 +51,5 @@ $(BIN): $(OFILES)
 .PHONY: clean
 
 clean:
-	rm ./src/obj/*
-	rm ./rffmpeg
-	rm ./rffmpeg.exe
+	del src\obj\*
+	del .\rffmpeg.exe
