@@ -4,6 +4,8 @@
 #include "libs.h"
 #include "types.h"
 
+#include <inttypes.h>
+
 void printError(const char *message, const char *descriptor);
 
 void displayEndDialog(processInfo *processInformation);
