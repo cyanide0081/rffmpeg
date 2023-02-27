@@ -2,7 +2,7 @@
 
 Windows command-line/console window tool for automating FFmpeg file conversions inside a specific directory
 
-* Run with `--help` to read the help page (this page is much more thorough though)
+* Run with `--help` to read the help page (though this page has much better documentation and examples)
 
 <br>
 
@@ -12,7 +12,7 @@ In order to use this tool you will first need to install FFmpeg, so here are two
 
 <br>
 
-### **Method 1:** Using _winget_ (recommended)
+### **Windows (10+)**
 
 If you're using Windows 10.1709 or newer, you can install it by simply opening PowerShell and running: 
 
@@ -20,16 +20,17 @@ If you're using Windows 10.1709 or newer, you can install it by simply opening P
 
 <br>
 
-### **Method 2:** Downloading it directly
+### **Linux (Debian/Ubuntu based)**
 
+If you're using Windows 10.1709 or newer, you can install it by simply opening PowerShell and running: 
 
-1. download the latest Windows build of [**FFmpeg**](https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip)
-     
-2. Extract the archive and add the _C:\ffmpeg\bin_ folder - the one containing the executables - to your `PATH`  by running PS as admin and pasting the following command: 
-    
-        > [Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\ffmpeg\bin", [EnvironmentVariableTarget]::Machine)
-   
-3. (**optional**) move _rffmpeg.exe_ to your _C:\ffmpeg\bin_ folder so you can call it from any directory
+    > sudo apt install ffmpeg
+
+<br>
+
+You can check if your installation succeeded by running the version command and checking its output:
+
+    > ffmpeg -version
 
 <br>
 
@@ -49,7 +50,7 @@ Here's a basic RFFmpeg command that looks for wav files and converts them to mp3
  ### **Arguments**
  
  * __\*__**path** : must hold a valid directory (or list thereof) or else the application will close
-    * It can also hold a list of directories separated by asterisks, such as: `-path 'C:\Users\Music*C:\音乐'`
+    * It can also hold a list of directories separated by a delimiter, which is '*' on Windows and ':' on the other OS's. Here are two examples: `-path 'C:\Users\Music*C:\音乐'` (Windows), `-path '/usr/Music:/usr/音乐'` (Others)
 
  * __\*__**in**   : one or more formats you wish to transcode separated by commas, like: `-in mp4,m4v,mov`
 
@@ -67,8 +68,10 @@ Here's a basic RFFmpeg command that looks for wav files and converts them to mp3
 
 You can also pass any of the flags below to help you organize your batch conversions a little
 
- * **--newfolder**   : puts your converted files inside a new folder
+ * **--newfolder**   : puts your converted files inside a new folder (which is itself created inside the input file's directory)
     * You can also give it a custom name using an equal sign, as in: `--newfolder=你好`
+ * **--newpath**   : puts your converted files inside a new directory
+    * You can also give it a custom name using an equal sign just like with --newfolder, as in: `--newdir=/usr/Music/你好`
 
  * **--cleanup**     : deletes the original files permanently after conversion (**don't use this if you're not sure the conversion will work properly**)
 
@@ -85,7 +88,3 @@ Here's an example of a more specific call to rffmpeg that looks inside two speci
     > rffmpeg -path 'C:\Users\User\Music\Album1*C:\Users\User\Music\Album2' -in flac,m4a -opts '-c:a libopus -vbr on -b:a 128k' -out opus --newfolder=transcoded
 
 ***
-
-<br>
-
-**p.s.:** you will get a Windows SmartScreen warning the first time you run it (assuming you have it enabled) 
