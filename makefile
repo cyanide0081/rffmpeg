@@ -50,6 +50,12 @@ $(BIN): $(OFILES)
 
 .PHONY: clean
 
+ifeq ($(OS), Windows_NT)
 clean:
-	del src\obj\*
+	del /Q src\obj\*
 	del .\rffmpeg.exe
+else
+clean:
+	rm src/obj/*
+	rm ./rffmpeg
+endif
