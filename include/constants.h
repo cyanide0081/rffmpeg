@@ -3,9 +3,9 @@
 
 #define PROGRAM_NAME      "RFF"
 #define PROGRAM_NAME_FULL "RFFMPEG"
-#define PROGRAM_VERSION   "v0.7.1-beta"
+#define PROGRAM_VERSION   "v1.0.0"
 
-#define FULL_PROGRAM_TITLE   (PROGRAM_NAME_FULL " " PROGRAM_VERSION " (ユニコード)")
+#define FULL_PROGRAM_TITLE   (PROGRAM_NAME_FULL " " PROGRAM_VERSION " (跨平台)")
 #define CONSOLE_WINDOW_TITLE (PROGRAM_NAME " " PROGRAM_VERSION)
 
 /* ANSI escape chars for colored shell output (Virtual Terminal Sequences) */
