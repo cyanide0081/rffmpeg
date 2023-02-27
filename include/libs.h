@@ -11,10 +11,9 @@
 #include <time.h>
 #include <dirent.h>
 #include <errno.h>
-// #include <sys/types.h>
 #include <sys/stat.h>
+// #include <sys/types.h>
 // #include <sys/time.h>
-#include <sys/wait.h>
 
 /* OS-dependent headers */
 #ifdef _WIN32
@@ -23,6 +22,7 @@
     #include <io.h>
 #else
     #include <unistd.h>
+    #include <sys/wait.h>
 #endif
 
 #endif // H_LIBS

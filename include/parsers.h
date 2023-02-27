@@ -5,6 +5,10 @@
 #include "types.h"
 #include "terminal.h"
 
+#ifdef _WIN32   
+    #include "win.h"
+#endif
+
 #include <string.h>
 
 /* Argument identifiers' constants */
@@ -30,6 +34,12 @@
 #define OPT_CUSTOMFOLDERNAME   0x20
 #define OPT_NEWPATH            0x40
 #define OPT_CUSTOMPATHNAME     0x80
+
+#ifdef _WIN32
+    #define DIR_DELIMITER "*"
+#else
+    #define DIR_DELIMITER ":"
+#endif
 
 void parseConsoleInput(arguments *args);
 

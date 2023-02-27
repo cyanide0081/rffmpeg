@@ -15,9 +15,9 @@ int handleFileNameConflicts(char *pureName, const char *fileFormat, const char *
         size_t index = 0;
 
         while (_fileExists(fullPath))
-            sprintf(fullPath, "%s/%s-%03zu.%s", path, pureName, ++index, fileFormat);  
+            sprintf(fullPath, "%s/%s-%03llu.%s", path, pureName, (uint64_t)++index, fileFormat);  
 
-        snprintf(newName, FILE_BUFFER, "%s-%03zu", pureName, index);
+        snprintf(newName, FILE_BUFFER, "%s-%03llu", pureName, (uint64_t)index);
         memccpy(pureName, newName, '\0', FILE_BUFFER);
     }
 
@@ -30,9 +30,18 @@ int handleArgErrors(arguments *args) {
     /* Set current working directory as input path if none is provided */
     if (args->inPaths[0] == NULL) {
         #ifdef __linux__
-            args->inPaths[0] = getcwd(NULL, 0);
+            char currentDir[PATH_BUFFER];
+            getcwd(currentDir, PATH_BUFFER);
+
+            args->inPaths[0] = strdup(currentDir);
         #elif defined _WIN32
-            GetCurrentDirectoryW(PATH_BUFFER, args->inPaths[0]);
+            wchar_t currentDirW[PATH_BUFFER];
+            GetCurrentDirectoryW(PATH_BUFFER, currentDirW);
+
+            char currentDir[PATH_BUFFER];
+            WideCharToMultiByte(CP_UTF8, 0, currentDirW, -1, currentDir, PATH_BUFFER, NULL, FALSE);
+
+            args->inPaths[0] = strdup(currentDir);
         #endif
     }
 
@@ -83,7 +92,7 @@ int createTestProcess(void) {
         STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
         PROCESS_INFORMATION ffmpegProcessInfo;
 
-        const char ffmpegProcessCall[] = "ffmpeg -loglevel quiet";
+        wchar_t ffmpegProcessCall[] = u"ffmpeg -loglevel quiet";
 
         if (CreateProcessW(NULL, ffmpegProcessCall, NULL, NULL,
         FALSE, 0, NULL, NULL, &ffmpegStartupInfo, &ffmpegProcessInfo)) {
@@ -122,7 +131,18 @@ int createTestProcess(void) {
     return EXIT_FAILURE;
 }
 
-static bool _fileExists(const char *fileName) {
-    struct stat statBuffer;
-    return stat(fileName, &statBuffer) == 0 ? true : false;
-}
+#ifdef _WIN32
+    static bool _fileExists(const char *fileName) {
+        wchar_t fileNameW[PATH_BUFFER];
+        MultiByteToWideChar(CP_UTF8, 0, fileName, -1, fileNameW, PATH_BUFFER);
+
+        WIN32_FIND_DATAW fileData;
+
+        return FindFirstFileW(fileNameW, &fileData) != INVALID_HANDLE_VALUE ? true : false;
+    }
+#else
+    static bool _fileExists(const char *fileName) {
+        struct stat statBuffer;
+        return stat(fileName, &statBuffer) == 0 ? true : false;
+    }
+#endif

@@ -13,7 +13,7 @@ void parseConsoleInput(arguments *args) {
     getline(&inputPathsString, &inputPathsSize, stdin);
     trimSpaces(inputPathsString);
 
-    args->inPaths = _tokenizeArguments(inputPathsString, ":");
+    args->inPaths = _tokenizeArguments(inputPathsString, DIR_DELIMITER);
 
     free(inputPathsString);
 
@@ -22,7 +22,6 @@ void parseConsoleInput(arguments *args) {
 
     printf("%s > %sTarget format(s): %s",
      CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
-
 
     getline(&inputFormatsString, &inputFormatsSize, stdin);
     trimSpaces(inputFormatsString);
@@ -75,7 +74,7 @@ void parseArgs(const int listSize, char *rawArguments[], arguments *parsedArgs) 
     for (int i = 0; i < count && rawArguments[i] != NULL; i++) {
         /* fmt: -path <path> -in <container> -opts <params> -out <container> */
         if (strcasecmp(rawArguments[i], ARG_INPUTPATHS) == 0) {
-            parsedArgs->inPaths = _tokenizeArguments(rawArguments[++i], ":");
+            parsedArgs->inPaths = _tokenizeArguments(rawArguments[++i], DIR_DELIMITER);
         }
         
         else if (strcasecmp(rawArguments[i], ARG_INPUTFORMATS) == 0) {

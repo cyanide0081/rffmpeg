@@ -10,17 +10,17 @@ void printError(const char *message, const char *descriptor) {
 
 void displayEndDialog(processInfo *processInformation) {
     if (processInformation->convertedFiles == 0) {
-        printError("no input files were found", "check if the entered path is correct");
+        printError("no input files were found", "check if your entered directory is correct");
     } else {
         fmtTime executionTime = formatTime(processInformation->executionTime);
 
         printf(" %sDONE!%s\n", CHARCOLOR_RED, COLOR_DEFAULT);
         printf("\n");
-        printf(" %sProcessed files: %s%zu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, 
-         processInformation->convertedFiles, COLOR_DEFAULT);
-        printf(" %sDeleted files:   %s%zu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, 
-         processInformation->deletedFiles, COLOR_DEFAULT);
-        printf(" %sElapsed time:    %s%02zu:%02zu:%05.2F%s\n",
+        printf(" %sProcessed files: %s%llu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, 
+         (uint64_t)processInformation->convertedFiles, COLOR_DEFAULT);
+        printf(" %sDeleted files:   %s%llu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, 
+         (uint64_t)processInformation->deletedFiles, COLOR_DEFAULT);
+        printf(" %sElapsed time:    %s%02llu:%02llu:%05.2lf%s\n",
          CHARCOLOR_WHITE, CHARCOLOR_RED,
          executionTime.hours, executionTime.minutes, executionTime.seconds,
          COLOR_DEFAULT);

@@ -2,7 +2,7 @@
 
 static int _searchDir(const char *directory, arguments *args, processInfo *runtimeData);
 
-static bool _isDirectory(const char *pathToFile);
+static bool _isDirectory(const char *dir);
 
 /* runs _searchDir() in a list of directories */
 int searchDirs(arguments *args, processInfo *runtimeData) {
@@ -10,6 +10,9 @@ int searchDirs(arguments *args, processInfo *runtimeData) {
 
     for (int i = 0; args->inPaths[i] != NULL; i++) {
         code = _searchDir(args->inPaths[i], args, runtimeData);
+
+        if (code != EXIT_SUCCESS)
+            break;
     }
 
     return code;
@@ -28,14 +31,23 @@ static int _searchDir(const char *directory, arguments *args, processInfo *runti
     struct dirent *entry = NULL;
 
     if (dir == NULL) {
-        printError("couldn't open directory", strerror(errno));
+        printError("couldn't open directory", inputPath);
 
         return EXIT_FAILURE;
     }
 
     while ((entry = readdir(dir)) != NULL) {
-        const char *fileName = entry->d_name;
+        char *fileName = NULL;
         const char *inputFormat = NULL;
+
+        #ifdef _WIN32
+            size_t size = WideCharToMultiByte(CP_UTF8, 0, entry->d_name, -1, NULL, 0, NULL, NULL);
+            fileName = xcalloc(size, sizeof(char));
+
+            WideCharToMultiByte(CP_UTF8, 0, entry->d_name, -1, fileName, size, NULL, NULL);
+        #else
+            fileName = strdup(entry->d_name);
+        #endif
 
         /* Skip . and .. */
         if (strcmp(fileName, ".") == 0 || strcmp(fileName, "..") == 0)
@@ -80,18 +92,23 @@ static int _searchDir(const char *directory, arguments *args, processInfo *runti
 
         /* Make-a-subfolder-or-not part */
         if (args->options & OPT_NEWFOLDER) {
-            const char *newFolder = (args->options & OPT_CUSTOMFOLDERNAME) ?
-             args->customFolderName : inputFormat;
+            char *newPath = asprintf("%s/%s", inputPath, newFolderName);
 
-            char *newPath = asprintf("%s/%s", inputPath, newFolder);
+            if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS) {
+                printError("couldn't create new directory", strerror(errno));
 
-            mkdir(newPath, S_IRWXU);
+                return EXIT_FAILURE;
+            }
 
             outPath = newPath;
         } else if (args->options & OPT_NEWPATH) {
             char *newPath = strdup(args->customPathName);
 
-            mkdir(newPath, S_IRWXU);
+            if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS) {
+                printError("couldn't create new directory", strerror(errno));
+
+                return EXIT_FAILURE;
+            }
 
             outPath = newPath;
         } else {
@@ -108,13 +125,41 @@ static int _searchDir(const char *directory, arguments *args, processInfo *runti
         char *ffmpegCall = asprintf("ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
          overwriteFlag, fullInPath, args->ffOptions, fullOutPath);
 
-        int systemCode = system(ffmpegCall);
-        
-        if (systemCode != EXIT_SUCCESS) {
-            printError("call to FFmpeg failed", strerror(errno));
-        } else {
-            runtimeData->convertedFiles++;
-        }
+        #ifdef _WIN32
+            size_t callBuf = MultiByteToWideChar(CP_UTF8, 0, ffmpegCall, -1, NULL, 0);
+            wchar_t *ffmpegCallW = xcalloc(callBuf, sizeof(wchar_t));
+
+            MultiByteToWideChar(CP_UTF8, 0, ffmpegCall, -1, ffmpegCallW, callBuf);
+
+            /* Setup process info structures */
+            STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
+            PROCESS_INFORMATION ffmpegProcessInfo;
+
+            /* Call ffmpeg and wait for it to finish */
+            bool createdProcess = CreateProcessW(NULL, ffmpegCallW, NULL,
+            NULL, FALSE, 0, NULL, NULL, &ffmpegStartupInfo, &ffmpegProcessInfo);
+
+            free(ffmpegCallW);
+
+            if (createdProcess == false) {
+                fwprintf_s(stderr, u"%lsERROR:%ls call to FFmpeg failed (code: %ls%lu%ls)\n\n",
+                CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_RED, GetLastError(), CHARCOLOR_WHITE);
+            } else {
+                WaitForSingleObject(ffmpegProcessInfo.hProcess, INFINITE);
+                CloseHandle(ffmpegProcessInfo.hProcess);
+                CloseHandle(ffmpegProcessInfo.hThread);
+
+                runtimeData->convertedFiles++;
+            }
+        #else
+            int systemCode = system(ffmpegCall);
+            
+            if (systemCode != EXIT_SUCCESS) {
+                printError("call to FFmpeg failed", strerror(errno));
+            } else {
+                runtimeData->convertedFiles++;
+            }
+        #endif
 
         printf("\n");
         
@@ -131,6 +176,7 @@ static int _searchDir(const char *directory, arguments *args, processInfo *runti
         if (args->options & OPT_NEWFOLDER && runtimeData->convertedFiles == 0)
             remove(outPath);
 
+        free(fileName);
         free(outPath);
         free(fullInPath);
         free(fullOutPath);
@@ -143,9 +189,25 @@ static int _searchDir(const char *directory, arguments *args, processInfo *runti
     return EXIT_SUCCESS;
 }
 
-static bool _isDirectory(const char *pathToFile) {
-    struct stat pathStats;
-    stat(pathToFile, &pathStats);
+#ifndef _WIN32
+    static bool _isDirectory(const char *dir) {
+        struct stat pathStats;
+        stat(dir, &pathStats);
 
-    return S_ISREG(pathStats.st_mode) == 0 ? true : false;
-}
+        return S_ISREG(pathStats.st_mode) == 0 ? true : false;
+    }
+#else
+    static bool _isDirectory(const char *dir) {
+        wchar_t dirW[PATH_BUFFER];
+        MultiByteToWideChar(CP_UTF8, 0, dir, -1, dirW, PATH_BUFFER);
+
+        DWORD fileAttr = GetFileAttributesW(dirW);
+
+        if (fileAttr == INVALID_FILE_ATTRIBUTES)
+            return false;
+        if (fileAttr & FILE_ATTRIBUTE_DIRECTORY)
+            return true;
+
+        return false;
+    }
+#endif
