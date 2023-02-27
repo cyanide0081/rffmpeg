@@ -29,17 +29,17 @@ int handleFileNameConflicts(char *pureName, const char *fileFormat, const char *
 int handleArgErrors(arguments *args) {
     /* Set current working directory as input path if none is provided */
     if (args->inPaths[0] == NULL) {
-        #ifdef __linux__
-            char currentDir[PATH_BUFFER];
-            getcwd(currentDir, PATH_BUFFER);
-
-            args->inPaths[0] = strdup(currentDir);
-        #elif defined _WIN32
+        #ifdef _WIN32
             wchar_t currentDirW[PATH_BUFFER];
             GetCurrentDirectoryW(PATH_BUFFER, currentDirW);
 
             char currentDir[PATH_BUFFER];
             WideCharToMultiByte(CP_UTF8, 0, currentDirW, -1, currentDir, PATH_BUFFER, NULL, FALSE);
+
+            args->inPaths[0] = strdup(currentDir);
+        #else
+            char currentDir[PATH_BUFFER];
+            getcwd(currentDir, PATH_BUFFER);
 
             args->inPaths[0] = strdup(currentDir);
         #endif
