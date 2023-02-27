@@ -8,7 +8,7 @@ Command-line/Console window tool for batch-processing files inside a specific di
 
 <br>
 
-**NOTE:** I made this tool with the intention of it being safe, versatile and easy to use so it could fit more than just one very specific use case, therefore, if you have any suggestions or ideas for improving it, feel free to reach out or contribute if you want :)
+**NOTE:** I made this tool with the intention of it being intuitive, versatile and robust (error handling-wise) so it could fit more than just one very specific use case, therefore, if you have any suggestions or ideas for improving it, feel free to reach out or contribute if you want :)
 
 <br>
 
@@ -26,15 +26,15 @@ If you're using Windows 10.1709 or newer, you can install it by simply opening P
 
 <br>
 
-### **Linux (Debian/Ubuntu based)**
+### **Linux (Debian/Ubuntu-based)**
 
-If you're using Windows 10.1709 or newer, you can install it by simply opening PowerShell and running: 
+In Linux you can probably install it just by using your local package manager. Here's the command for Debian/Ubuntu-based distros: 
 
     > sudo apt install ffmpeg
 
 <br>
 
-You can check if your installation succeeded by running the version command and checking its output:
+You can then check if your installation succeeded by running the version command below and seeing if it produces any output:
 
     > ffmpeg -version
 
