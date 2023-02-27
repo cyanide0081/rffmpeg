@@ -15,9 +15,9 @@ int handleFileNameConflicts(char *pureName, const char *fileFormat, const char *
         size_t index = 0;
 
         while (_fileExists(fullPath))
-            sprintf(fullPath, "%s/%s-%03llu.%s", path, pureName, (uint64_t)++index, fileFormat);  
+            sprintf(fullPath, "%s/%s-%03" PRIu64 ".%s", path, pureName, (uint64_t)++index, fileFormat);  
 
-        snprintf(newName, FILE_BUFFER, "%s-%03llu", pureName, (uint64_t)index);
+        snprintf(newName, FILE_BUFFER, "%s-%03" PRIu64, pureName, (uint64_t)index);
         memccpy(pureName, newName, '\0', FILE_BUFFER);
     }
 
@@ -29,17 +29,17 @@ int handleFileNameConflicts(char *pureName, const char *fileFormat, const char *
 int handleArgErrors(arguments *args) {
     /* Set current working directory as input path if none is provided */
     if (args->inPaths[0] == NULL) {
-        #ifdef __linux__
-            char currentDir[PATH_BUFFER];
-            getcwd(currentDir, PATH_BUFFER);
-
-            args->inPaths[0] = strdup(currentDir);
-        #elif defined _WIN32
+        #ifdef _WIN32
             wchar_t currentDirW[PATH_BUFFER];
             GetCurrentDirectoryW(PATH_BUFFER, currentDirW);
 
             char currentDir[PATH_BUFFER];
             WideCharToMultiByte(CP_UTF8, 0, currentDirW, -1, currentDir, PATH_BUFFER, NULL, FALSE);
+
+            args->inPaths[0] = strdup(currentDir);
+        #else
+            char currentDir[PATH_BUFFER];
+            getcwd(currentDir, PATH_BUFFER);
 
             args->inPaths[0] = strdup(currentDir);
         #endif

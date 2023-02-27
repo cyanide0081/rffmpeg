@@ -16,11 +16,11 @@ void displayEndDialog(processInfo *processInformation) {
 
         printf(" %sDONE!%s\n", CHARCOLOR_RED, COLOR_DEFAULT);
         printf("\n");
-        printf(" %sProcessed files: %s%llu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, 
+        printf(" %sProcessed files: %s%" PRIu64 "%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, 
          (uint64_t)processInformation->convertedFiles, COLOR_DEFAULT);
-        printf(" %sDeleted files:   %s%llu%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, 
+        printf(" %sDeleted files:   %s%" PRIu64 "%s\n", CHARCOLOR_WHITE, CHARCOLOR_RED, 
          (uint64_t)processInformation->deletedFiles, COLOR_DEFAULT);
-        printf(" %sElapsed time:    %s%02llu:%02llu:%05.2lf%s\n",
+        printf(" %sElapsed time:    %s%02" PRIu64 ":%02" PRIu64 ":%05.2lf%s\n",
          CHARCOLOR_WHITE, CHARCOLOR_RED,
          executionTime.hours, executionTime.minutes, executionTime.seconds,
          COLOR_DEFAULT);

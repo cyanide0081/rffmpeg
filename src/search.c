@@ -94,7 +94,7 @@ static int _searchDir(const char *directory, arguments *args, processInfo *runti
         if (args->options & OPT_NEWFOLDER) {
             char *newPath = asprintf("%s/%s", inputPath, newFolderName);
 
-            if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS) {
+            if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                 printError("couldn't create new directory", strerror(errno));
 
                 return EXIT_FAILURE;
@@ -104,7 +104,7 @@ static int _searchDir(const char *directory, arguments *args, processInfo *runti
         } else if (args->options & OPT_NEWPATH) {
             char *newPath = strdup(args->customPathName);
 
-            if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS) {
+            if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                 printError("couldn't create new directory", strerror(errno));
 
                 return EXIT_FAILURE;
