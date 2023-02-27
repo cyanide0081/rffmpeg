@@ -1,8 +1,14 @@
 # **RFFmpeg**
 
-Windows command-line/console window tool for automating FFmpeg file conversions inside a specific directory
+Command-line/Console window tool for batch-processing files inside a specific directory (or more) with FFmpeg
+
+* Currently supports *Windows* and *Linux* (it's theoretically compilable for *MacOS* but I can't do it myself :c)
 
 * Run with `--help` to read the help page (though this page has much better documentation and examples)
+
+<br>
+
+**NOTE:** I made this tool with the intention of it being safe, versatile and easy to use so it could fit more than just one very specific use case, therefore, if you have any suggestions or ideas for improving it, feel free to reach out or contribute if you want :)
 
 <br>
 
