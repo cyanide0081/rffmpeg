@@ -1,9 +1,6 @@
 #include "../include/libs.h"
 #include "../include/headers.h"
 
-/* TODO: make the program fail in case inFormat and outFormat are the same && --newfolder or
---newpath aren't enabled */
-
 int main(int argc, char *argv[]) {
     inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
