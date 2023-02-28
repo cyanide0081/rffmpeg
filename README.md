@@ -78,7 +78,7 @@ You can also pass any of the flags below to help you organize your batch convers
  * **--newfolder**   : puts your converted files inside a new folder (which is itself created inside the input file's directory)
     * You can also give it a custom name using an equal sign, as in: `--newfolder=你好`
  * **--newpath**   : puts your converted files inside a new directory
-    * You can also give it a custom name using an equal sign just like with --newfolder, as in: `--newdir=/usr/Music/你好`
+    * Unlike --newfolder, you have to explicitly name the new path, as in: `--newpath=/usr/Music/你好`
 
  * **--cleanup**     : deletes the original files permanently after conversion (**don't use this if you're not sure the conversion will work properly**)
 
