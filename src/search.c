@@ -6,7 +6,7 @@ static bool _isDirectory(const char *dir);
 
 /* runs _searchDir() in a list of directories */
 int searchDirs(arguments *args, processInfo *runtimeData) {
-    int code;
+    int code = EXIT_SUCCESS;
 
     for (int i = 0; args->inPaths[i] != NULL; i++) {
         code = _searchDir(args->inPaths[i], args, runtimeData);

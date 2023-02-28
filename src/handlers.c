@@ -2,6 +2,7 @@
 
 static bool _fileExists(const char *fileName);
 
+/* Appends 3-digit index to output filename in case it already exists */
 int handleFileNameConflicts(char *pureName, const char *fileFormat, const char *path) {
     size_t fullPathSize = snprintf(NULL, 0, "%s/%s.-xxx%s", path, pureName, fileFormat) + 1;
 
@@ -26,7 +27,10 @@ int handleFileNameConflicts(char *pureName, const char *fileFormat, const char *
     return EXIT_SUCCESS;
 }
 
+/* Handles edge cases regarding arguments as well as errors */
 int handleArgErrors(arguments *args) {
+    int code = EXIT_SUCCESS;
+
     /* Set current working directory as input path if none is provided */
     if (args->inPaths[0] == NULL) {
         #ifdef _WIN32
@@ -48,14 +52,16 @@ int handleArgErrors(arguments *args) {
     if (args->ffOptions == NULL)
         args->ffOptions = strdup("");
 
-    if (args->inFormats[0] == NULL) {
+    if (args->inFormats[0] == NULL || *args->inFormats[0] == '\0') {
         printError("no input format", "null");
-        return EXIT_FAILURE;
+
+        code = EXIT_FAILURE;
     }
 
-    if (args->outFormat == NULL) {
+    if (args->outFormat == NULL || *args->outFormat == '\0') {
         printError("no output format", "null");
-        return EXIT_FAILURE;
+
+        code = EXIT_FAILURE;
     }
 
     if ((args->options & OPT_NEWFOLDER) && (strlen(args->customFolderName) >= FILE_BUFFER - 1)) {
@@ -64,27 +70,37 @@ int handleArgErrors(arguments *args) {
         printError("custom folder name exceeds maximum allowed length", maxLength);
         free(maxLength);
 
-        return EXIT_FAILURE;
+        code = EXIT_FAILURE;
     }
 
     if (args->options & OPT_NEWPATH) {
         if (args->customPathName == NULL) {
             printError("empty custom pathname field", "usage: --newpath=name");
 
-            return EXIT_FAILURE;
-        }
-
-        if (strlen(args->customPathName) >= PATH_BUFFER) {
+            code = EXIT_FAILURE;
+        } else if (strlen(args->customPathName) >= PATH_BUFFER) {
             char *maxLength = asprintf("%d", PATH_BUFFER - 1);
 
             printError("custom path name exceeds maximum allowed length", maxLength);
             free(maxLength);
 
-            return EXIT_FAILURE;
+            code = EXIT_FAILURE;
         }
     }
 
-    return EXIT_SUCCESS;
+    for (int i = 0; args->inFormats[i] != NULL; i++) {
+        if (strcmp(args->inFormats[i], args->outFormat) == 0
+         && !(args->options & OPT_NEWFOLDER) && !(args->options & OPT_NEWPATH)) {
+            printError("can't use ffmpeg with identical input and output formats",
+             "use '--newpath' or '--newfolder' to save the files in a new directory");
+            
+            code = EXIT_FAILURE;
+
+            break;
+        }
+    }
+
+    return code;
 }
 
 int createTestProcess(void) {
