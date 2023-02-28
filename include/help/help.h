@@ -26,8 +26,8 @@ static void displayHelp(void) {
     printf("\t%-25sdelete original files after conversion (PERMANENT) \n", OPT_CLEANUP_STRING);
     printf("\t%-25sdisable recursive subfolder search\n\n", OPT_NORECURSION_STRING);
     
-    printf(" Example: rffmpeg -path C:\\Users\\Music -fmt wav,aif -opts \"-c:a libmp3lame\"\
- -ext mp3 --newfolder\n\n");
+    printf(" Example: rffmpeg -path C:\\Users\\Music -in wav,aif -opts \"-c:a libmp3lame\"\
+ -out mp3 --newfolder\n\n");
     
     printf(" (p.s.: you can run this as a console application by simply running it with no\
  arguments)\n\n");

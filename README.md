@@ -55,18 +55,19 @@ Here's a basic RFFmpeg command that looks for wav files and converts them to mp3
 
  ### **Arguments**
  
- * __\*__**path** : must hold a valid directory (or list thereof) or else the application will close
-    * It can also hold a list of directories separated by a delimiter, which is '*' on Windows and ':' on the other OS's. Here are two examples: `-path 'C:\Users\Music*C:\音乐'` (Windows), `-path '/usr/Music:/usr/音乐'` (Others)
+ * __\*__**path** : the directory(ies) the tool will look for files in, used as: `-path /usr/folder`
+
+    * It can hold a list of directories separated by a delimiter, which is '*' on Windows and ':' on the other OS's. Here are two examples: `-path 'C:\Users\Music*C:\音乐'` (Windows), `-path '/usr/Music:/usr/音乐'` (Others)
 
  * __\*__**in**   : one or more formats you wish to transcode separated by commas, like: `-in mp4,m4v,mov`
 
  * **opts**       : ffmpeg conversion parameters sorrounded by quotes, as in: `-opts '-c:v vp9 -crf 32 -c:a copy'` 
 
- * __\*__**out**  : specifies the extension your output files will use\*\*
+ * __\*__**out**  : specifies the extension your output files will use
+
+    * If you specify identical input and output formats, use the **--newfolder** or **--newpath** option otherwise the program won't run 
 
  __\*__ All arguments marked with an must not be empty for the tool to work
-
- __\*\*__ If you specify identical input and output formats, use the **--newfolder** option otherwise the program will refuse to run 
 
 <br>
 
