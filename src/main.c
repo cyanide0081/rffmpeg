@@ -34,7 +34,6 @@ int main(int argc, char *argv[]) {
         if (!SetConsoleOutputCP(CP_UTF8))
             return GetLastError();
 
-
         /* Enable virtual terminal sequences for colored console output */
         DWORD originalConsoleMode;
         enableVirtualTerminalProcessing(&originalConsoleMode);

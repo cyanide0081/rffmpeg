@@ -16,7 +16,8 @@ int handleFileNameConflicts(char *pureName, const char *fileFormat, const char *
         size_t index = 0;
 
         while (_fileExists(fullPath))
-            sprintf(fullPath, "%s/%s-%03" PRIu64 ".%s", path, pureName, (uint64_t)++index, fileFormat);  
+            sprintf(fullPath, "%s/%s-%03" PRIu64 ".%s",
+             path, pureName, (uint64_t)++index, fileFormat);  
 
         snprintf(newName, FILE_BUFFER, "%s-%03" PRIu64, pureName, (uint64_t)index);
         memccpy(pureName, newName, '\0', FILE_BUFFER);
