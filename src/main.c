@@ -108,7 +108,12 @@ int main(int argc, char *argv[]) {
 
     if (inputMode == CONSOLE) {
         printf(" %s(Press any key to exit) %s", CHARCOLOR_WHITE, COLOR_DEFAULT);
-        getchar();
+        
+        #ifdef _WIN32
+            getwchar();
+        #else   
+            getchar();
+        #endif
 
         printf("\n");
     }
