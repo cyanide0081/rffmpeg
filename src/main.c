@@ -41,8 +41,15 @@ int main(int argc, char *argv[]) {
         wchar_t originalConsoleWindowTitle[FILE_BUFFER];
 
         if (inputMode == CONSOLE) {
+            size_t size = strlen(CONSOLE_WINDOW_TITLE) + 1;
+            wchar_t *windowTitle = xcalloc(size, sizeof(wchar_t));
+
+            MultiByteToWideChar(CP_UTF8, 0, CONSOLE_WINDOW_TITLE, -1, windowTitle, size);
+
             GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUFFER);
-            SetConsoleTitleW((wchar_t*)CONSOLE_WINDOW_TITLE);
+            SetConsoleTitleW(windowTitle);
+
+            free(windowTitle);
         }
 
         int argcW = 0;
