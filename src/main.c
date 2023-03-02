@@ -1,6 +1,11 @@
 #include "../include/libs.h"
 #include "../include/headers.h"
 
+/* TODO:
+    * implement argument parsing interface (expectToken() and stuff)
+    * implement --version command
+    * compartmentalize the long os-checking #ifdefs into their own functions */
+
 int main(int argc, char *argv[]) {
     inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
