@@ -3,8 +3,10 @@
 static bool _fileExists(const char *fileName);
 
 /* Appends 3-digit index to output filename in case it already exists */
-int handleFileNameConflicts(char *pureName, const char *fileFormat, const char *path) {
-    size_t fullPathSize = snprintf(NULL, 0, "%s/%s.-xxx%s", path, pureName, fileFormat) + 1;
+int handleFileNameConflicts(char *pureName, const char *fileFormat,
+                            const char *path) {
+    size_t fullPathSize =
+        snprintf(NULL, 0, "%s/%s.-xxx%s", path, pureName, fileFormat) + 1;
 
     char *fullPath = xcalloc(fullPathSize, sizeof(char));
     sprintf(fullPath, "%s/%s.%s", path, pureName, fileFormat);
@@ -17,9 +19,10 @@ int handleFileNameConflicts(char *pureName, const char *fileFormat, const char *
 
         while (_fileExists(fullPath))
             sprintf(fullPath, "%s/%s-%03" PRIu64 ".%s",
-             path, pureName, (uint64_t)++index, fileFormat);  
+             path, pureName, (uint64_t)++index, fileFormat);
 
-        snprintf(newName, FILE_BUFFER, "%s-%03" PRIu64, pureName, (uint64_t)index);
+        snprintf(newName, FILE_BUFFER, "%s-%03" PRIu64,
+                 pureName, (uint64_t)index);
         memccpy(pureName, newName, '\0', FILE_BUFFER);
     }
 
@@ -34,20 +37,21 @@ int handleArgErrors(arguments *args) {
 
     /* Set current working directory as input path if none is provided */
     if (args->inPaths[0] == NULL) {
-        #ifdef _WIN32
-            wchar_t currentDirW[PATH_BUFFER];
-            GetCurrentDirectoryW(PATH_BUFFER, currentDirW);
+#ifdef _WIN32
+        wchar_t currentDirW[PATH_BUFFER];
+        GetCurrentDirectoryW(PATH_BUFFER, currentDirW);
 
-            char currentDir[PATH_BUFFER];
-            WideCharToMultiByte(CP_UTF8, 0, currentDirW, -1, currentDir, PATH_BUFFER, NULL, FALSE);
+        char currentDir[PATH_BUFFER];
+        WideCharToMultiByte(CP_UTF8, 0, currentDirW, -1, currentDir,
+                            PATH_BUFFER, NULL, FALSE);
 
-            args->inPaths[0] = strdup(currentDir);
-        #else
-            char currentDir[PATH_BUFFER];
-            getcwd(currentDir, PATH_BUFFER);
+        args->inPaths[0] = strdup(currentDir);
+#else
+        char currentDir[PATH_BUFFER];
+        getcwd(currentDir, PATH_BUFFER);
 
-            args->inPaths[0] = strdup(currentDir);
-        #endif
+        args->inPaths[0] = strdup(currentDir);
+#endif
     }
 
     if (args->ffOptions == NULL)
@@ -65,10 +69,12 @@ int handleArgErrors(arguments *args) {
         code = EXIT_FAILURE;
     }
 
-    if ((args->options & OPT_NEWFOLDER) && (strlen(args->customFolderName) >= FILE_BUFFER - 1)) {
+    if ((args->options & OPT_NEWFOLDER)
+        && (strlen(args->customFolderName) >= FILE_BUFFER - 1)) {
         char *maxLength = asprintf("%d", FILE_BUFFER - 1);
 
-        printError("custom folder name exceeds maximum allowed length", maxLength);
+        printError("custom folder name exceeds maximum allowed length",
+                   maxLength);
         free(maxLength);
 
         code = EXIT_FAILURE;
@@ -82,7 +88,8 @@ int handleArgErrors(arguments *args) {
         } else if (strlen(args->customPathName) >= PATH_BUFFER) {
             char *maxLength = asprintf("%d", PATH_BUFFER - 1);
 
-            printError("custom path name exceeds maximum allowed length", maxLength);
+            printError("custom path name exceeds maximum allowed length",
+                       maxLength);
             free(maxLength);
 
             code = EXIT_FAILURE;
@@ -91,12 +98,14 @@ int handleArgErrors(arguments *args) {
 
     for (int i = 0; args->inFormats[i] != NULL; i++) {
         if (strcmp(args->inFormats[i], args->outFormat) == 0
-         && !(args->options & OPT_NEWFOLDER) && !(args->options & OPT_NEWPATH)) {
-            printError("can't use ffmpeg with identical input and output formats",
-             "use '--newpath' or '--newfolder' to save the files in a new directory");
-            
-            code = EXIT_FAILURE;
+            && !(args->options & OPT_NEWFOLDER)
+            && !(args->options & OPT_NEWPATH)) {
+            printError("can't use ffmpeg with identical input \
+                       and output formats",
+                       "use '--newpath' or '--newfolder' \
+                       to save the files in a new directory");
 
+            code = EXIT_FAILURE;
             break;
         }
     }
@@ -105,61 +114,60 @@ int handleArgErrors(arguments *args) {
 }
 
 int createTestProcess(void) {
-    #ifdef _WIN32
-        STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
-        PROCESS_INFORMATION ffmpegProcessInfo;
+#ifdef _WIN32
+    STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
+    PROCESS_INFORMATION ffmpegProcessInfo;
 
-        wchar_t ffmpegProcessCall[] = u"ffmpeg -loglevel quiet";
+    wchar_t ffmpegProcessCall[] = u"ffmpeg -loglevel quiet";
 
-        if (CreateProcessW(NULL, ffmpegProcessCall, NULL, NULL,
-        FALSE, 0, NULL, NULL, &ffmpegStartupInfo, &ffmpegProcessInfo)) {
-            WaitForSingleObject(ffmpegProcessInfo.hProcess, INFINITE);
-            CloseHandle(ffmpegProcessInfo.hProcess);
-            CloseHandle(ffmpegProcessInfo.hThread);
-
-            return EXIT_SUCCESS;
-        }
-
-        return EXIT_FAILURE;   
-    #else
-        pid_t processID = fork();
-
-        if (processID == 0) {
-            execlp("ffmpeg", "ffmpeg", "-loglevel", "quiet", (char*)NULL);
-            exit(errno);
-        } else {
-            int status;  
-            waitpid(processID, &status, 0);
-
-            int exitStatus = 0;
-            
-            if (WIFEXITED(status))
-                exitStatus = WEXITSTATUS(status);
-
-            /* Status 1 means the call succeeded and ffmpeg
-            returned an error, and 2 means it wasn't found */
-            if (exitStatus > 1)
-                return EXIT_FAILURE;
-        }
+    if (CreateProcessW(NULL, ffmpegProcessCall, NULL, NULL, FALSE, 0,
+                       NULL, NULL, &ffmpegStartupInfo, &ffmpegProcessInfo)) {
+        WaitForSingleObject(ffmpegProcessInfo.hProcess, INFINITE);
+        CloseHandle(ffmpegProcessInfo.hProcess);
+        CloseHandle(ffmpegProcessInfo.hThread);
 
         return EXIT_SUCCESS;
-    #endif
+    }
+
+    return EXIT_FAILURE;
+#else
+    pid_t processID = fork();
+
+    if (processID == 0) {
+        execlp("ffmpeg", "ffmpeg", "-loglevel", "quiet", (char*)NULL);
+        exit(errno);
+    } else {
+        int status;
+        waitpid(processID, &status, 0);
+
+        int exitStatus = 0;
+
+        if (WIFEXITED(status))
+            exitStatus = WEXITSTATUS(status);
+
+        /* Status 1 means the call succeeded and ffmpeg
+           returned an error, and 2 means it wasn't found */
+        if (exitStatus > 1)
+            return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+#endif
 
     return EXIT_FAILURE;
 }
 
+static bool _fileExists(const char *fileName) {
 #ifdef _WIN32
-    static bool _fileExists(const char *fileName) {
-        wchar_t fileNameW[PATH_BUFFER];
-        MultiByteToWideChar(CP_UTF8, 0, fileName, -1, fileNameW, PATH_BUFFER);
+    wchar_t fileNameW[PATH_BUFFER];
+    MultiByteToWideChar(CP_UTF8, 0, fileName, -1, fileNameW, PATH_BUFFER);
 
-        WIN32_FIND_DATAW fileData;
+    WIN32_FIND_DATAW fileData;
 
-        return FindFirstFileW(fileNameW, &fileData) != INVALID_HANDLE_VALUE ? true : false;
-    }
-#else
-    static bool _fileExists(const char *fileName) {
-        struct stat statBuffer;
-        return stat(fileName, &statBuffer) == 0 ? true : false;
-    }
+    return FindFirstFileW(fileNameW, &fileData) !=
+        INVALID_HANDLE_VALUE ? true : false;
+#else /* Unix */
+    struct stat statBuffer;
+    return stat(fileName, &statBuffer) == 0 ? true : false;
 #endif
+}

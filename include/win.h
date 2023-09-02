@@ -19,10 +19,10 @@
 #define readdir(d) _wreaddir(d)
 #define closedir(d) _wclosedir(d)
 
-/* Manual implementation of POSIX's getline() since it's unavailable in MSVCRT */
+/* Implementation of POSIX's getline() since it's unavailable in MSVCRT */
 ssize_t getline(char **string, size_t *buffer, FILE *stream);
 
-/* Overrides standard mkdir to get around differences between std and ms versions */
+/* Overrides mkdir to get around differences between std and ms versions */
 int mkdirWin(const char *dir, int mode);
 
 /* Overrides opendir() to support UNICODE directories on Windows */

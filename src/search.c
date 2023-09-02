@@ -40,21 +40,24 @@ static int _searchDir(const char *directory, arguments *args, processInfo *runti
         char *fileName = NULL;
         const char *inputFormat = NULL;
 
-        #ifdef _WIN32
-            size_t size = WideCharToMultiByte(CP_UTF8, 0, entry->d_name, -1, NULL, 0, NULL, NULL);
-            fileName = xcalloc(size, sizeof(char));
+#ifdef _WIN32
+        size_t size =WideCharToMultiByte(CP_UTF8, 0, entry->d_name,
+                                         -1, NULL, 0, NULL, NULL);
+        fileName = xcalloc(size, sizeof(char));
 
-            WideCharToMultiByte(CP_UTF8, 0, entry->d_name, -1, fileName, size, NULL, NULL);
-        #else
-            fileName = strdup(entry->d_name);
-        #endif
+        WideCharToMultiByte(CP_UTF8, 0, entry->d_name, -1,
+                            fileName, size, NULL, NULL);
+#else
+        fileName = strdup(entry->d_name);
+#endif
 
         /* Skip . and .. */
         if (strcmp(fileName, ".") == 0 || strcmp(fileName, "..") == 0)
             continue;
 
         /* Avoid recursing into a brand new folder */
-        if ((strcmp(fileName, newFolderName) == 0) && (args->options & OPT_NEWFOLDER))
+        if ((strcmp(fileName, newFolderName) == 0)
+            && (args->options & OPT_NEWFOLDER))
             continue;
 
         char *fullInPath = asprintf("%s/%s", inputPath, fileName);
@@ -115,21 +118,26 @@ static int _searchDir(const char *directory, arguments *args, processInfo *runti
             outPath = strdup(inputPath);
         }
 
-        char *overwriteFlag = args->options & OPT_OVERWRITE ? strdup("-y") : strdup("");
+        char *overwriteFlag =
+            args->options & OPT_OVERWRITE ? strdup("-y") : strdup("");
 
         if (!(args->options & OPT_OVERWRITE))
             handleFileNameConflicts(pureFileName, args->outFormat, outPath);
 
-        char *fullOutPath = asprintf("%s/%s.%s", outPath, pureFileName, args->outFormat);
+        char *fullOutPath = asprintf("%s/%s.%s", outPath,
+                                     pureFileName, args->outFormat);
 
-        char *ffmpegCall = asprintf("ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
-         overwriteFlag, fullInPath, args->ffOptions, fullOutPath);
+        char *ffmpegCall =
+            asprintf("ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
+                     overwriteFlag, fullInPath, args->ffOptions, fullOutPath);
 
         #ifdef _WIN32
-            size_t callBuf = MultiByteToWideChar(CP_UTF8, 0, ffmpegCall, -1, NULL, 0);
+            size_t callBuf =
+                MultiByteToWideChar(CP_UTF8, 0, ffmpegCall, -1, NULL, 0);
             wchar_t *ffmpegCallW = xcalloc(callBuf, sizeof(wchar_t));
 
-            MultiByteToWideChar(CP_UTF8, 0, ffmpegCall, -1, ffmpegCallW, callBuf);
+            MultiByteToWideChar(CP_UTF8, 0, ffmpegCall,
+                                -1, ffmpegCallW, callBuf);
 
             /* Setup process info structures */
             STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
@@ -142,8 +150,10 @@ static int _searchDir(const char *directory, arguments *args, processInfo *runti
             free(ffmpegCallW);
 
             if (createdProcess == false) {
-                fwprintf_s(stderr, u"%lsERROR:%ls call to FFmpeg failed (code: %ls%lu%ls)\n\n",
-                CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_RED, GetLastError(), CHARCOLOR_WHITE);
+                fwprintf_s(stderr, u"%lsERROR:%ls call to FFmpeg failed \
+                           (code: %ls%lu%ls)\n\n", CHARCOLOR_RED,
+                           CHARCOLOR_WHITE, CHARCOLOR_RED, GetLastError(),
+                           CHARCOLOR_WHITE);
             } else {
                 WaitForSingleObject(ffmpegProcessInfo.hProcess, INFINITE);
                 CloseHandle(ffmpegProcessInfo.hProcess);
@@ -153,7 +163,7 @@ static int _searchDir(const char *directory, arguments *args, processInfo *runti
             }
         #else
             int systemCode = system(ffmpegCall);
-            
+
             if (systemCode != EXIT_SUCCESS) {
                 printError("call to FFmpeg failed", strerror(errno));
             } else {
@@ -162,7 +172,7 @@ static int _searchDir(const char *directory, arguments *args, processInfo *runti
         #endif
 
         printf("\n");
-        
+
         /* Keep or delete original files */
         if (args->options & OPT_CLEANUP) {
             if (remove(fullInPath) != 0) {

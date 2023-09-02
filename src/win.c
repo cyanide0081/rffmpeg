@@ -10,7 +10,8 @@ ssize_t getline(char **string, size_t *buffer, FILE *stream) {
     if (fgetws(wideBuf, LARGE_BUF, stream) == NULL)
         return -1;
 
-    int size = WideCharToMultiByte(CP_UTF8, 0, wideBuf, -1, NULL, 0, NULL, NULL);
+    int size =
+        WideCharToMultiByte(CP_UTF8, 0, wideBuf, -1, NULL, 0, NULL, NULL);
 
     char *narrowBuf = xcalloc(size, sizeof(char));
 
@@ -47,9 +48,5 @@ DIR *opendirWin(const char *dir) {
 
     return _wopendir(dirW);
 }
-
-// struct dirent *readdirWin(DIR *dir) {
-
-// }
 
 #endif // _WIN32

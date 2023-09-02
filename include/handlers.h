@@ -5,7 +5,8 @@
 #include "terminal.h"
 #include "parsers.h"
 
-int handleFileNameConflicts(char *pureFilename, const char *outputFormat, const char *path);
+int handleFileNameConflicts(char *pureFilename,
+                            const char *outputFormat, const char *path);
 
 int handleArgErrors(arguments *arguments);
 

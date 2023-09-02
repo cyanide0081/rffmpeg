@@ -6,7 +6,7 @@ arguments *initializeArguments(void) {
 
     instance->inPaths = xcalloc(LIST_BUFFER, sizeof(char*));
     instance->inFormats = xcalloc(LIST_BUFFER, sizeof(char*));
-    
+
     return instance;
 }
 
@@ -14,7 +14,7 @@ void destroyArguments(arguments *args) {
     if (args == NULL)
         return;
 
-    for (int i = 0; args->inPaths[i] != NULL; i++) 
+    for (int i = 0; args->inPaths[i] != NULL; i++)
         free(args->inPaths[i]);
 
     for (int i = 0; args->inFormats[i] != NULL; i++)
@@ -34,7 +34,8 @@ fmtTime formatTime(double seconds) {
     fmtTime time = {
         .hours = seconds / 3600,
         .minutes = (seconds - (time.hours * 3600)) / 60,
-        .seconds = (double)(seconds - (time.hours * 3600) - (time.minutes * 60)),
+        .seconds =
+            (double)(seconds - (time.hours * 3600) - (time.minutes * 60)),
     };
 
     return time;
@@ -53,13 +54,13 @@ void trimSpaces(char *string) {
 
     /* Replace spaces with 0s */
     while (isspace(*end))  {
-        *end-- = u'\0';  
+        *end-- = u'\0';
     }
 
-    /* Shift spaceless part to the start */ 
+    /* Shift spaceless part to the start */
     if (start != string) {
-        memmove(string, start, strlen(start) + 1);  
-        memset(string + strlen(string) + 1, u'\0', start - string); // Fill the extra bytes with 0s
+        memmove(string, start, strlen(start) + 1);
+        memset(string + strlen(string) + 1, u'\0', start - string);
     }
 }
 

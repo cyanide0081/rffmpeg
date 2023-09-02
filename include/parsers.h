@@ -5,7 +5,7 @@
 #include "types.h"
 #include "terminal.h"
 
-#ifdef _WIN32   
+#ifdef _WIN32
     #include "win.h"
 #endif
 
@@ -18,10 +18,10 @@
 #define ARG_OUTPUTFORMAT       "-out"
 
 /* Optional flags' constants */
-#define OPT_DISPLAYHELP_STRING "--help"  
+#define OPT_DISPLAYHELP_STRING "--help"
 #define OPT_NEWFOLDER_STRING   "--newfolder"
-#define OPT_NEWPATH_STRING     "--newpath"  
-#define OPT_CLEANUP_STRING     "--cleanup"  
+#define OPT_NEWPATH_STRING     "--newpath"
+#define OPT_CLEANUP_STRING     "--cleanup"
 #define OPT_NORECURSION_STRING "--norecursion"
 #define OPT_OVERWRITE_STRING   "--overwrite"
 
@@ -43,6 +43,7 @@
 
 void parseConsoleInput(arguments *args);
 
-void parseArgs(const int count, char *rawArguments[], arguments *parsedArguments);
+void parseArgs(const int count, char *rawArguments[],
+               arguments *parsedArguments);
 
 #endif // H_PARSERS_P

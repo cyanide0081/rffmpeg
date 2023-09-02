@@ -14,7 +14,8 @@
 #define CHARCOLOR_RED_BOLD   "\x1b[91m"
 #define CHARCOLOR_WHITE_BOLD "\x1b[97m"
 
-#define LIST_BUFFER 8 // Reasonably large initial buffer for number of list elements
+/* Reasonably large initial buffer for number of list elements */
+#define LIST_BUFFER 8
 
 #if defined _WIN32
     #define FILE_BUFFER MAX_PATH

@@ -1,8 +1,11 @@
 #include "../include/parsers.h"
 
 static char **_tokenizeArguments(char *string, const char *delimiter);
- 
-/* Parses the argument strings from direct console input in case no argument is given */
+
+/*
+ * Parses the argument strings from direct
+ * console input in case no argument is given
+ */
 void parseConsoleInput(arguments *args) {
     char *inputPathsString = NULL;
     size_t inputPathsSize = 0;
@@ -68,43 +71,45 @@ void parseConsoleInput(arguments *args) {
 }
 
 /* Parses an array of strings to format an (arguments*) accordingly */
-void parseArgs(const int listSize, char *rawArguments[], arguments *parsedArgs) {
+void parseArgs(const int listSize,
+               char *rawArguments[], arguments *parsedArgs) {
     size_t count = listSize == 0 ? SIZE_MAX : listSize;
-    
+
     for (int i = 0; i < count && rawArguments[i] != NULL; i++) {
         /* fmt: -path <path> -in <container> -opts <params> -out <container> */
         if (strcasecmp(rawArguments[i], ARG_INPUTPATHS) == 0) {
-            parsedArgs->inPaths = _tokenizeArguments(rawArguments[++i], DIR_DELIMITER);
+            parsedArgs->inPaths =
+              _tokenizeArguments(rawArguments[++i], DIR_DELIMITER);
         }
-        
+
         else if (strcasecmp(rawArguments[i], ARG_INPUTFORMATS) == 0) {
             parsedArgs->inFormats = _tokenizeArguments(rawArguments[++i], ", ");
         }
-        
+
         else if (strcasecmp(rawArguments[i], ARG_INPUTPARAMETERS) == 0) {
             parsedArgs->ffOptions = strdup(rawArguments[++i]);
         }
-        
+
         else if (strcasecmp(rawArguments[i], ARG_OUTPUTFORMAT) == 0) {
             parsedArgs->outFormat = strdup(rawArguments[++i]);
         }
-        
+
         else if (strcasecmp(rawArguments[i], OPT_DISPLAYHELP_STRING) == 0) {
             parsedArgs->options |= OPT_DISPLAYHELP;
         }
-        
+
         else if (strcasecmp(rawArguments[i], OPT_CLEANUP_STRING) == 0) {
             parsedArgs->options |= OPT_CLEANUP;
         }
-        
+
         else if (strcasecmp(rawArguments[i], OPT_NORECURSION_STRING) == 0) {
             parsedArgs->options |= OPT_NORECURSION;
         }
-        
+
         else if (strcasecmp(rawArguments[i], OPT_OVERWRITE_STRING) == 0) {
             parsedArgs->options |= OPT_OVERWRITE;
         }
-        
+
         else if (strstr(rawArguments[i], OPT_NEWFOLDER_STRING)) {
             parsedArgs->options |= OPT_NEWFOLDER;
 
@@ -112,11 +117,11 @@ void parseArgs(const int listSize, char *rawArguments[], arguments *parsedArgs) 
 
             if (delimiterSection != NULL) {
                 parsedArgs->options |= OPT_CUSTOMFOLDERNAME;
-                
+
                 parsedArgs->customFolderName = strdup(++delimiterSection);
             }
         }
-        
+
         else if (strstr(rawArguments[i], OPT_NEWPATH_STRING)) {
             parsedArgs->options |= OPT_NEWPATH;
 
@@ -148,7 +153,7 @@ static char **_tokenizeArguments(char *string, const char *delimiter) {
 
             if (newBlock != NULL)
                 list = newBlock;
-            else    
+            else
                 return NULL;
         }
 
