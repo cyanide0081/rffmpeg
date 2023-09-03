@@ -1,6 +1,8 @@
 #include "../include/search.h"
 
-static int _searchDir(const char *directory, arguments *args, processInfo *runtimeData);
+static int _searchDir(const char *directory,
+                      arguments *args,
+                      processInfo *runtimeData);
 
 static bool _isDirectory(const char *dir);
 
@@ -19,7 +21,9 @@ int searchDirs(arguments *args, processInfo *runtimeData) {
 }
 
 /* Searches for files inside 'directory' and converts them with the given parameters */
-static int _searchDir(const char *directory, arguments *args, processInfo *runtimeData) {
+static int _searchDir(const char *directory,
+                      arguments *args,
+                      processInfo *runtimeData) {
     const char *inputPath = directory;
     static char *newFolderName = NULL;
 
@@ -199,25 +203,23 @@ static int _searchDir(const char *directory, arguments *args, processInfo *runti
     return EXIT_SUCCESS;
 }
 
+static bool _isDirectory(const char *dir) {
 #ifndef _WIN32
-    static bool _isDirectory(const char *dir) {
-        struct stat pathStats;
-        stat(dir, &pathStats);
+    struct stat pathStats;
+    stat(dir, &pathStats);
 
-        return S_ISREG(pathStats.st_mode) == 0 ? true : false;
-    }
+    return S_ISREG(pathStats.st_mode) == 0 ? true : false;
 #else
-    static bool _isDirectory(const char *dir) {
-        wchar_t dirW[PATH_BUFFER];
-        MultiByteToWideChar(CP_UTF8, 0, dir, -1, dirW, PATH_BUFFER);
+    wchar_t dirW[PATH_BUFFER];
+    MultiByteToWideChar(CP_UTF8, 0, dir, -1, dirW, PATH_BUFFER);
 
-        DWORD fileAttr = GetFileAttributesW(dirW);
+    DWORD fileAttr = GetFileAttributesW(dirW);
 
-        if (fileAttr == INVALID_FILE_ATTRIBUTES)
-            return false;
-        if (fileAttr & FILE_ATTRIBUTE_DIRECTORY)
-            return true;
-
+    if (fileAttr == INVALID_FILE_ATTRIBUTES)
         return false;
-    }
+    if (fileAttr & FILE_ATTRIBUTE_DIRECTORY)
+        return true;
+
+    return false;
 #endif
+}

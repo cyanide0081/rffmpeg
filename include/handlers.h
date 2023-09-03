@@ -6,7 +6,8 @@
 #include "parsers.h"
 
 int handleFileNameConflicts(char *pureFilename,
-                            const char *outputFormat, const char *path);
+                            const char *outputFormat,
+                            const char *path);
 
 int handleArgErrors(arguments *arguments);
 

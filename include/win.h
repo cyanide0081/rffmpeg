@@ -28,8 +28,5 @@ int mkdirWin(const char *dir, int mode);
 /* Overrides opendir() to support UNICODE directories on Windows */
 DIR *opendirWin(const char *dir);
 
-/* Overrides readdir() to support UNICODE directories on Windows */
-// struct dirent *readdirWin(DIR *dir);
-
 #endif // _WIN32
 #endif // H_WIN

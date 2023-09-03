@@ -11,9 +11,11 @@ void printError(const char *message, const char *descriptor);
 void displayEndDialog(processInfo *processInformation);
 
 #ifdef _WIN32
-    int restoreConsoleMode(DWORD originalConsoleMode);
 
-    int enableVirtualTerminalProcessing(PDWORD originalConsoleMode);
-#endif
+int restoreConsoleMode(DWORD originalConsoleMode);
+
+int enableVirtualTerminalProcessing(PDWORD originalConsoleMode);
+
+#endif  /* _WIN32 */
 
 #endif // H_TERMINAL
