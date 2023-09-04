@@ -1,5 +1,6 @@
 #include "../include/libs.h"
 #include "../include/headers.h"
+#include <string.h>
 
 /* TODO:
  * implement argument parsing interface (expectToken() and stuff)
@@ -28,7 +29,7 @@ int main(int argc, char *argv[]) {
      */
 
     /* Setup Unicode (UTF-16LE) console Input for Windows */
-    setmode(_fileno(stdin), _O_U16TEXT);
+    _setmode(_fileno(stdin), _O_U16TEXT);
 
     /* Set all code pages to UTF-8 */
     if (!IsValidCodePage(CP_UTF8))
@@ -53,7 +54,7 @@ int main(int argc, char *argv[]) {
       wchar_t *windowTitle = xcalloc(size, sizeof(wchar_t));
 
       MultiByteToWideChar(CP_UTF8, 0, CONSOLE_WINDOW_TITLE,
-                          -1, windowTitle, size);
+                          -1, windowTitle, (int)size);
 
       GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUFFER);
       SetConsoleTitleW(windowTitle);
@@ -71,7 +72,7 @@ int main(int argc, char *argv[]) {
 
       argv[i] = xcalloc(size, sizeof(char));
 
-      WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, argv[i], size, NULL, NULL);
+      WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, argv[i], (int)size, NULL, NULL);
     }
 
     LocalFree(argvW);
@@ -84,7 +85,10 @@ int main(int argc, char *argv[]) {
     int exitCode = createTestProcess();
 
     if (exitCode == EXIT_FAILURE) {
-        printError("couldn't find FFmpeg", strerror(errno));
+        char errormsg[NAME_MAX] = "";
+        strerror_s(errormsg, NAME_MAX, errno);
+        
+        printError("couldn't find FFmpeg", errormsg);
         exit(EXIT_FAILURE);
     }
 
@@ -99,10 +103,6 @@ int main(int argc, char *argv[]) {
     if (parsedArgs->options & OPT_DISPLAYHELP && inputMode == ARGUMENTS) {
         displayHelp();
     } else if ((exitCode = handleArgErrors(parsedArgs)) == EXIT_SUCCESS) {
-        #ifdef _WIN32
-            #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
-        #endif
-
         struct timespec startTime, endTime;
         clock_gettime(CLOCK_MONOTONIC_RAW, &startTime);
 

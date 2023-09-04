@@ -1,5 +1,7 @@
 #include "../include/types.h"
 #include "../include/terminal.h"
+#include <stdint.h>
+#include <stdio.h>
 
 arguments *initializeArguments(void) {
     arguments *instance = xcalloc(1, sizeof(*instance));
@@ -32,8 +34,8 @@ void destroyArguments(arguments *args) {
 /* Returns a time structure formatted in hours, minutes and seconds */
 fmtTime formatTime(double seconds) {
     fmtTime time = {
-        .hours = seconds / 3600,
-        .minutes = (seconds - (time.hours * 3600)) / 60,
+        .hours = (int64_t)(seconds / 3600),
+        .minutes = (int64_t)((seconds - (time.hours * 3600)) / 60),
         .seconds =
             (double)(seconds - (time.hours * 3600) - (time.minutes * 60)),
     };
@@ -69,9 +71,11 @@ void *xcalloc(size_t numberOfElements, size_t sizeOfElements) {
     void *memory = calloc(numberOfElements, sizeOfElements);
 
     if (memory == NULL) {
-        printError("not enough memory", strerror(errno));
+        char errormsg[NAME_MAX] = "";
+        strerror_s(errormsg, NAME_MAX, errno);
+        printError("not enough memory", errormsg);
 
-        exit(errno); // Immediate termination
+        exit(errno);
     }
 
     return memory;
@@ -88,7 +92,7 @@ char *asprintf(const char *format, ...) {
     va_end(args);
     va_start(args, format);
 
-    vsprintf(string, format, args);
+    vsprintf(string, format, args); // Ignore MSVC compiler warning here
 
     va_end(args);
 

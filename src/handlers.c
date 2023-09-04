@@ -23,7 +23,7 @@ int handleFileNameConflicts(char *pureName, const char *fileFormat,
 
         snprintf(newName, FILE_BUFFER, "%s-%03" PRIu64,
                  pureName, (uint64_t)index);
-        memccpy(pureName, newName, '\0', FILE_BUFFER);
+        _memccpy(pureName, newName, '\0', FILE_BUFFER);
     }
 
     free(fullPath);
@@ -45,7 +45,7 @@ int handleArgErrors(arguments *args) {
         WideCharToMultiByte(CP_UTF8, 0, currentDirW, -1, currentDir,
                             PATH_BUFFER, NULL, FALSE);
 
-        args->inPaths[0] = strdup(currentDir);
+        args->inPaths[0] = _strdup(currentDir);
 #else
         char currentDir[PATH_BUFFER];
         getcwd(currentDir, PATH_BUFFER);
@@ -55,7 +55,7 @@ int handleArgErrors(arguments *args) {
     }
 
     if (args->ffOptions == NULL)
-        args->ffOptions = strdup("");
+        args->ffOptions = _strdup("");
 
     if (args->inFormats[0] == NULL || *args->inFormats[0] == '\0') {
         printError("no input format", "null");
@@ -153,8 +153,6 @@ int createTestProcess(void) {
 
     return EXIT_SUCCESS;
 #endif
-
-    return EXIT_FAILURE;
 }
 
 static bool _fileExists(const char *fileName) {

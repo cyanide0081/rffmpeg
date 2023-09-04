@@ -45,12 +45,12 @@ static int _searchDir(const char *directory,
         const char *inputFormat = NULL;
 
 #ifdef _WIN32
-        size_t size =WideCharToMultiByte(CP_UTF8, 0, entry->d_name,
-                                         -1, NULL, 0, NULL, NULL);
+        size_t size = WideCharToMultiByte(CP_UTF8, 0, entry->d_name,
+                                          -1, NULL, 0, NULL, NULL);
         fileName = xcalloc(size, sizeof(char));
 
         WideCharToMultiByte(CP_UTF8, 0, entry->d_name, -1,
-                            fileName, size, NULL, NULL);
+                            fileName, (int)size, NULL, NULL);
 #else
         fileName = strdup(entry->d_name);
 #endif
@@ -91,7 +91,7 @@ static int _searchDir(const char *directory,
 
         /* Copy filename and remove the extension */
         char pureFileName[FILE_BUFFER];
-        memccpy(pureFileName, fileName, '\0', FILE_BUFFER);
+        _memccpy(pureFileName, fileName, '\0', FILE_BUFFER);
         memset(pureFileName + strlen(pureFileName) - strlen(inputFormat) - 1,
          '\0', strlen(inputFormat) + 1);
 
@@ -102,28 +102,32 @@ static int _searchDir(const char *directory,
             char *newPath = asprintf("%s/%s", inputPath, newFolderName);
 
             if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
-                printError("couldn't create new directory", strerror(errno));
+                char errormsg[NAME_MAX] = "";
+                strerror_s(errormsg, NAME_MAX, errno);
+                printError("couldn't create new directory", errormsg);
 
                 return EXIT_FAILURE;
             }
 
             outPath = newPath;
         } else if (args->options & OPT_NEWPATH) {
-            char *newPath = strdup(args->customPathName);
+            char *newPath = _strdup(args->customPathName);
 
             if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
-                printError("couldn't create new directory", strerror(errno));
+                char errormsg[NAME_MAX] = "";
+                strerror_s(errormsg, NAME_MAX, errno);
+                printError("couldn't create new directory", errormsg);
 
                 return EXIT_FAILURE;
             }
 
             outPath = newPath;
         } else {
-            outPath = strdup(inputPath);
+            outPath = _strdup(inputPath);
         }
 
         char *overwriteFlag =
-            args->options & OPT_OVERWRITE ? strdup("-y") : strdup("");
+            args->options & OPT_OVERWRITE ? _strdup("-y") : _strdup("");
 
         if (!(args->options & OPT_OVERWRITE))
             handleFileNameConflicts(pureFileName, args->outFormat, outPath);
@@ -141,7 +145,7 @@ static int _searchDir(const char *directory,
             wchar_t *ffmpegCallW = xcalloc(callBuf, sizeof(wchar_t));
 
             MultiByteToWideChar(CP_UTF8, 0, ffmpegCall,
-                                -1, ffmpegCallW, callBuf);
+                                -1, ffmpegCallW, (int)callBuf);
 
             /* Setup process info structures */
             STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
@@ -154,8 +158,8 @@ static int _searchDir(const char *directory,
             free(ffmpegCallW);
 
             if (createdProcess == false) {
-                fwprintf_s(stderr, u"%lsERROR:%ls call to FFmpeg failed \
-                           (code: %ls%lu%ls)\n\n", CHARCOLOR_RED,
+                fprintf_s(stderr, "%sERROR:%s call to FFmpeg failed \
+                           (code: %s%lu%s)\n\n", CHARCOLOR_RED,
                            CHARCOLOR_WHITE, CHARCOLOR_RED, GetLastError(),
                            CHARCOLOR_WHITE);
             } else {
@@ -180,7 +184,9 @@ static int _searchDir(const char *directory,
         /* Keep or delete original files */
         if (args->options & OPT_CLEANUP) {
             if (remove(fullInPath) != 0) {
-                printError("couldn't delete original file", strerror(errno));
+                char errormsg[NAME_MAX] = "";
+                strerror_s(errormsg, NAME_MAX, errno);
+                printError("couldn't delete original file", errormsg);
             } else {
                 runtimeData->deletedFiles++;
             }

@@ -17,12 +17,17 @@
 
 /* OS-dependent headers */
 #ifdef _WIN32
-    #include <windows.h>
-    #include <fcntl.h>
-    #include <io.h>
+
+#include <windows.h>
+#include <shellapi.h>
+#include <fcntl.h>
+#include <io.h>
+
 #else
-    #include <unistd.h>
-    #include <sys/wait.h>
+
+#include <unistd.h>
+#include <sys/wait.h>
+
 #endif
 
 #endif // H_LIBS

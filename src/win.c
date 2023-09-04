@@ -2,6 +2,17 @@
 
 #include "../include/win.h"
 
+int clock_gettime(int t, struct timespec *spec) {
+    int64_t wintime;
+    GetSystemTimeAsFileTime((FILETIME*)&wintime);
+
+    wintime -= 116444736000000000i64;            // 1/jan/1601 to 1/jan/1970
+    spec->tv_sec  = wintime / 10000000i64;       //seconds
+    spec->tv_nsec = wintime % 10000000i64 * 100; //nano-seconds
+
+    return 0;
+}
+
 ssize_t getline(char **string, size_t *buffer, FILE *stream) {
     #define LARGE_BUF 4096
 
@@ -19,9 +30,9 @@ ssize_t getline(char **string, size_t *buffer, FILE *stream) {
     trimSpaces(narrowBuf);
 
     if (*buffer == 0)
-        *string = strdup(narrowBuf);
+        *string = _strdup(narrowBuf);
     else
-        memccpy(*string, narrowBuf, '\0', *buffer);
+        _memccpy(*string, narrowBuf, '\0', *buffer);
 
     return strlen(*string);
 }
