@@ -1,17 +1,20 @@
 #include "../include/terminal.h"
 
-void printError(const char *message, const char *descriptor) {
-    fprintf(stderr, "%sERROR: %s%s (%s%s%s)\n\n",
-     CHARCOLOR_RED,
-     CHARCOLOR_WHITE, message,
-     CHARCOLOR_RED, descriptor,
-     COLOR_DEFAULT);
+void printerr(const char *message, const char *descriptor) {
+    fprintf(
+        stderr,
+        "%sERROR: %s%s (%s%s%s)\n\n",
+        CHARCOLOR_RED,
+        CHARCOLOR_WHITE, message,
+        CHARCOLOR_RED, descriptor,
+        COLOR_DEFAULT
+    );
 }
 
 void displayEndDialog(processInfo *processInformation) {
     if (processInformation->convertedFiles == 0) {
-        printError("no input files were found",
-                   "check if your entered directory is correct");
+        printerr("no input files were found",
+                 "check if your entered directory is correct");
     } else {
         fmtTime executionTime = formatTime(processInformation->executionTime);
 
@@ -24,9 +27,9 @@ void displayEndDialog(processInfo *processInformation) {
                CHARCOLOR_RED, (uint64_t)processInformation->deletedFiles,
                COLOR_DEFAULT);
         printf(" %sElapsed time:    %s%02" PRIu64 ":%02" PRIu64 ":%05.2lf%s\n",
-         CHARCOLOR_WHITE, CHARCOLOR_RED,
-         executionTime.hours, executionTime.minutes, executionTime.seconds,
-         COLOR_DEFAULT);
+               CHARCOLOR_WHITE, CHARCOLOR_RED,
+               executionTime.hours, executionTime.minutes, executionTime.seconds,
+               COLOR_DEFAULT);
         printf("\n");
     }
 }

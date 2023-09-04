@@ -40,10 +40,8 @@ int handleArgErrors(arguments *args) {
 #ifdef _WIN32
         wchar_t currentDirW[PATH_BUFFER];
         GetCurrentDirectoryW(PATH_BUFFER, currentDirW);
-
         char currentDir[PATH_BUFFER];
-        WideCharToMultiByte(CP_UTF8, 0, currentDirW, -1, currentDir,
-                            PATH_BUFFER, NULL, FALSE);
+        utf16toutf8(currentDirW, -1, currentDir, PATH_BUFFER);
 
         args->inPaths[0] = _strdup(currentDir);
 #else
@@ -58,13 +56,13 @@ int handleArgErrors(arguments *args) {
         args->ffOptions = _strdup("");
 
     if (args->inFormats[0] == NULL || *args->inFormats[0] == '\0') {
-        printError("no input format", "null");
+        printerr("no input format", "null");
 
         code = EXIT_FAILURE;
     }
 
     if (args->outFormat == NULL || *args->outFormat == '\0') {
-        printError("no output format", "null");
+        printerr("no output format", "null");
 
         code = EXIT_FAILURE;
     }
@@ -73,7 +71,7 @@ int handleArgErrors(arguments *args) {
         && (strlen(args->customFolderName) >= FILE_BUFFER - 1)) {
         char *maxLength = asprintf("%d", FILE_BUFFER - 1);
 
-        printError("custom folder name exceeds maximum allowed length",
+        printerr("custom folder name exceeds maximum allowed length",
                    maxLength);
         free(maxLength);
 
@@ -82,14 +80,14 @@ int handleArgErrors(arguments *args) {
 
     if (args->options & OPT_NEWPATH) {
         if (args->customPathName == NULL) {
-            printError("empty custom pathname field", "usage: --newpath=name");
+            printerr("empty custom pathname field", "usage: --newpath=name");
 
             code = EXIT_FAILURE;
         } else if (strlen(args->customPathName) >= PATH_BUFFER) {
             char *maxLength = asprintf("%d", PATH_BUFFER - 1);
 
-            printError("custom path name exceeds maximum allowed length",
-                       maxLength);
+            printerr("custom path name exceeds maximum allowed length",
+                     maxLength);
             free(maxLength);
 
             code = EXIT_FAILURE;
@@ -100,7 +98,7 @@ int handleArgErrors(arguments *args) {
         if (strcmp(args->inFormats[i], args->outFormat) == 0
             && !(args->options & OPT_NEWFOLDER)
             && !(args->options & OPT_NEWPATH)) {
-            printError("can't use ffmpeg with identical input \
+            printerr("can't use ffmpeg with identical input \
                        and output formats",
                        "use '--newpath' or '--newfolder' \
                        to save the files in a new directory");
@@ -158,7 +156,7 @@ int createTestProcess(void) {
 static bool _fileExists(const char *fileName) {
 #ifdef _WIN32
     wchar_t fileNameW[PATH_BUFFER];
-    MultiByteToWideChar(CP_UTF8, 0, fileName, -1, fileNameW, PATH_BUFFER);
+    utf8toutf16(fileName, -1, fileNameW, PATH_BUFFER);
 
     WIN32_FIND_DATAW fileData;
 

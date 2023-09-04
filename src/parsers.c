@@ -72,7 +72,8 @@ void parseConsoleInput(arguments *args) {
 
 /* Parses an array of strings to format an (arguments*) accordingly */
 void parseArgs(const int listSize,
-               char *rawArguments[], arguments *parsedArgs) {
+               char *rawArguments[],
+               arguments *parsedArgs) {
     size_t count = listSize == 0 ? SIZE_MAX : listSize;
 
     for (int i = 0; i < count && rawArguments[i] != NULL; i++) {

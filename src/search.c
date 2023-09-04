@@ -35,7 +35,7 @@ static int _searchDir(const char *directory,
     struct dirent *entry = NULL;
 
     if (dir == NULL) {
-        printError("couldn't open directory", inputPath);
+        printerr("couldn't open directory", inputPath);
 
         return EXIT_FAILURE;
     }
@@ -45,12 +45,10 @@ static int _searchDir(const char *directory,
         const char *inputFormat = NULL;
 
 #ifdef _WIN32
-        size_t size = WideCharToMultiByte(CP_UTF8, 0, entry->d_name,
-                                          -1, NULL, 0, NULL, NULL);
+        size_t size = utf16toutf8(entry->d_name, -1, NULL, 0);
         fileName = xcalloc(size, sizeof(char));
-
-        WideCharToMultiByte(CP_UTF8, 0, entry->d_name, -1,
-                            fileName, (int)size, NULL, NULL);
+        
+        utf16toutf8(entry->d_name, -1, fileName, (int)size);
 #else
         fileName = strdup(entry->d_name);
 #endif
@@ -104,7 +102,7 @@ static int _searchDir(const char *directory,
             if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                 char errormsg[NAME_MAX] = "";
                 strerror_s(errormsg, NAME_MAX, errno);
-                printError("couldn't create new directory", errormsg);
+                printerr("couldn't create new directory", errormsg);
 
                 return EXIT_FAILURE;
             }
@@ -116,7 +114,7 @@ static int _searchDir(const char *directory,
             if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                 char errormsg[NAME_MAX] = "";
                 strerror_s(errormsg, NAME_MAX, errno);
-                printError("couldn't create new directory", errormsg);
+                printerr("couldn't create new directory", errormsg);
 
                 return EXIT_FAILURE;
             }
@@ -140,12 +138,9 @@ static int _searchDir(const char *directory,
                      overwriteFlag, fullInPath, args->ffOptions, fullOutPath);
 
         #ifdef _WIN32
-            size_t callBuf =
-                MultiByteToWideChar(CP_UTF8, 0, ffmpegCall, -1, NULL, 0);
+            size_t callBuf = utf8toutf16(ffmpegCall, -1, NULL, 0);
             wchar_t *ffmpegCallW = xcalloc(callBuf, sizeof(wchar_t));
-
-            MultiByteToWideChar(CP_UTF8, 0, ffmpegCall,
-                                -1, ffmpegCallW, (int)callBuf);
+            utf8toutf16(ffmpegCall, -1, ffmpegCallW, (int)callBuf);
 
             /* Setup process info structures */
             STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
@@ -173,7 +168,7 @@ static int _searchDir(const char *directory,
             int systemCode = system(ffmpegCall);
 
             if (systemCode != EXIT_SUCCESS) {
-                printError("call to FFmpeg failed", strerror(errno));
+                printerr("call to FFmpeg failed", strerror(errno));
             } else {
                 runtimeData->convertedFiles++;
             }
@@ -186,7 +181,7 @@ static int _searchDir(const char *directory,
             if (remove(fullInPath) != 0) {
                 char errormsg[NAME_MAX] = "";
                 strerror_s(errormsg, NAME_MAX, errno);
-                printError("couldn't delete original file", errormsg);
+                printerr("couldn't delete original file", errormsg);
             } else {
                 runtimeData->deletedFiles++;
             }
@@ -217,7 +212,7 @@ static bool _isDirectory(const char *dir) {
     return S_ISREG(pathStats.st_mode) == 0 ? true : false;
 #else
     wchar_t dirW[PATH_BUFFER];
-    MultiByteToWideChar(CP_UTF8, 0, dir, -1, dirW, PATH_BUFFER);
+    utf8toutf16(dir, -1, dirW, PATH_BUFFER);
 
     DWORD fileAttr = GetFileAttributesW(dirW);
 

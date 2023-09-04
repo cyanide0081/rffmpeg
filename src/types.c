@@ -1,7 +1,5 @@
 #include "../include/types.h"
 #include "../include/terminal.h"
-#include <stdint.h>
-#include <stdio.h>
 
 arguments *initializeArguments(void) {
     arguments *instance = xcalloc(1, sizeof(*instance));
@@ -73,8 +71,8 @@ void *xcalloc(size_t numberOfElements, size_t sizeOfElements) {
     if (memory == NULL) {
         char errormsg[NAME_MAX] = "";
         strerror_s(errormsg, NAME_MAX, errno);
-        printError("not enough memory", errormsg);
-
+        printerr("not enough memory", errormsg);
+        
         exit(errno);
     }
 
@@ -92,7 +90,7 @@ char *asprintf(const char *format, ...) {
     va_end(args);
     va_start(args, format);
 
-    vsprintf(string, format, args); // Ignore MSVC compiler warning here
+    vsprintf(string, format, args); // Ignore compiler deprecation warning here
 
     va_end(args);
 

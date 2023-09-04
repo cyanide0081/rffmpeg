@@ -28,10 +28,12 @@ typedef SSIZE_T ssize_t;
 #define DIR _WDIR
 #define dirent _wdirent
 
-#define mkdir(a, b) mkdirWin(a, b)
-#define opendir(d) opendirWin(d)
-#define readdir(d) _wreaddir(d)
-#define closedir(d) _wclosedir(d)
+#define mkdir(a, b)   mkdirWin(a, b)
+#define opendir(d)    opendirWin(d)
+#define readdir(d)    _wreaddir(d)
+#define closedir(d)   _wclosedir(d)
+#define utf8toutf16(mbs, mbc, wcs, wcc) MultiByteToWideChar(CP_UTF8, 0, mbs, mbc, wcs, wcc);
+#define utf16toutf8(wcs, wcc, mbs, mbc) WideCharToMultiByte(CP_UTF8, 0, wcs, wcc, mbs, mbc, NULL, NULL)
 
 /* Implementation of clock_gettime for win32 */
 int clock_gettime(int, struct timespec *spec);

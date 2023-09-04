@@ -1,6 +1,5 @@
 #include "../include/libs.h"
 #include "../include/headers.h"
-#include <string.h>
 
 /* TODO:
  * implement argument parsing interface (expectToken() and stuff)
@@ -52,13 +51,10 @@ int main(int argc, char *argv[]) {
     if (inputMode == CONSOLE) {
       size_t size = strlen(CONSOLE_WINDOW_TITLE) + 1;
       wchar_t *windowTitle = xcalloc(size, sizeof(wchar_t));
-
-      MultiByteToWideChar(CP_UTF8, 0, CONSOLE_WINDOW_TITLE,
-                          -1, windowTitle, (int)size);
-
+      
+      utf8toutf16(CONSOLE_WINDOW_TITLE, -1, windowTitle, (int)size);
       GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUFFER);
       SetConsoleTitleW(windowTitle);
-
       free(windowTitle);
     }
 
@@ -67,12 +63,10 @@ int main(int argc, char *argv[]) {
     wchar_t **argvW = CommandLineToArgvW(cmdLine, &argcW);
 
     for (int i = 0; i < argcW; i++) {
-      size_t size = WideCharToMultiByte(CP_UTF8, 0, argvW[i],
-                                        -1, NULL, 0, NULL, NULL);
-
+      size_t size = utf16toutf8(argvW[i], -1, NULL, 0);
       argv[i] = xcalloc(size, sizeof(char));
-
-      WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, argv[i], (int)size, NULL, NULL);
+      
+      utf16toutf8(argvW[i], -1, argv[i], (int)size);
     }
 
     LocalFree(argvW);
@@ -88,7 +82,7 @@ int main(int argc, char *argv[]) {
         char errormsg[NAME_MAX] = "";
         strerror_s(errormsg, NAME_MAX, errno);
         
-        printError("couldn't find FFmpeg", errormsg);
+        printerr("couldn't find FFmpeg", errormsg);
         exit(EXIT_FAILURE);
     }
 

@@ -1,5 +1,5 @@
 @rem Build script for Windows using MSVC compiler
-@rem @echo off
+@echo off
 
 call :compile %~1
 call :clean
