@@ -1,5 +1,5 @@
-#include "../include/types.h"
-#include "../include/terminal.h"
+#include "../lib/types.h"
+#include "../lib/terminal.h"
 
 arguments *initializeArguments(void) {
     arguments *instance = xcalloc(1, sizeof(*instance));

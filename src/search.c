@@ -1,4 +1,4 @@
-#include "../include/search.h"
+#include "../lib/search.h"
 
 static int _searchDir(const char *directory,
                       arguments *args,

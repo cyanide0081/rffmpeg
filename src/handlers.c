@@ -1,4 +1,4 @@
-#include "../include/handlers.h"
+#include "../lib/handlers.h"
 
 static bool _fileExists(const char *fileName);
 

@@ -1,4 +1,4 @@
-#include "../include/terminal.h"
+#include "../lib/terminal.h"
 
 void printerr(const char *message, const char *descriptor) {
     fprintf(

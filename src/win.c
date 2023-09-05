@@ -1,6 +1,6 @@
 #ifdef _WIN32
 
-#include "../include/win.h"
+#include "../lib/win.h"
 
 int clock_gettime(int t, struct timespec *spec) {
     int64_t wintime;

@@ -1,5 +1,5 @@
-#include "../include/libs.h"
-#include "../include/headers.h"
+#include "../lib/libs.h"
+#include "../lib/headers.h"
 
 /* TODO:
  * implement argument parsing interface (expectToken() and stuff)
