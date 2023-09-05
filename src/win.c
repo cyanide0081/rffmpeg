@@ -36,4 +36,4 @@ DIR *opendirWin(const char *dir) {
     return _wopendir(dirW);
 }
 
-#endif // _WIN32
+#endif /* _WIN32 */

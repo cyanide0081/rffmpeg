@@ -9,7 +9,7 @@ compile() {
     local BIN_DIR="./bin"
     local files=""
 
-    for f in $(find -name "*.c"); do
+    for f in $(find -name "*.c" ! -iname "win.c"); do
         files="$files $f";
     done
 
