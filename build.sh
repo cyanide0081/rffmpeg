@@ -6,19 +6,19 @@ compile() {
     local   FLAGS="-std=gnu17 -Wall -pedantic -fdiagnostics-color=always"
     local D_FLAGS="-g"
     local R_FLAGS="-Os -s"
-    local     BIN="./build/rffmpeg"
+    local BIN_DIR="./bin"
     local files=""
 
     for f in $(find -name "*.c"); do
         files="$files $f";
     done
 
-    mkdir -p "./build"
+    mkdir -p "$BIN_DIR"
 
     if [[ "$1" == "rel" ]]; then
-        clang -o $BIN $files $FLAGS $R_FLAGS
+        clang -o "$BIN_DIR/rffmpeg" $files $FLAGS $R_FLAGS
     else
-        clang -o $BIN $files $FLAGS $D_FLAGS
+        clang -o "$BIN_DIR/rffmpeg" $files $FLAGS $D_FLAGS
     fi
 }
 
