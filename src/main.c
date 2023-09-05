@@ -4,17 +4,12 @@
 /* TODO:
  * implement argument parsing interface (expectToken() and stuff)
  * implement --version command
- * compartmentalize the long os-checking #ifdefs into their own functions
  */
 
 int main(int argc, char *argv[]) {
     inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
 #ifdef _WIN32
-
-#define UNICODE
-#define _UNICODE
-
     /*
      * Windows Unicode I/O prioritizing UTF-8:
      *
@@ -26,6 +21,9 @@ int main(int argc, char *argv[]) {
      *    WideCharToMultiByte() and use normal char functions
      *    for output to stdout or stderr
      */
+
+    #define UNICODE
+    #define _UNICODE
 
     /* Setup Unicode (UTF-16LE) console Input for Windows */
     _setmode(_fileno(stdin), _O_U16TEXT);
