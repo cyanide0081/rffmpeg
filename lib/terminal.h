@@ -6,7 +6,7 @@
 
 #include <inttypes.h>
 
-void printerr(const char *message, const char *descriptor);
+void printErr(const char *message, const char *descriptor);
 
 void displayEndDialog(processInfo *processInformation);
 

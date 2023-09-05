@@ -77,10 +77,7 @@ int main(int argc, char *argv[]) {
     int exitCode = createTestProcess();
 
     if (exitCode == EXIT_FAILURE) {
-        char errormsg[FILE_BUFFER] = "";
-        strerror_s(errormsg, NAME_MAX, errno);
-
-        printerr("couldn't find FFmpeg", errormsg);
+        printErr("couldn't find FFmpeg", "binary not found");
         exit(EXIT_FAILURE);
     }
 

@@ -57,13 +57,13 @@ int handleArgErrors(arguments *args) {
         args->ffOptions = strdup("");
 
     if (args->inFormats[0] == NULL || *args->inFormats[0] == '\0') {
-        printerr("no input format", "null");
+        printErr("no input format", "null");
 
         code = EXIT_FAILURE;
     }
 
     if (args->outFormat == NULL || *args->outFormat == '\0') {
-        printerr("no output format", "null");
+        printErr("no output format", "null");
 
         code = EXIT_FAILURE;
     }
@@ -72,7 +72,7 @@ int handleArgErrors(arguments *args) {
         && (strlen(args->customFolderName) >= FILE_BUFFER - 1)) {
         char *maxLength = _asprintf("%d", FILE_BUFFER - 1);
 
-        printerr("custom folder name exceeds maximum allowed length",
+        printErr("custom folder name exceeds maximum allowed length",
                    maxLength);
         free(maxLength);
 
@@ -81,13 +81,13 @@ int handleArgErrors(arguments *args) {
 
     if (args->options & OPT_NEWPATH) {
         if (args->customPathName == NULL) {
-            printerr("empty custom pathname field", "usage: --newpath=name");
+            printErr("empty custom pathname field", "usage: --newpath=name");
 
             code = EXIT_FAILURE;
         } else if (strlen(args->customPathName) >= PATH_BUFFER) {
             char *maxLength = _asprintf("%d", PATH_BUFFER - 1);
 
-            printerr("custom path name exceeds maximum allowed length",
+            printErr("custom path name exceeds maximum allowed length",
                      maxLength);
             free(maxLength);
 
@@ -99,7 +99,7 @@ int handleArgErrors(arguments *args) {
         if (strcmp(args->inFormats[i], args->outFormat) == 0
             && !(args->options & OPT_NEWFOLDER)
             && !(args->options & OPT_NEWPATH)) {
-            printerr("can't use ffmpeg with identical input \
+            printErr("can't use ffmpeg with identical input \
                        and output formats",
                        "use '--newpath' or '--newfolder' \
                        to save the files in a new directory");

@@ -35,7 +35,7 @@ static int _searchDir(const char *directory,
     struct dirent *entry = NULL;
 
     if (dir == NULL) {
-        printerr("couldn't open directory", inputPath);
+        printErr("couldn't open directory", inputPath);
 
         return EXIT_FAILURE;
     }
@@ -102,7 +102,7 @@ static int _searchDir(const char *directory,
             if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                 char errormsg[NAME_MAX] = "";
                 strerror_s(errormsg, NAME_MAX, errno);
-                printerr("couldn't create new directory", errormsg);
+                printErr("couldn't create new directory", errormsg);
 
                 return EXIT_FAILURE;
             }
@@ -114,7 +114,7 @@ static int _searchDir(const char *directory,
             if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                 char errormsg[NAME_MAX] = "";
                 strerror_s(errormsg, NAME_MAX, errno);
-                printerr("couldn't create new directory", errormsg);
+                printErr("couldn't create new directory", errormsg);
 
                 return EXIT_FAILURE;
             }
@@ -168,7 +168,7 @@ static int _searchDir(const char *directory,
             int systemCode = system(ffmpegCall);
 
             if (systemCode != EXIT_SUCCESS) {
-                printerr("call to FFmpeg failed", strerror(errno));
+                printErr("call to FFmpeg failed", strerror(errno));
             } else {
                 runtimeData->convertedFiles++;
             }
@@ -181,7 +181,7 @@ static int _searchDir(const char *directory,
             if (remove(fullInPath) != 0) {
                 char errormsg[NAME_MAX] = "";
                 strerror_s(errormsg, NAME_MAX, errno);
-                printerr("couldn't delete original file", errormsg);
+                printErr("couldn't delete original file", errormsg);
             } else {
                 runtimeData->deletedFiles++;
             }

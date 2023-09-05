@@ -71,7 +71,7 @@ void *xcalloc(size_t numberOfElements, size_t sizeOfElements) {
     if (memory == NULL) {
         char errormsg[NAME_MAX] = "";
         strerror_s(errormsg, NAME_MAX, errno);
-        printerr("not enough memory", errormsg);
+        printErr("not enough memory", errormsg);
 
         exit(errno);
     }

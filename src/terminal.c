@@ -1,6 +1,6 @@
 #include "../lib/terminal.h"
 
-void printerr(const char *message, const char *descriptor) {
+void printErr(const char *message, const char *descriptor) {
     fprintf(
         stderr,
         "%sERROR: %s%s (%s%s%s)\n\n",
@@ -13,7 +13,7 @@ void printerr(const char *message, const char *descriptor) {
 
 void displayEndDialog(processInfo *processInformation) {
     if (processInformation->convertedFiles == 0) {
-        printerr("no input files were found",
+        printErr("no input files were found",
                  "check if your entered directory is correct");
     } else {
         fmtTime executionTime = formatTime(processInformation->executionTime);
