@@ -3,7 +3,8 @@
 static bool _fileExists(const char *fileName);
 
 /* Appends 3-digit index to output filename in case it already exists */
-int handleFileNameConflicts(char *pureName, const char *fileFormat,
+int handleFileNameConflicts(char *pureName,
+                            const char *fileFormat,
                             const char *path) {
     size_t fullPathSize =
         snprintf(NULL, 0, "%s/%s.-xxx%s", path, pureName, fileFormat) + 1;
@@ -23,7 +24,7 @@ int handleFileNameConflicts(char *pureName, const char *fileFormat,
 
         snprintf(newName, FILE_BUFFER, "%s-%03" PRIu64,
                  pureName, (uint64_t)index);
-        _memccpy(pureName, newName, '\0', FILE_BUFFER);
+        memccpy(pureName, newName, '\0', FILE_BUFFER);
     }
 
     free(fullPath);
@@ -53,7 +54,7 @@ int handleArgErrors(arguments *args) {
     }
 
     if (args->ffOptions == NULL)
-        args->ffOptions = _strdup("");
+        args->ffOptions = strdup("");
 
     if (args->inFormats[0] == NULL || *args->inFormats[0] == '\0') {
         printerr("no input format", "null");
@@ -69,7 +70,7 @@ int handleArgErrors(arguments *args) {
 
     if ((args->options & OPT_NEWFOLDER)
         && (strlen(args->customFolderName) >= FILE_BUFFER - 1)) {
-        char *maxLength = asprintf("%d", FILE_BUFFER - 1);
+        char *maxLength = _asprintf("%d", FILE_BUFFER - 1);
 
         printerr("custom folder name exceeds maximum allowed length",
                    maxLength);
@@ -84,7 +85,7 @@ int handleArgErrors(arguments *args) {
 
             code = EXIT_FAILURE;
         } else if (strlen(args->customPathName) >= PATH_BUFFER) {
-            char *maxLength = asprintf("%d", PATH_BUFFER - 1);
+            char *maxLength = _asprintf("%d", PATH_BUFFER - 1);
 
             printerr("custom path name exceeds maximum allowed length",
                      maxLength);

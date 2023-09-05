@@ -88,11 +88,11 @@ void parseArgs(const int listSize,
         }
 
         else if (strcasecmp(rawArguments[i], ARG_INPUTPARAMETERS) == 0) {
-            parsedArgs->ffOptions = _strdup(rawArguments[++i]);
+            parsedArgs->ffOptions = strdup(rawArguments[++i]);
         }
 
         else if (strcasecmp(rawArguments[i], ARG_OUTPUTFORMAT) == 0) {
-            parsedArgs->outFormat = _strdup(rawArguments[++i]);
+            parsedArgs->outFormat = strdup(rawArguments[++i]);
         }
 
         else if (strcasecmp(rawArguments[i], OPT_DISPLAYHELP_STRING) == 0) {
@@ -119,7 +119,7 @@ void parseArgs(const int listSize,
             if (delimiterSection != NULL) {
                 parsedArgs->options |= OPT_CUSTOMFOLDERNAME;
 
-                parsedArgs->customFolderName = _strdup(++delimiterSection);
+                parsedArgs->customFolderName = strdup(++delimiterSection);
             }
         }
 
@@ -129,7 +129,7 @@ void parseArgs(const int listSize,
             char *delimiterSection = strstr(rawArguments[i], "=");
 
             if (delimiterSection != NULL) {
-                parsedArgs->customPathName = _strdup(++delimiterSection);
+                parsedArgs->customPathName = strdup(++delimiterSection);
             }
         }
     }
@@ -160,7 +160,7 @@ static char **_tokenizeArguments(char *string, const char *delimiter) {
 
         trimSpaces(token);
 
-        (list)[i] = _strdup(token);
+        (list)[i] = strdup(token);
 
         token = strtok_r(NULL, delimiter, &parserState);
     }

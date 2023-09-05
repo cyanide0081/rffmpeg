@@ -36,6 +36,12 @@ typedef struct arguments {
     uint8_t options; // Bit fields for the optional arguments
 } arguments;
 
+#ifndef _WIN32
+
+#define strerror_s(buf, bufsz, errno) strerror_r(errno, buf, bufsz)
+
+#endif
+
 arguments *initializeArguments(void);
 
 void destroyArguments(arguments *arguments);
@@ -46,6 +52,6 @@ void trimSpaces(char *string);
 
 void *xcalloc(size_t numberOfElements, size_t sizeOfElements);
 
-char *asprintf(const char *format, ...);
+char *_asprintf(const char *format, ...);
 
 #endif // H_TYPES

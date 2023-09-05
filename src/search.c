@@ -47,7 +47,7 @@ static int _searchDir(const char *directory,
 #ifdef _WIN32
         size_t size = utf16toutf8(entry->d_name, -1, NULL, 0);
         fileName = xcalloc(size, sizeof(char));
-        
+
         utf16toutf8(entry->d_name, -1, fileName, (int)size);
 #else
         fileName = strdup(entry->d_name);
@@ -62,7 +62,7 @@ static int _searchDir(const char *directory,
             && (args->options & OPT_NEWFOLDER))
             continue;
 
-        char *fullInPath = asprintf("%s/%s", inputPath, fileName);
+        char *fullInPath = _asprintf("%s/%s", inputPath, fileName);
 
         /* Perform recursive search (or not) */
         if (_isDirectory(fullInPath) && !(args->options & OPT_NORECURSION)) {
@@ -89,7 +89,7 @@ static int _searchDir(const char *directory,
 
         /* Copy filename and remove the extension */
         char pureFileName[FILE_BUFFER];
-        _memccpy(pureFileName, fileName, '\0', FILE_BUFFER);
+        memccpy(pureFileName, fileName, '\0', FILE_BUFFER);
         memset(pureFileName + strlen(pureFileName) - strlen(inputFormat) - 1,
          '\0', strlen(inputFormat) + 1);
 
@@ -97,7 +97,7 @@ static int _searchDir(const char *directory,
 
         /* Make-a-subfolder-or-not part */
         if (args->options & OPT_NEWFOLDER) {
-            char *newPath = asprintf("%s/%s", inputPath, newFolderName);
+            char *newPath = _asprintf("%s/%s", inputPath, newFolderName);
 
             if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                 char errormsg[NAME_MAX] = "";
@@ -109,7 +109,7 @@ static int _searchDir(const char *directory,
 
             outPath = newPath;
         } else if (args->options & OPT_NEWPATH) {
-            char *newPath = _strdup(args->customPathName);
+            char *newPath = strdup(args->customPathName);
 
             if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                 char errormsg[NAME_MAX] = "";
@@ -121,20 +121,20 @@ static int _searchDir(const char *directory,
 
             outPath = newPath;
         } else {
-            outPath = _strdup(inputPath);
+            outPath = strdup(inputPath);
         }
 
         char *overwriteFlag =
-            args->options & OPT_OVERWRITE ? _strdup("-y") : _strdup("");
+            args->options & OPT_OVERWRITE ? strdup("-y") : strdup("");
 
         if (!(args->options & OPT_OVERWRITE))
             handleFileNameConflicts(pureFileName, args->outFormat, outPath);
 
-        char *fullOutPath = asprintf("%s/%s.%s", outPath,
+        char *fullOutPath = _asprintf("%s/%s.%s", outPath,
                                      pureFileName, args->outFormat);
 
         char *ffmpegCall =
-            asprintf("ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
+            _asprintf("ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
                      overwriteFlag, fullInPath, args->ffOptions, fullOutPath);
 
         #ifdef _WIN32

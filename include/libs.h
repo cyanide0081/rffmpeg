@@ -5,15 +5,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-// #include <uchar.h>
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
 #include <dirent.h>
 #include <errno.h>
 #include <sys/stat.h>
-// #include <sys/types.h>
-// #include <sys/time.h>
 
 /* OS-dependent headers */
 #ifdef _WIN32

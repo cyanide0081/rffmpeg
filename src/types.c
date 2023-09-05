@@ -72,14 +72,14 @@ void *xcalloc(size_t numberOfElements, size_t sizeOfElements) {
         char errormsg[NAME_MAX] = "";
         strerror_s(errormsg, NAME_MAX, errno);
         printerr("not enough memory", errormsg);
-        
+
         exit(errno);
     }
 
     return memory;
 }
 
-char *asprintf(const char *format, ...) {
+char *_asprintf(const char *format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -95,4 +95,34 @@ char *asprintf(const char *format, ...) {
     va_end(args);
 
     return string;
+}
+
+ssize_t getline(char **string, size_t *buffer, FILE *stream) {
+    #define LARGE_BUF 4096
+
+#ifdef _WIN32
+    wchar_t wideBuf[LARGE_BUF];
+
+    if (fgetws(wideBuf, LARGE_BUF, stream) == NULL)
+        return -1;
+
+    int size = utf16toutf8(wideBuf, -1, NULL, 0);
+    char *buf = xcalloc(size, sizeof(char));
+
+    utf16toutf8(wideBuf, -1, buf, size);
+#else
+    char buf[LARGE_BUF];
+
+    if (fgets(buf, LARGE_BUF, stream) == NULL)
+        return -1;
+#endif
+
+    trimSpaces(buf);
+
+    if (*buffer == 0)
+        *string = strdup(buf);
+    else
+        memccpy(*string, buf, '\0', *buffer);
+
+    return strlen(*string);
 }

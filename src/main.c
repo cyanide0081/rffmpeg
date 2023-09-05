@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     if (inputMode == CONSOLE) {
       size_t size = strlen(CONSOLE_WINDOW_TITLE) + 1;
       wchar_t *windowTitle = xcalloc(size, sizeof(wchar_t));
-      
+
       utf8toutf16(CONSOLE_WINDOW_TITLE, -1, windowTitle, (int)size);
       GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUFFER);
       SetConsoleTitleW(windowTitle);
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < argcW; i++) {
       size_t size = utf16toutf8(argvW[i], -1, NULL, 0);
       argv[i] = xcalloc(size, sizeof(char));
-      
+
       utf16toutf8(argvW[i], -1, argv[i], (int)size);
     }
 
@@ -79,9 +79,9 @@ int main(int argc, char *argv[]) {
     int exitCode = createTestProcess();
 
     if (exitCode == EXIT_FAILURE) {
-        char errormsg[NAME_MAX] = "";
+        char errormsg[FILE_BUFFER] = "";
         strerror_s(errormsg, NAME_MAX, errno);
-        
+
         printerr("couldn't find FFmpeg", errormsg);
         exit(EXIT_FAILURE);
     }

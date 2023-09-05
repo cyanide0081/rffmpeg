@@ -13,27 +13,6 @@ int clock_gettime(int t, struct timespec *spec) {
     return 0;
 }
 
-ssize_t getline(char **string, size_t *buffer, FILE *stream) {
-    #define LARGE_BUF 4096
-    wchar_t wideBuf[LARGE_BUF];
-
-    if (fgetws(wideBuf, LARGE_BUF, stream) == NULL)
-        return -1;
-
-    int size = utf16toutf8(wideBuf, -1, NULL, 0);
-    char *narrowBuf = xcalloc(size, sizeof(char));
-
-    utf16toutf8(wideBuf, -1, narrowBuf, size);
-    trimSpaces(narrowBuf);
-
-    if (*buffer == 0)
-        *string = _strdup(narrowBuf);
-    else
-        _memccpy(*string, narrowBuf, '\0', *buffer);
-
-    return strlen(*string);
-}
-
 int mkdirWin(const char *dir, int mode) {
     wchar_t dirW[PATH_BUFFER];
     utf8toutf16(dir, -1, dirW, PATH_BUFFER);

@@ -16,6 +16,7 @@
 #ifdef _MSC_VER
 
 #include <basetsd.h>
+
 typedef SSIZE_T ssize_t;
 
 #define strncasecmp _strnicmp
@@ -27,11 +28,13 @@ typedef SSIZE_T ssize_t;
 
 #define DIR _WDIR
 #define dirent _wdirent
+#define strdup _strdup
+#define memccpy _memccpy
 
-#define mkdir(a, b)   mkdirWin(a, b)
-#define opendir(d)    opendirWin(d)
-#define readdir(d)    _wreaddir(d)
-#define closedir(d)   _wclosedir(d)
+#define mkdir(a, b) mkdirWin(a, b)
+#define opendir(d) opendirWin(d)
+#define readdir(d) _wreaddir(d)
+#define closedir(d) _wclosedir(d)
 #define utf8toutf16(mbs, mbc, wcs, wcc) MultiByteToWideChar(CP_UTF8, 0, mbs, mbc, wcs, wcc);
 #define utf16toutf8(wcs, wcc, mbs, mbc) WideCharToMultiByte(CP_UTF8, 0, wcs, wcc, mbs, mbc, NULL, NULL)
 
