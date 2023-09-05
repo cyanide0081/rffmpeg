@@ -11,6 +11,7 @@ exit /b
 set   "FLAGS=/I .\include\dirent shell32.lib /std:c17 /W4 /wd4996 /wd4100"
 set "D_FLAGS=/Zi /MDd"
 set "R_FLAGS=/Os /favor:blend /MD"
+set     "BIN=.\build\rffmpeg.exe"
 
 setlocal enabledelayedexpansion
 
@@ -20,10 +21,12 @@ for /R %%f in (*.c) do (
 	set "files=!files! %%f"
 )
 
+mkdir ".\build"
+
 if /I "%~1" == "rel" (
-	cl.exe /Fe"rffmpeg.exe" %files% %FLAGS% %R_FLAGS%
+	cl.exe /Fe%BIN% %files% %FLAGS% %R_FLAGS%
 ) else (
-	cl.exe /Fe"rffmpeg.exe" %files% %FLAGS% %D_FLAGS%
+	cl.exe /Fe%BIN% %files% %FLAGS% %D_FLAGS%
 )
 
 setlocal disabledelayedexpansion
