@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
       size_t size = strlen(CONSOLE_WINDOW_TITLE) + 1;
       wchar_t *windowTitle = xcalloc(size, sizeof(wchar_t));
 
-      utf8toutf16(CONSOLE_WINDOW_TITLE, -1, windowTitle, (int)size);
+      UTF8toUTF16(CONSOLE_WINDOW_TITLE, -1, windowTitle, (int)size);
       GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUFFER);
       SetConsoleTitleW(windowTitle);
       free(windowTitle);
@@ -61,10 +61,10 @@ int main(int argc, char *argv[]) {
     wchar_t **argvW = CommandLineToArgvW(cmdLine, &argcW);
 
     for (int i = 0; i < argcW; i++) {
-      size_t size = utf16toutf8(argvW[i], -1, NULL, 0);
+      size_t size = UTF16toUTF8(argvW[i], -1, NULL, 0);
       argv[i] = xcalloc(size, sizeof(char));
 
-      utf16toutf8(argvW[i], -1, argv[i], (int)size);
+      UTF16toUTF8(argvW[i], -1, argv[i], (int)size);
     }
 
     LocalFree(argvW);

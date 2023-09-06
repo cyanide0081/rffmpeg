@@ -106,10 +106,10 @@ ssize_t getline(char **string, size_t *buffer, FILE *stream) {
     if (fgetws(wideBuf, LARGE_BUF, stream) == NULL)
         return -1;
 
-    int size = utf16toutf8(wideBuf, -1, NULL, 0);
+    int size = UTF16toUTF8(wideBuf, -1, NULL, 0);
     char *buf = xcalloc(size, sizeof(char));
 
-    utf16toutf8(wideBuf, -1, buf, size);
+    UTF16toUTF8(wideBuf, -1, buf, size);
 #else
     char buf[LARGE_BUF];
 

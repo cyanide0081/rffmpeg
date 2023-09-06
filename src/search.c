@@ -45,10 +45,10 @@ static int _searchDir(const char *directory,
         const char *inputFormat = NULL;
 
 #ifdef _WIN32
-        size_t size = utf16toutf8(entry->d_name, -1, NULL, 0);
+        size_t size = UTF16toUTF8(entry->d_name, -1, NULL, 0);
         fileName = xcalloc(size, sizeof(char));
 
-        utf16toutf8(entry->d_name, -1, fileName, (int)size);
+        UTF16toUTF8(entry->d_name, -1, fileName, (int)size);
 #else
         fileName = strdup(entry->d_name);
 #endif
@@ -138,9 +138,9 @@ static int _searchDir(const char *directory,
                      overwriteFlag, fullInPath, args->ffOptions, fullOutPath);
 
         #ifdef _WIN32
-            size_t callBuf = utf8toutf16(ffmpegCall, -1, NULL, 0);
+            size_t callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
             wchar_t *ffmpegCallW = xcalloc(callBuf, sizeof(wchar_t));
-            utf8toutf16(ffmpegCall, -1, ffmpegCallW, (int)callBuf);
+            UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, (int)callBuf);
 
             /* Setup process info structures */
             STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
@@ -212,7 +212,7 @@ static bool _isDirectory(const char *dir) {
     return S_ISREG(pathStats.st_mode) == 0 ? true : false;
 #else
     wchar_t dirW[PATH_BUFFER];
-    utf8toutf16(dir, -1, dirW, PATH_BUFFER);
+    UTF8toUTF16(dir, -1, dirW, PATH_BUFFER);
 
     DWORD fileAttr = GetFileAttributesW(dirW);
 

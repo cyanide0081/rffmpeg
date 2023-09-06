@@ -42,7 +42,7 @@ int handleArgErrors(arguments *args) {
         wchar_t currentDirW[PATH_BUFFER];
         GetCurrentDirectoryW(PATH_BUFFER, currentDirW);
         char currentDir[PATH_BUFFER];
-        utf16toutf8(currentDirW, -1, currentDir, PATH_BUFFER);
+        UTF16toUTF8(currentDirW, -1, currentDir, PATH_BUFFER);
 
         args->inPaths[0] = _strdup(currentDir);
 #else
@@ -157,7 +157,7 @@ int createTestProcess(void) {
 static bool _fileExists(const char *fileName) {
 #ifdef _WIN32
     wchar_t fileNameW[PATH_BUFFER];
-    utf8toutf16(fileName, -1, fileNameW, PATH_BUFFER);
+    UTF8toUTF16(fileName, -1, fileNameW, PATH_BUFFER);
 
     WIN32_FIND_DATAW fileData;
 

@@ -15,7 +15,7 @@ int clock_gettime(int t, struct timespec *spec) {
 
 int mkdirWin(const char *dir, int mode) {
     wchar_t dirW[PATH_BUFFER];
-    utf8toutf16(dir, -1, dirW, PATH_BUFFER);
+    UTF8toUTF16(dir, -1, dirW, PATH_BUFFER);
 
     WIN32_FIND_DATAW fileData;
 
@@ -31,7 +31,7 @@ int mkdirWin(const char *dir, int mode) {
 
 DIR *opendirWin(const char *dir) {
     wchar_t dirW[PATH_BUFFER];
-    utf8toutf16(dir, -1, dirW, PATH_BUFFER);
+    UTF8toUTF16(dir, -1, dirW, PATH_BUFFER);
 
     return _wopendir(dirW);
 }
