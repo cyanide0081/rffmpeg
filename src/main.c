@@ -30,16 +30,16 @@ int main(int argc, char *argv[]) {
 
     /* Set all code pages to UTF-8 */
     if (!IsValidCodePage(CP_UTF8))
-      return GetLastError();
+        return GetLastError();
 
     UINT originalCP       = GetConsoleCP();
     UINT originalOutputCP = GetConsoleOutputCP();
 
     if (!SetConsoleCP(CP_UTF8))
-      return GetLastError();
+        return GetLastError();
 
     if (!SetConsoleOutputCP(CP_UTF8))
-      return GetLastError();
+        return GetLastError();
 
     /* Enable virtual terminal sequences for colored console output */
     DWORD originalConsoleMode;
@@ -47,13 +47,13 @@ int main(int argc, char *argv[]) {
     wchar_t originalConsoleWindowTitle[FILE_BUFFER];
 
     if (inputMode == CONSOLE) {
-      size_t size = strlen(CONSOLE_WINDOW_TITLE) + 1;
-      wchar_t *windowTitle = xcalloc(size, sizeof(wchar_t));
+        size_t size = strlen(CONSOLE_WINDOW_TITLE) + 1;
+        wchar_t *windowTitle = xcalloc(size, sizeof(wchar_t));
 
-      UTF8toUTF16(CONSOLE_WINDOW_TITLE, -1, windowTitle, (int)size);
-      GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUFFER);
-      SetConsoleTitleW(windowTitle);
-      free(windowTitle);
+        UTF8toUTF16(CONSOLE_WINDOW_TITLE, -1, windowTitle, (int)size);
+        GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUFFER);
+        SetConsoleTitleW(windowTitle);
+        free(windowTitle);
     }
 
     int argcW = 0;
@@ -61,10 +61,10 @@ int main(int argc, char *argv[]) {
     wchar_t **argvW = CommandLineToArgvW(cmdLine, &argcW);
 
     for (int i = 0; i < argcW; i++) {
-      size_t size = UTF16toUTF8(argvW[i], -1, NULL, 0);
-      argv[i] = xcalloc(size, sizeof(char));
+        size_t size = UTF16toUTF8(argvW[i], -1, NULL, 0);
+        argv[i] = xcalloc(size, sizeof(char));
 
-      UTF16toUTF8(argvW[i], -1, argv[i], (int)size);
+        UTF16toUTF8(argvW[i], -1, argv[i], (int)size);
     }
 
     LocalFree(argvW);
@@ -100,8 +100,8 @@ int main(int argc, char *argv[]) {
         clock_gettime(CLOCK_MONOTONIC_RAW, &endTime);
 
         processInfo.executionTime =
-          (double)(endTime.tv_sec - startTime.tv_sec) +
-          (endTime.tv_nsec - startTime.tv_nsec) / 1e9;
+            (double)(endTime.tv_sec - startTime.tv_sec) +
+            (endTime.tv_nsec - startTime.tv_nsec) / 1e9;
 
         if (exitCode == EXIT_SUCCESS)
             displayEndDialog(&processInfo);
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef _WIN32
     if (inputMode == CONSOLE)
-      SetConsoleTitleW(originalConsoleWindowTitle);
+        SetConsoleTitleW(originalConsoleWindowTitle);
 
     SetConsoleCP(originalCP);
     SetConsoleOutputCP(originalOutputCP);
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
     restoreConsoleMode(originalConsoleMode);
 
     for (int i = 0; i < argc; i++)
-      free(argv[i]);
+        free(argv[i]);
 #endif  /* _WIN32 */
 
     destroyArguments(parsedArgs);
