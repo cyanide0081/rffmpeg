@@ -11,7 +11,7 @@ void parseConsoleInput(arguments *args) {
     size_t inputPathsSize = 0;
 
     printf("%s > %sInput path(s): %s",
-     CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+           CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
     getline(&inputPathsString, &inputPathsSize, stdin);
     trimSpaces(inputPathsString);
@@ -24,7 +24,7 @@ void parseConsoleInput(arguments *args) {
     size_t inputFormatsSize = 0;
 
     printf("%s > %sTarget format(s): %s",
-     CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+           CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
     getline(&inputFormatsString, &inputFormatsSize, stdin);
     trimSpaces(inputFormatsString);
@@ -36,7 +36,7 @@ void parseConsoleInput(arguments *args) {
     size_t ffOptionsSize = 0;
 
     printf("%s > %sFFmpeg options: %s",
-     CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+           CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
     getline(&args->ffOptions, &ffOptionsSize, stdin);
     trimSpaces(args->ffOptions);
@@ -44,7 +44,7 @@ void parseConsoleInput(arguments *args) {
     size_t outFormatSize = 0;
 
     printf("%s > %sOutput extension: %s",
-     CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+           CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
     getline(&args->outFormat, &outFormatSize, stdin);
     trimSpaces(args->outFormat);
@@ -53,7 +53,7 @@ void parseConsoleInput(arguments *args) {
     size_t optionsStringSize = 0;
 
     printf("%s > %sAdditional flags: %s",
-     CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+           CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
     getline(&optionsString, &optionsStringSize, stdin);
     trimSpaces(optionsString);
