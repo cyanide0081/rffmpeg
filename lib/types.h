@@ -3,8 +3,11 @@
 
 #include "libs.h"
 #include "constants.h"
-
 #include <stdarg.h>
+
+#ifdef _WIN32
+#include "win.h"
+#endif
 
 typedef enum inputMode {
     ARGUMENTS, CONSOLE

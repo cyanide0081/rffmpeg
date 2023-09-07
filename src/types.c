@@ -25,7 +25,6 @@ void destroyArguments(arguments *args) {
     free(args->ffOptions);
     free(args->outFormat);
     free(args->customFolderName);
-
     free(args);
 }
 

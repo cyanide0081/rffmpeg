@@ -1,6 +1,8 @@
 # build script for linux/mac (clang)
 #! /usr/bin/env bash
 
+set -xe
+
 # recursive file searching and compilation routine
 compile() {
     local   FLAGS="-std=gnu17 -Wall -pedantic -fdiagnostics-color=always"

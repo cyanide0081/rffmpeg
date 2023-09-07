@@ -5,7 +5,7 @@
 #ifdef _WIN32
 
 #include "libs.h"
-#include "types.h"
+#include "constants.h"
 
 #include <stdio.h>
 #include <stddef.h>
