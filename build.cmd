@@ -8,7 +8,7 @@ exit /b
 @rem actual recursive compilation loop
 :compile
 
-set   "FLAGS=/I .\lib\dirent shell32.lib /std:c17 /W4 /wd4996 /wd4100"
+set   "FLAGS=/I .\lib\dirent shell32.lib /std:c17 /W4 /wd4996"
 set "D_FLAGS=/Zi /MDd"
 set "R_FLAGS=/Os /favor:blend /MD"
 set "BIN_DIR=.\bin\"
@@ -17,7 +17,7 @@ setlocal enabledelayedexpansion
 
 set "files="
 
-for /R %%f in (*.c) do (
+for /R %%f in (*.c, *.res) do (
 	set "files=!files! %%f"
 )
 

@@ -12,6 +12,6 @@ int handleFileNameConflicts(char *pureFilename,
 
 int handleArgErrors(arguments *arguments);
 
-int createTestProcess(void);
+void createTestProcess(void);
 
 #endif // H_HANDLERS

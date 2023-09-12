@@ -1,5 +1,6 @@
 #include "../lib/libs.h"
 #include "../lib/headers.h"
+#include <stdlib.h>
 
 /* TODO:
  * implement argument parsing interface (expectToken() and stuff)
@@ -28,18 +29,38 @@ int main(int argc, char *argv[]) {
     /* Setup Unicode (UTF-16LE) console Input for Windows */
     _setmode(_fileno(stdin), _O_U16TEXT);
 
-    /* Set all code pages to UTF-8 */
-    if (!IsValidCodePage(CP_UTF8))
-        return GetLastError();
-
     UINT originalCP       = GetConsoleCP();
     UINT originalOutputCP = GetConsoleOutputCP();
 
-    if (!SetConsoleCP(CP_UTF8))
-        return GetLastError();
-
-    if (!SetConsoleOutputCP(CP_UTF8))
-        return GetLastError();
+    /* Set all code pages to UTF-8 */
+    if (!IsValidCodePage(CP_UTF8) |
+        !SetConsoleCP(CP_UTF8) |
+        !SetConsoleOutputCP(CP_UTF8)
+        ) {
+        DWORD err = GetLastError();
+        wchar_t *errMsgW = NULL;
+        int sizeW = FormatMessageW(
+            FORMAT_MESSAGE_ALLOCATE_BUFFER |
+            FORMAT_MESSAGE_FROM_SYSTEM |
+            FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL,
+            err,
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            (LPWSTR)&errMsgW,
+            0,
+            NULL
+        );
+        
+        int size = UTF16toUTF8(errMsgW, (int)sizeW, NULL, 0);
+        char *errMsg = xcalloc(size, sizeof(char));
+        UTF16toUTF8(errMsgW, sizeW, errMsg, size);
+        trimSpaces(errMsg);
+    
+        printErr("couldn't set ANSI codepage to UTF-8", errMsg);
+        LocalFree(errMsgW);
+        free(errMsg);
+        exit(err);
+    }
 
     /* Enable virtual terminal sequences for colored console output */
     DWORD originalConsoleMode;
@@ -74,13 +95,8 @@ int main(int argc, char *argv[]) {
 
     printf("%s%s%s\n\n", CHARCOLOR_RED, FULL_PROGRAM_TITLE, COLOR_DEFAULT);
 
-    int exitCode = createTestProcess();
-
-    if (exitCode == EXIT_FAILURE) {
-        printErr("couldn't find FFmpeg", "binary not found");
-        exit(EXIT_FAILURE);
-    }
-
+    createTestProcess();
+    
     arguments *parsedArgs = initializeArguments();
 
     if (inputMode == ARGUMENTS) {
@@ -88,6 +104,8 @@ int main(int argc, char *argv[]) {
     } else {
         parseConsoleInput(parsedArgs);
     }
+
+    int exitCode = EXIT_SUCCESS;
 
     if (parsedArgs->options & OPT_DISPLAYHELP && inputMode == ARGUMENTS) {
         displayHelp();
@@ -109,13 +127,11 @@ int main(int argc, char *argv[]) {
 
     if (inputMode == CONSOLE) {
         printf(" %s(Press any key to exit) %s", CHARCOLOR_WHITE, COLOR_DEFAULT);
-
 #ifdef _WIN32
         getwchar();
 #else
         getchar();
-#endif  /* _WIN32 */
-
+#endif
         printf("\n");
     }
 
