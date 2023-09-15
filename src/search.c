@@ -1,215 +1,174 @@
-#include "../lib/search.h"
+#include <search.h>
 
-static int _searchDir(const char *directory,
-                      arguments *args,
-                      processInfo *runtimeData);
+#define INITIAL_LIST_BUF 8
+#define MAX_DIR_PRINT_LEN (80 - 20)
 
 static bool _isDirectory(const char *dir);
 
-/* runs _searchDir() in a list of directories */
-int searchDirs(arguments *args, processInfo *runtimeData) {
-    int code = EXIT_SUCCESS;
+static char **_getFilesFromDir(const char *dir,
+                               const char **fmts,
+                               const bool recurse);
 
-    for (int i = 0; args->inPaths[i] != NULL; i++) {
-        code = _searchDir(args->inPaths[i], args, runtimeData);
+char **getFiles(const arguments *args) {
+    size_t listSize = INITIAL_LIST_BUF;
+    char **list = xcalloc(listSize, sizeof(char*));
+    size_t listIdx = 0;
 
-        if (code != EXIT_SUCCESS)
-            break;
+    for (int i = 0; args->inPaths[i]; i++) {
+        const char *dir = args->inPaths[i];
+        char *trimmedDir = trimUTF8StringTo(dir, MAX_DIR_PRINT_LEN);
+
+        printf("%s searching %s\"%s\"\n\n",
+               CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD, trimmedDir);
+
+        char **files = _getFilesFromDir(dir, (const char**)args->inFormats,
+                                        !(args->options & OPT_NORECURSION));
+
+        if (!files)
+            continue;
+
+        size_t fileCount = 0;
+
+        while (files[fileCount])
+            fileCount++;
+
+        printf("%s found %s%02lu%s files in %s\"%s\"\n",
+               CHARCOLOR_WHITE, CHARCOLOR_RED, (unsigned long)fileCount,
+               CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD, trimmedDir);
+
+        free(trimmedDir);
+
+        for (int idx = 0; files[idx]; idx++) {
+            if (listIdx == listSize - 1) {
+                size_t newSize = listSize * 2;
+
+                list = realloc(list, newSize * sizeof(char*));
+                memset((list + listSize), 0,
+                       (newSize - listSize) * sizeof(char*));
+
+                listSize = newSize;
+            }
+
+            list[listIdx++] = strdup(files[idx]);
+            free(files[idx]);
+        }
+
+        free(files);
     }
 
-    return code;
+    if (!(*list)) {
+        free(list);
+        return NULL;
+    }
+
+    return list;
 }
 
-/* Searches for files inside 'directory' and converts them with the given parameters */
-static int _searchDir(const char *directory,
-                      arguments *args,
-                      processInfo *runtimeData) {
-    const char *inputPath = directory;
-    static char *newFolderName = NULL;
+static char **_getFilesFromDir(const char *dir, const char **fmts, const bool recurse) {
+    size_t listSize = INITIAL_LIST_BUF;
+    size_t listIdx = 0;
+    char **list = xcalloc(listSize, sizeof(char*));
 
-    if (newFolderName == NULL)
-        newFolderName = args->options & OPT_CUSTOMFOLDERNAME ?
-         args->customFolderName : args->outFormat;
-
-    DIR *dir = opendir(inputPath);
+    DIR *d = opendir(dir);
     struct dirent *entry = NULL;
 
-    if (dir == NULL) {
-        printErr("couldn't open directory", inputPath);
+    if (!d) {
+        char *err = _asprintf("%s: %s", dir, strerror(errno));
+        printErr("unable to open directory", err);
 
-        return EXIT_FAILURE;
+        free(err);
+        free(list);
+
+        return NULL;
     }
 
-    while ((entry = readdir(dir)) != NULL) {
-        char *fileName = NULL;
-        const char *inputFormat = NULL;
-
+    while ((entry = readdir(d))) {
 #ifdef _WIN32
-        size_t size = UTF16toUTF8(entry->d_name, -1, NULL, 0);
-        fileName = xcalloc(size, sizeof(char));
-
-        UTF16toUTF8(entry->d_name, -1, fileName, (int)size);
+        int size = UTF16toUTF8(entry->d_name, -1, NULL, 0);
+        char *fileName = xcalloc(size, sizeof(char));
+        UTF16toUTF8(entry->d_name, -1, fileName, size);
 #else
-        fileName = strdup(entry->d_name);
+        char *fileName = strdup(entry->d_name);
 #endif
+        char *fullInPath = _asprintf("%s/%s", dir, fileName);
 
-        /* Skip . and .. */
-        if (strcmp(fileName, ".") == 0 || strcmp(fileName, "..") == 0)
-            continue;
-
-        /* Avoid recursing into a brand new folder */
-        if ((strcmp(fileName, newFolderName) == 0)
-            && (args->options & OPT_NEWFOLDER))
-            continue;
-
-        char *fullInPath = _asprintf("%s/%s", inputPath, fileName);
-
-        /* Perform recursive search (or not) */
-        if (_isDirectory(fullInPath) && !(args->options & OPT_NORECURSION)) {
-            _searchDir(fullInPath, args, runtimeData);
-
+        if (strcmp(fileName, ".") == 0 || strcmp(fileName, "..") == 0) {
+            free(fileName);
             free(fullInPath);
             continue;
         }
 
-        bool isOfFormat = false;
+        /* Recursively search in case it's a directory */
+        if (_isDirectory(fullInPath) && recurse) {
+            char **recList = _getFilesFromDir(fullInPath, fmts, recurse);
 
-        for (int i = 0; args->inFormats[i]; i++) {
-            if (strstr(fileName, args->inFormats[i]) != NULL) {
-                isOfFormat = true;
-                inputFormat = args->inFormats[i];
+            if (recList) {
+                for (int i = 0; recList[i]; i++) {
+                    if (listIdx == listSize - 1) {
+                        size_t newSize = listSize * 2;
+
+                        list = realloc(list, newSize * sizeof(char*));
+                        memset((list + listSize), 0,
+                               (newSize - listSize) * sizeof(char*));
+
+                        listSize = newSize;
+                    }
+
+                    list[listIdx++] = strdup(recList[i]);
+                    free(recList[i]);
+                }
+
+                free(recList);
+            }
+
+            /* dprintf("%sno files in: %s%s\n", */
+            /*         CHARCOLOR_RED, */
+            /*         CHARCOLOR_WHITE_BOLD, */
+            /*         fullInPath); */
+
+            free(fileName);
+            free(fullInPath);
+            continue;
+        }
+
+        for (int i = 0; fmts[i]; i++) {
+            if (strstr(fileName, fmts[i])) {
+                if (listIdx == listSize - 1) {
+                    size_t newSize = listSize * 2;
+                    list = realloc(list, newSize * sizeof(char*));
+                    memset(list + listSize, 0,
+                           (newSize - listSize) * sizeof(char*));
+                }
+
+                list[listIdx++] = strdup(fullInPath);
                 break;
             }
         }
 
-        if (!isOfFormat) {
-            free(fullInPath);
-            continue;
-        }
-
-        /* Copy filename and remove the extension */
-        char pureFileName[FILE_BUFFER];
-        memccpy(pureFileName, fileName, '\0', FILE_BUFFER);
-        memset(pureFileName + strlen(pureFileName) - strlen(inputFormat) - 1,
-         '\0', strlen(inputFormat) + 1);
-
-        char *outPath = NULL;
-
-        /* Make-a-subfolder-or-not part */
-        if (args->options & OPT_NEWFOLDER) {
-            char *newPath = _asprintf("%s/%s", inputPath, newFolderName);
-
-            if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
-                char errormsg[NAME_MAX] = "";
-                strerror_s(errormsg, NAME_MAX, errno);
-                printErr("couldn't create new directory", errormsg);
-
-                return EXIT_FAILURE;
-            }
-
-            outPath = newPath;
-        } else if (args->options & OPT_NEWPATH) {
-            char *newPath = strdup(args->customPathName);
-
-            if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
-                char errormsg[NAME_MAX] = "";
-                strerror_s(errormsg, NAME_MAX, errno);
-                printErr("couldn't create new directory", errormsg);
-
-                return EXIT_FAILURE;
-            }
-
-            outPath = newPath;
-        } else {
-            outPath = strdup(inputPath);
-        }
-
-        char *overwriteFlag =
-            args->options & OPT_OVERWRITE ? strdup("-y") : strdup("");
-
-        if (!(args->options & OPT_OVERWRITE))
-            handleFileNameConflicts(pureFileName, args->outFormat, outPath);
-
-        char *fullOutPath = _asprintf("%s/%s.%s", outPath,
-                                     pureFileName, args->outFormat);
-
-        char *ffmpegCall =
-            _asprintf("ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
-                     overwriteFlag, fullInPath, args->ffOptions, fullOutPath);
-
-        #ifdef _WIN32
-            size_t callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
-            wchar_t *ffmpegCallW = xcalloc(callBuf, sizeof(wchar_t));
-            UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, (int)callBuf);
-
-            /* Setup process info structures */
-            STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
-            PROCESS_INFORMATION ffmpegProcessInfo;
-
-            /* Call ffmpeg and wait for it to finish */
-            bool createdProcess = CreateProcessW(NULL, ffmpegCallW, NULL,
-            NULL, FALSE, 0, NULL, NULL, &ffmpegStartupInfo, &ffmpegProcessInfo);
-
-            free(ffmpegCallW);
-
-            if (createdProcess == false) {
-                fprintf_s(stderr, "%sERROR:%s call to FFmpeg failed \
-                           (code: %s%lu%s)\n\n", CHARCOLOR_RED,
-                           CHARCOLOR_WHITE, CHARCOLOR_RED, GetLastError(),
-                           CHARCOLOR_WHITE);
-            } else {
-                WaitForSingleObject(ffmpegProcessInfo.hProcess, INFINITE);
-                CloseHandle(ffmpegProcessInfo.hProcess);
-                CloseHandle(ffmpegProcessInfo.hThread);
-
-                runtimeData->convertedFiles++;
-            }
-        #else
-            int systemCode = system(ffmpegCall);
-
-            if (systemCode != EXIT_SUCCESS) {
-                printErr("call to FFmpeg failed", strerror(errno));
-            } else {
-                runtimeData->convertedFiles++;
-            }
-        #endif
-
-        printf("\n");
-
-        /* Keep or delete original files */
-        if (args->options & OPT_CLEANUP) {
-            if (remove(fullInPath) != 0) {
-                char errormsg[NAME_MAX] = "";
-                strerror_s(errormsg, NAME_MAX, errno);
-                printErr("couldn't delete original file", errormsg);
-            } else {
-                runtimeData->deletedFiles++;
-            }
-        }
-
-        /* Delete new folder in case it exists and no conversions succeeded */
-        if (args->options & OPT_NEWFOLDER && runtimeData->convertedFiles == 0)
-            remove(outPath);
-
         free(fileName);
-        free(outPath);
         free(fullInPath);
-        free(fullOutPath);
-        free(ffmpegCall);
-        free(overwriteFlag);
     }
 
-    closedir(dir);
+    closedir(d);
 
-    return EXIT_SUCCESS;
+    if (!(*list)) {
+        free(list);
+        return NULL;
+    }
+
+    list = realloc(list, (listIdx + 1) * sizeof(char*));
+    list[listIdx] = NULL;
+
+    return list;
 }
 
 static bool _isDirectory(const char *dir) {
 #ifndef _WIN32
     struct stat pathStats;
-    stat(dir, &pathStats);
+    if (stat(dir, &pathStats) != 0)
+        return false;
 
-    return S_ISREG(pathStats.st_mode) == 0 ? true : false;
+    return S_ISDIR(pathStats.st_mode);
 #else
     wchar_t dirW[PATH_BUFFER];
     UTF8toUTF16(dir, -1, dirW, PATH_BUFFER);

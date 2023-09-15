@@ -1,10 +1,10 @@
 #ifdef _WIN32
 
-#include "../lib/win.h"
+#include <win.h>
 
 int clock_gettime(int t, struct timespec *spec) {
     (void)t;
-    
+
     int64_t wintime;
     GetSystemTimeAsFileTime((FILETIME*)&wintime);
 
@@ -17,7 +17,7 @@ int clock_gettime(int t, struct timespec *spec) {
 
 int mkdirWin(const char *dir, int mode) {
     (void)mode;
-    
+
     wchar_t dirW[PATH_BUFFER];
     UTF8toUTF16(dir, -1, dirW, PATH_BUFFER);
 

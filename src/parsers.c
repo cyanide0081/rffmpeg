@@ -1,4 +1,4 @@
-#include "../lib/parsers.h"
+#include <parsers.h>
 
 static char **_tokenizeArguments(char *string, const char *delimiter);
 
@@ -76,41 +76,33 @@ void parseArgs(const int listSize,
                arguments *parsedArgs) {
     size_t count = listSize == 0 ? SIZE_MAX : listSize;
 
-    for (int i = 0; i < count && rawArguments[i] != NULL; i++) {
+    for (size_t i = 0; i < count && rawArguments[i] != NULL; i++) {
         /* fmt: -path <path> -in <container> -opts <params> -out <container> */
         if (strcasecmp(rawArguments[i], ARG_INPUTPATHS) == 0) {
             parsedArgs->inPaths =
               _tokenizeArguments(rawArguments[++i], DIR_DELIMITER);
         }
-
         else if (strcasecmp(rawArguments[i], ARG_INPUTFORMATS) == 0) {
             parsedArgs->inFormats = _tokenizeArguments(rawArguments[++i], ", ");
         }
-
         else if (strcasecmp(rawArguments[i], ARG_INPUTPARAMETERS) == 0) {
             parsedArgs->ffOptions = strdup(rawArguments[++i]);
         }
-
         else if (strcasecmp(rawArguments[i], ARG_OUTPUTFORMAT) == 0) {
             parsedArgs->outFormat = strdup(rawArguments[++i]);
         }
-
         else if (strcasecmp(rawArguments[i], OPT_DISPLAYHELP_STRING) == 0) {
             parsedArgs->options |= OPT_DISPLAYHELP;
         }
-
         else if (strcasecmp(rawArguments[i], OPT_CLEANUP_STRING) == 0) {
             parsedArgs->options |= OPT_CLEANUP;
         }
-
         else if (strcasecmp(rawArguments[i], OPT_NORECURSION_STRING) == 0) {
             parsedArgs->options |= OPT_NORECURSION;
         }
-
         else if (strcasecmp(rawArguments[i], OPT_OVERWRITE_STRING) == 0) {
             parsedArgs->options |= OPT_OVERWRITE;
         }
-
         else if (strstr(rawArguments[i], OPT_NEWFOLDER_STRING)) {
             parsedArgs->options |= OPT_NEWFOLDER;
 

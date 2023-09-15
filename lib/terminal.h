@@ -1,12 +1,20 @@
 #ifndef H_TERMINAL
 #define H_TERMINAL
 
-#include "libs.h"
-#include "types.h"
+#include <libs.h>
+#include <types.h>
 
 #include <inttypes.h>
 
-void printErr(const char *message, const char *descriptor);
+#define printErr(msg, dsc)                                                     \
+    fprintf(\
+        stderr,\
+        "%sERROR: %s%s (%s%s%s)\n\n",\
+        CHARCOLOR_RED,\
+        CHARCOLOR_WHITE, msg,\
+        CHARCOLOR_RED, dsc,\
+        COLOR_DEFAULT\
+    );\
 
 void displayEndDialog(processInfo *processInformation);
 

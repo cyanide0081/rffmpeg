@@ -1,4 +1,4 @@
-#include "../lib/handlers.h"
+#include <handlers.h>
 
 static bool _fileExists(const char *fileName);
 
@@ -42,13 +42,13 @@ int handleArgErrors(arguments *args) {
         int len = GetCurrentDirectoryW(NULL, 0);
         wchar_t *currentDirW = xcalloc(len, sizeof(wchar_t));
         GetCurrentDirectoryW((DWORD)len, currentDirW);
-        
+
         len = UTF16toUTF8(currentDirW, -1, NULL, 0);
         args->inPaths[0] = xcalloc(len, sizeof(char));
 
         UTF16toUTF8(currentDirW, -1, args->inPaths[0], len);
         free(currentDirW);
-#else        
+#else
         if (!(args->inPaths[0] = getcwd(NULL, 0))) {
             printErr("couldn't retrieve current working directory",
                      strerror(errno));
@@ -85,15 +85,20 @@ int handleArgErrors(arguments *args) {
             printErr("empty custom pathname field", "usage: --newpath=name");
 
             code = EXIT_FAILURE;
-        } else if (strlen(args->customPathName) >= PATH_BUFFER) {
-            char *maxLength = _asprintf("%d", PATH_BUFFER - 1);
-
-            printErr("custom path name exceeds maximum allowed length",
-                     maxLength);
-            free(maxLength);
-
-            code = EXIT_FAILURE;
         }
+
+        /* NOTE: maybe reawake this code for windows only sice its paths
+                 can't exceed 260 bytes by default */
+
+        /* else if (strlen(args->customPathName) >= PATH_BUFFER) { */
+        /*     char *maxLength = _asprintf("%d", PATH_BUFFER - 1); */
+
+        /*     printErr("custom path name exceeds maximum allowed length", */
+        /*              maxLength); */
+        /*     free(maxLength); */
+
+        /*     code = EXIT_FAILURE; */
+        /* } */
     }
 
     for (int i = 0; args->inFormats[i] != NULL; i++) {
@@ -144,7 +149,7 @@ void createTestProcess(void) {
     int size = UTF16toUTF8(errMsgW, (int)sizeW, NULL, 0);
     char *errMsg = xcalloc(size, sizeof(char));
     UTF16toUTF8(errMsgW, sizeW, errMsg, size);
-    
+
     printErr("couldn't start ffmpeg", errMsg);
     LocalFree(errMsgW);
     free(errMsg);
@@ -181,12 +186,12 @@ static bool _fileExists(const char *fileName) {
 #ifdef _WIN32
     int len = UTF8toUTF16(fileName, -1, NULL, 0);
     wchar_t *fileNameW = xcalloc(len, sizeof(wchar_t));
-    UTF8toUTF16(fileName, -1, fileNameW, len); 
+    UTF8toUTF16(fileName, -1, fileNameW, len);
     WIN32_FIND_DATAW fileData;
 
     bool result = FindFirstFileW(fileNameW, &fileData) !=
         INVALID_HANDLE_VALUE ? true : false;
-    
+
     free(fileNameW);
     return result;
 #else /* *NIXES */

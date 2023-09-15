@@ -1,6 +1,8 @@
 #ifndef H_CONSTS
 #define H_CONSTS
 
+#include <limits.h>
+
 #define PROGRAM_NAME    "RFFMPEG"
 #define PROGRAM_VERSION "v1.0.2"
 
@@ -17,12 +19,10 @@
 /* Reasonably large initial buffer for number of list elements */
 #define LIST_BUFFER 8
 
-#if defined _WIN32
-    #define FILE_BUFFER MAX_PATH
-    #define PATH_BUFFER MAX_PATH
+#ifdef _WIN32
+#define FILE_BUFFER MAX_PATH
 #else
-    #define FILE_BUFFER NAME_MAX
-    #define PATH_BUFFER PATH_MAX
+#define FILE_BUFFER NAME_MAX
 #endif
 
 #endif // H_CONSTS

@@ -10,7 +10,14 @@
 #include <time.h>
 #include <dirent.h>
 #include <errno.h>
-#include <sys/stat.h>
+#include <assert.h>
+
+#ifndef NDEBUG
+#define dprintf(fmt, ...) fprintf(stderr, "%s:%d:%s(): " fmt, \
+                                  __FILE__, __LINE__, __func__, __VA_ARGS__)
+#else
+#define dprintf(...)
+#endif
 
 /* OS-dependent headers */
 #ifdef _WIN32
@@ -22,9 +29,15 @@
 
 #else
 
+#include <sys/stat.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <limits.h>
 
+#endif
+
+#ifdef __linux__
+#include <linux/limits.h>
 #endif
 
 #endif // H_LIBS

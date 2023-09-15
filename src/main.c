@@ -1,18 +1,19 @@
-#include "../lib/libs.h"
-#include "../lib/headers.h"
-#include <stdlib.h>
+#include <libs.h>
+#include <headers.h>
 
 /* TODO:
- * implement argument parsing interface (expectToken() and stuff)
- * implement --version command
- */
+ * 1. improve file search logging and create prompt() macro for stdout printing
+ *    as well as one for windows error message formatting (stupidly long proc)
+ *    (and maybe some for managing dynamic strings, idiot)
+ * 2. implement argument parsing interface (something like 'expectToken()')
+ * 3. implement --version command (maybe) */
 
 int main(int argc, char *argv[]) {
     inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
 #ifdef _WIN32
-    /*
-     * Windows Unicode I/O prioritizing UTF-8:
+
+    /* NOTE: Windows Unicode I/O prioritizing UTF-8:
      *
      * 1. Set character translation mode for stdin to UTF-16LE
      * 2. Set console codepages to UTF-8
@@ -20,8 +21,7 @@ int main(int argc, char *argv[]) {
      *    input and WinAPI functions
      * 4. Convert everything else where needed to UTF-8 using
      *    WideCharToMultiByte() and use normal char functions
-     *    for output to stdout or stderr
-     */
+     *    for output to stdout or stderr */
 
     #define UNICODE
     #define _UNICODE
@@ -50,12 +50,12 @@ int main(int argc, char *argv[]) {
             0,
             NULL
         );
-        
+
         int size = UTF16toUTF8(errMsgW, (int)sizeW, NULL, 0);
         char *errMsg = xcalloc(size, sizeof(char));
         UTF16toUTF8(errMsgW, sizeW, errMsg, size);
         trimSpaces(errMsg);
-    
+
         printErr("couldn't set ANSI codepage to UTF-8", errMsg);
         LocalFree(errMsgW);
         free(errMsg);
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
         size_t size = strlen(CONSOLE_WINDOW_TITLE) + 1;
         wchar_t *windowTitle = xcalloc(size, sizeof(wchar_t));
 
-        UTF8toUTF16(CONSOLE_WINDOW_TITLE, -1, windowTitle, (int)size);
+        UTF8toUTF16(CONpSOLE_WINDOW_TITLE, -1, windowTitle, (int)size);
         GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUFFER);
         SetConsoleTitleW(windowTitle);
         free(windowTitle);
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
     printf("%s%s%s\n\n", CHARCOLOR_RED, FULL_PROGRAM_TITLE, COLOR_DEFAULT);
 
     createTestProcess();
-    
+
     arguments *parsedArgs = initializeArguments();
 
     if (inputMode == ARGUMENTS) {
@@ -113,32 +113,59 @@ int main(int argc, char *argv[]) {
         struct timespec startTime, endTime;
         clock_gettime(CLOCK_MONOTONIC_RAW, &startTime);
 
-        exitCode = searchDirs(parsedArgs, &processInfo);
+        char **fileList = getFiles(parsedArgs);
 
-        clock_gettime(CLOCK_MONOTONIC_RAW, &endTime);
+        if (fileList) {
+            size_t fileCount = 0;
 
-        processInfo.executionTime =
-            (double)(endTime.tv_sec - startTime.tv_sec) +
-            (endTime.tv_nsec - startTime.tv_nsec) / 1e9;
+            while (*(fileList + fileCount))
+                fileCount++;
 
-        if (exitCode == EXIT_SUCCESS)
-            displayEndDialog(&processInfo);
+            printf("\n%s > %sAbout to convert %s%d%s files. Continue? (Y/n):%s ",
+                   CHARCOLOR_RED, CHARCOLOR_WHITE,
+                   CHARCOLOR_RED, (int)fileCount, CHARCOLOR_WHITE,
+                   CHARCOLOR_WHITE_BOLD);
+
+            char input = (char)getchar();
+
+            printf("\n");
+
+            if (input == 'Y' || input == 'y') {
+                exitCode = convertFiles((const char **)fileList,
+                                       parsedArgs, &processInfo);
+            } else {
+                exitCode = EXIT_FAILURE;
+            }
+
+            for (int i = 0; fileList[i]; i++)
+                free(fileList[i]);
+
+            free(fileList);
+
+            clock_gettime(CLOCK_MONOTONIC_RAW, &endTime);
+
+            processInfo.executionTime =
+                (double)(endTime.tv_sec - startTime.tv_sec) +
+                (endTime.tv_nsec - startTime.tv_nsec) / 1e9;
+
+            if (exitCode != EXIT_FAILURE)
+                displayEndDialog(&processInfo);
+        } else {
+            printErr("found no matching files", "aborting");
+        }
     }
 
     if (inputMode == CONSOLE) {
         printf(" %s(Press any key to exit) %s", CHARCOLOR_WHITE, COLOR_DEFAULT);
-#ifdef _WIN32
-        getwchar();
-#else
         getchar();
-#endif
         printf("\n");
+
+#ifdef _WIN32
+        SetConsoleTitleW(originalConsoleWindowTitle);
+#endif
     }
 
 #ifdef _WIN32
-    if (inputMode == CONSOLE)
-        SetConsoleTitleW(originalConsoleWindowTitle);
-
     SetConsoleCP(originalCP);
     SetConsoleOutputCP(originalOutputCP);
 
@@ -146,9 +173,8 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < argc; i++)
         free(argv[i]);
-#endif  /* _WIN32 */
+#endif
 
     destroyArguments(parsedArgs);
-
     return exitCode;
 }

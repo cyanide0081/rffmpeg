@@ -1,20 +1,9 @@
-#include "../lib/terminal.h"
-
-void printErr(const char *message, const char *descriptor) {
-    fprintf(
-        stderr,
-        "%sERROR: %s%s (%s%s%s)\n\n",
-        CHARCOLOR_RED,
-        CHARCOLOR_WHITE, message,
-        CHARCOLOR_RED, descriptor,
-        COLOR_DEFAULT
-    );
-}
+#include <terminal.h>
 
 void displayEndDialog(processInfo *processInformation) {
     if (processInformation->convertedFiles == 0) {
-        printErr("no input files were found",
-                 "check if your entered directory is correct");
+        printErr("unable to convert files",
+                 "double-check your ffmpeg parameters");
     } else {
         fmtTime executionTime = formatTime(processInformation->executionTime);
 

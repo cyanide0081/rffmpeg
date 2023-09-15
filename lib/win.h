@@ -4,13 +4,8 @@
 /* Implementations for functions that are only needed in Windows builds */
 #ifdef _WIN32
 
-#include "libs.h"
-#include "constants.h"
-
-#include <stdio.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <string.h>
+#include <libs.h>
+#include <constants.h>
 
 /* Substitutions for MSVC compiler */
 #ifdef _MSC_VER

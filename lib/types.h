@@ -1,12 +1,12 @@
 #ifndef H_TYPES
 #define H_TYPES
 
-#include "libs.h"
-#include "constants.h"
+#include <libs.h>
+#include <constants.h>
 #include <stdarg.h>
 
 #ifdef _WIN32
-#include "win.h"
+#include <win.h>
 #endif
 
 typedef enum inputMode {
@@ -52,6 +52,8 @@ void destroyArguments(arguments *arguments);
 fmtTime formatTime(double seconds);
 
 void trimSpaces(char *string);
+
+char *trimUTF8StringTo(const char *str, size_t maxChars);
 
 void *xcalloc(size_t numberOfElements, size_t sizeOfElements);
 
