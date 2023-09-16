@@ -1,3 +1,4 @@
+#include <constants.h>
 #include <handlers.h>
 
 static bool _fileExists(const char *fileName);
@@ -85,19 +86,21 @@ int handleArgErrors(arguments *args) {
             printErr("empty custom pathname field", "usage: --newpath=name");
 
             code = EXIT_FAILURE;
-        } /* else if (strlen(args->customPathName) >= PATH_BUFFER) { */
-        /*     char *maxLength = _asprintf("%d", PATH_BUFFER - 1); */
+        }
 
-        /*     printErr("custom path name exceeds maximum allowed length", */
-        /*              maxLength); */
-        /*     free(maxLength); */
+        /* TODO: prompt the user to choose whether they want
+           to remove windows's default pathname limit 8) */
+#ifdef _WIN32
+        if (strlen(args->customPathName) >= MAX_PATH) {
+            char *maxLength = _asprintf("%d bytes", MAX_PATH);
 
-        /*     code = EXIT_FAILURE; */
-        /* } */
+            printErr("custom path name exceeds maximum allowed length",
+                     maxLength);
+            free(maxLength);
 
-        /* NOTE: maybe reawake this code for windows only sice its paths
-           can't exceed 260 bytes by default (maybe also prompt the user
-           in case they want to remove the limitation 8) */
+            code = EXIT_FAILURE;
+        }
+#endif
     }
 
     for (int i = 0; args->inFormats[i] != NULL; i++) {
@@ -165,14 +168,16 @@ void createTestProcess(void) {
 
         int exitStatus = 0;
 
-        if (WIFEXITED(status))
+        if (!WIFEXITED(status))
             exitStatus = WEXITSTATUS(status);
 
         /* Status 1 means the call succeeded and ffmpeg
            returned an error, and 2 means it wasn't found
-           TODO: handle more exit codes here! */
-        if (exitStatus > 1) {
-            printErr("couldn't start ffmpeg", "binary not found");
+           TODO: handle more exit codes down here! */
+        if (exitStatus != 0) {
+            char status[FILE_BUFFER];
+            snprintf(status, FILE_BUFFER - 1, "exit status: %d", exitStatus);
+            printErr("couldn't start ffmpeg", status);
             exit(EXIT_FAILURE);
         }
     }
@@ -193,7 +198,7 @@ static bool _fileExists(const char *fileName) {
 
     free(fileNameW);
     return result;
-#else /* *NIXES */
+#else /* POSIX */
     struct stat statBuffer;
     return stat(fileName, &statBuffer) == 0 ? true : false;
 #endif

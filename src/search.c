@@ -1,3 +1,4 @@
+#include "constants.h"
 #include <search.h>
 
 #define INITIAL_LIST_BUF 8
@@ -9,6 +10,8 @@ static char **_getFilesFromDir(const char *dir,
                                const char **fmts,
                                const bool recurse);
 
+int fileErr = 0;
+
 char **getFiles(const arguments *args) {
     size_t listSize = INITIAL_LIST_BUF;
     char **list = xcalloc(listSize, sizeof(char*));
@@ -18,25 +21,31 @@ char **getFiles(const arguments *args) {
         const char *dir = args->inPaths[i];
         char *trimmedDir = trimUTF8StringTo(dir, MAX_DIR_PRINT_LEN);
 
-        printf("%s searching %s\"%s\"\n\n",
-               CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD, trimmedDir);
+        printf("%s scanning %s@ %s\"%s\"\n\n",
+               CHARCOLOR_WHITE, CHARCOLOR_RED,
+               CHARCOLOR_WHITE_BOLD, trimmedDir);
 
         char **files = _getFilesFromDir(dir, (const char**)args->inFormats,
                                         !(args->options & OPT_NORECURSION));
 
-        if (!files)
-            continue;
-
         size_t fileCount = 0;
 
-        while (files[fileCount])
-            fileCount++;
+        if (fileErr)
+            continue;
 
-        printf("%s found %s%02lu%s files in %s\"%s\"\n",
-               CHARCOLOR_WHITE, CHARCOLOR_RED, (unsigned long)fileCount,
-               CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD, trimmedDir);
+        if (files)
+            while (files[fileCount])
+                fileCount++;
+
+        printf("%s (found %s%lu%s files)%s\n\n",
+               CHARCOLOR_WHITE, CHARCOLOR_RED,
+               (unsigned long)fileCount,
+               CHARCOLOR_WHITE, COLOR_DEFAULT);
 
         free(trimmedDir);
+
+        if (!files)
+            continue;
 
         for (int idx = 0; files[idx]; idx++) {
             if (listIdx == listSize - 1) {
@@ -69,10 +78,13 @@ static char **_getFilesFromDir(const char *dir, const char **fmts, const bool re
     size_t listIdx = 0;
     char **list = xcalloc(listSize, sizeof(char*));
 
+    fileErr = 0;
+
     DIR *d = opendir(dir);
     struct dirent *entry = NULL;
 
     if (!d) {
+        fileErr = errno;
         char *err = _asprintf("%s: %s", dir, strerror(errno));
         printErr("unable to open directory", err);
 
@@ -120,11 +132,6 @@ static char **_getFilesFromDir(const char *dir, const char **fmts, const bool re
 
                 free(recList);
             }
-
-            /* dprintf("%sno files in: %s%s\n", */
-            /*         CHARCOLOR_RED, */
-            /*         CHARCOLOR_WHITE_BOLD, */
-            /*         fullInPath); */
 
             free(fileName);
             free(fullInPath);

@@ -9,7 +9,7 @@
 #define printErr(msg, dsc)                                                     \
     fprintf(\
         stderr,\
-        "%sERROR: %s%s (%s%s%s)\n\n",\
+        "%s ERROR: %s%s (%s%s%s)\n\n",\
         CHARCOLOR_RED,\
         CHARCOLOR_WHITE, msg,\
         CHARCOLOR_RED, dsc,\

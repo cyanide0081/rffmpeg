@@ -1,15 +1,19 @@
+#include "constants.h"
 #include <parsers.h>
+
+#define expectToken(arg, tok) if (strcasecmp(arg, "-" tok) == 0)
+#define expectCompositeToken(arg, tok) if (strstr(arg, "-" tok))
 
 static char **_tokenizeArguments(char *string, const char *delimiter);
 
-/*
- * Parses the argument strings from direct
- * console input in case no argument is given
- */
+/* Parses the argument strings from direct
+ * console input in case no argument is given */
 void parseConsoleInput(arguments *args) {
     char *inputPathsString = NULL;
     size_t inputPathsSize = 0;
 
+    /* TODO: handle parsing of multiple paths with quoted strings
+       instead of the current sloppy OS-specific delimiters*/
     printf("%s > %sInput path(s): %s",
            CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
 
@@ -71,59 +75,75 @@ void parseConsoleInput(arguments *args) {
 }
 
 /* Parses an array of strings to format an (arguments*) accordingly */
-void parseArgs(const int listSize,
-               char *rawArguments[],
-               arguments *parsedArgs) {
-    size_t count = listSize == 0 ? SIZE_MAX : listSize;
+void parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
+    if (listSize == 0)
+        return;
 
-    for (size_t i = 0; i < count && rawArguments[i] != NULL; i++) {
-        /* fmt: -path <path> -in <container> -opts <params> -out <container> */
-        if (strcasecmp(rawArguments[i], ARG_INPUTPATHS) == 0) {
-            parsedArgs->inPaths =
-              _tokenizeArguments(rawArguments[++i], DIR_DELIMITER);
-        }
-        else if (strcasecmp(rawArguments[i], ARG_INPUTFORMATS) == 0) {
-            parsedArgs->inFormats = _tokenizeArguments(rawArguments[++i], ", ");
-        }
-        else if (strcasecmp(rawArguments[i], ARG_INPUTPARAMETERS) == 0) {
-            parsedArgs->ffOptions = strdup(rawArguments[++i]);
-        }
-        else if (strcasecmp(rawArguments[i], ARG_OUTPUTFORMAT) == 0) {
-            parsedArgs->outFormat = strdup(rawArguments[++i]);
-        }
-        else if (strcasecmp(rawArguments[i], OPT_DISPLAYHELP_STRING) == 0) {
+    size_t count =  listSize, parsedArgsIdx = 0;
+
+    for (size_t i = 1; i < count && args[i]; i++) {
+        expectToken(args[i], "-help") {
             parsedArgs->options |= OPT_DISPLAYHELP;
+            return;
         }
-        else if (strcasecmp(rawArguments[i], OPT_CLEANUP_STRING) == 0) {
+
+        expectToken(args[i], "i") {
+            parsedArgs->inFormats = _tokenizeArguments(args[++i], ", ");
+            continue;
+        }
+
+        expectToken(args[i], "p") {
+            parsedArgs->ffOptions = strdup(args[++i]);
+            continue;
+        }
+
+        expectToken(args[i], "o") {
+            parsedArgs->outFormat = strdup(args[++i]);
+            continue;
+        }
+
+        expectToken(args[i], "cl") {
             parsedArgs->options |= OPT_CLEANUP;
+            continue;
         }
-        else if (strcasecmp(rawArguments[i], OPT_NORECURSION_STRING) == 0) {
+
+        expectToken(args[i], "rn") {
             parsedArgs->options |= OPT_NORECURSION;
+            continue;
         }
-        else if (strcasecmp(rawArguments[i], OPT_OVERWRITE_STRING) == 0) {
+
+        expectToken(args[i], "ow") {
             parsedArgs->options |= OPT_OVERWRITE;
+            continue;
         }
-        else if (strstr(rawArguments[i], OPT_NEWFOLDER_STRING)) {
+
+        expectCompositeToken(args[i], "subfolder") {
             parsedArgs->options |= OPT_NEWFOLDER;
 
-            char *delimiterSection = strstr(rawArguments[i], "=");
+            char *delimiterSection = strstr(args[i], "=");
 
             if (delimiterSection != NULL) {
                 parsedArgs->options |= OPT_CUSTOMFOLDERNAME;
 
                 parsedArgs->customFolderName = strdup(++delimiterSection);
             }
+
+            continue;
         }
 
-        else if (strstr(rawArguments[i], OPT_NEWPATH_STRING)) {
+        expectCompositeToken(args[i], "newpath") {
             parsedArgs->options |= OPT_NEWPATH;
 
-            char *delimiterSection = strstr(rawArguments[i], "=");
+            char *delimiterSection = strstr(args[i], "=");
 
             if (delimiterSection != NULL) {
                 parsedArgs->customPathName = strdup(++delimiterSection);
             }
+
+            continue;
         }
+
+        parsedArgs->inPaths[parsedArgsIdx++] = strdup(args[i]);
     }
 }
 
@@ -132,22 +152,18 @@ static char **_tokenizeArguments(char *string, const char *delimiter) {
     char *token = strtok_r(string, delimiter, &parserState);
 
     size_t items = LIST_BUFFER;
-
     char **list = xcalloc(items, sizeof(char*));
 
     size_t i;
 
-    for (i = 0; token != NULL; i++) {
-        /* Reallocate in case the list needs to be longer */
-        if (i >= (items - 1)) {
-            items += LIST_BUFFER;
+    for (i = 0; token; i++) {
+        if (i == items) {
+            size_t newCount = items * 2;
 
-            char **newBlock = realloc(list, items * sizeof(char*));
+            list = realloc(list, items * sizeof(char*));
+            memset(list + items, 0, newCount - items);
 
-            if (newBlock != NULL)
-                list = newBlock;
-            else
-                return NULL;
+            items = newCount;
         }
 
         trimSpaces(token);
@@ -157,7 +173,6 @@ static char **_tokenizeArguments(char *string, const char *delimiter) {
         token = strtok_r(NULL, delimiter, &parserState);
     }
 
-    (list)[i] = NULL; // NULL ptr to mark the end of the list
-
+    (list)[i] = NULL;
     return list;
 }
