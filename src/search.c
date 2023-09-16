@@ -1,8 +1,8 @@
-#include "constants.h"
+#include <constants.h>
 #include <search.h>
 
 #define INITIAL_LIST_BUF 8
-#define MAX_DIR_PRINT_LEN (80 - 20)
+#define MAX_DIR_PRINT_LEN (80 - 14)
 
 static bool _isDirectory(const char *dir);
 
