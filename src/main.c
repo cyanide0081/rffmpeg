@@ -5,8 +5,9 @@
  * 1. improve file search logging and create prompt() macro for stdout printing
  *    as well as one for windows error message formatting (stupidly long proc)
  *    (and maybe some for managing dynamic strings, idiot)
- * 2. implement argument parsing interface (something like 'expectToken()')
- * 3. implement --version command (maybe)
+ * 2. add multi-threading to the conversion procedure (and maybe searching too)
+ * 3. implement argument parsing interface (something like 'expectToken()')
+ * 4. implement --version command (maybe)
  *
  * FIXME:
  * 1. resolve non-absolute pathnames by feeding them to realpath()
