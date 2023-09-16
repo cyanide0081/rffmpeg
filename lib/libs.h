@@ -21,23 +21,15 @@
 
 /* OS-dependent headers */
 #ifdef _WIN32
-
 #include <windows.h>
 #include <shellapi.h>
 #include <fcntl.h>
 #include <io.h>
-
-#else
-
-#include <sys/stat.h>
+#elif defined __unix__
 #include <unistd.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <limits.h>
-
-#endif
-
-#ifdef __linux__
-#include <linux/limits.h>
 #endif
 
 #endif // H_LIBS

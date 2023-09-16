@@ -1,4 +1,4 @@
 rffmpeg.exe
 rffmpeg
 
-src/obj/*
+./bin

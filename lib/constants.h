@@ -1,8 +1,6 @@
 #ifndef H_CONSTS
 #define H_CONSTS
 
-#include <limits.h>
-
 #define PROGRAM_NAME    "RFFMPEG"
 #define PROGRAM_VERSION "v1.0.2"
 
