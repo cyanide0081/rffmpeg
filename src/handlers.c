@@ -85,12 +85,7 @@ int handleArgErrors(arguments *args) {
             printErr("empty custom pathname field", "usage: --newpath=name");
 
             code = EXIT_FAILURE;
-        }
-
-        /* NOTE: maybe reawake this code for windows only sice its paths
-                 can't exceed 260 bytes by default */
-
-        /* else if (strlen(args->customPathName) >= PATH_BUFFER) { */
+        } /* else if (strlen(args->customPathName) >= PATH_BUFFER) { */
         /*     char *maxLength = _asprintf("%d", PATH_BUFFER - 1); */
 
         /*     printErr("custom path name exceeds maximum allowed length", */
@@ -99,6 +94,10 @@ int handleArgErrors(arguments *args) {
 
         /*     code = EXIT_FAILURE; */
         /* } */
+
+        /* NOTE: maybe reawake this code for windows only sice its paths
+           can't exceed 260 bytes by default (maybe also prompt the user
+           in case they want to remove the limitation 8) */
     }
 
     for (int i = 0; args->inFormats[i] != NULL; i++) {

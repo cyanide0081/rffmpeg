@@ -12,7 +12,6 @@ int main(int argc, char *argv[]) {
     inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
 #ifdef _WIN32
-
     /* NOTE: Windows Unicode I/O prioritizing UTF-8:
      *
      * 1. Set character translation mode for stdin to UTF-16LE
