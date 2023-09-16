@@ -145,6 +145,8 @@ static char **_getFilesFromDir(const char *dir, const char **fmts, const bool re
                     list = realloc(list, newSize * sizeof(char*));
                     memset(list + listSize, 0,
                            (newSize - listSize) * sizeof(char*));
+
+                    listSize = newSize;
                 }
 
                 list[listIdx++] = strdup(fullInPath);
