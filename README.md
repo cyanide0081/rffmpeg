@@ -54,8 +54,7 @@ Here's a basic RFFmpeg command that looks for wav files and converts them to mp3
 <br>
 
  ### **Arguments**
-
-    * It can hold a list directories separated by a delimiter, which is '*' on Windows and ':' on the other OS's. Here are two examples: `-path 'C:\Users\Music*C:\音乐'` (Windows), `-path '/usr/Music:/usr/音乐'` (Others)
+ 
 
  * **-i**   :   one or more formats you wish to transcode separated by commas, like: `-in mp4,m4v,mov`
 
