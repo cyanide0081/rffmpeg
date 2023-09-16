@@ -61,7 +61,7 @@ Here's a basic RFFmpeg command that looks for wav files and converts them to mp3
 
  * **-p**   :   optional ffmpeg conversion parameters, as in: `-p '-c:v vp9 -crf 32 -c:a copy'` 
 
- * **o**   :    extension for your output files (dot is implicit)
+ * **-o**   :   extension for your output files (dot is implicit)
 
     * If you specify identical input and output formats, use the **-newfolder** or **-newpath** option otherwise the program won't run
 
