@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
         size_t size = strlen(CONSOLE_WINDOW_TITLE) + 1;
         wchar_t *windowTitle = xcalloc(size, sizeof(wchar_t));
 
-        UTF8toUTF16(CONpSOLE_WINDOW_TITLE, -1, windowTitle, (int)size);
+        UTF8toUTF16(CONSOLE_WINDOW_TITLE, -1, windowTitle, (int)size);
         GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUFFER);
         SetConsoleTitleW(windowTitle);
         free(windowTitle);
