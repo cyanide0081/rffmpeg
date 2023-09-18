@@ -9,6 +9,20 @@
 #include <win.h>
 #endif
 
+static void **_internalStrAddresses = NULL;
+
+/* TODO: figure out wtf this thing is gonna be */
+typedef struct String {
+    char *text;
+    size_t len;
+    size_t cap;
+} String;
+
+#define StringAlloc(str, src) \
+
+#define StringPush()
+
+/* NOTE: this'll probably be obsolete soon */
 typedef enum inputMode {
     ARGUMENTS, CONSOLE
 } inputMode;
