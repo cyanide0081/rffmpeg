@@ -2,13 +2,13 @@
 
 Command-line/Console window tool for batch-processing files inside a specific directory (or more) with FFmpeg
 
-* Currently supports *Windows* and *Linux* (it's theoretically compilable for *MacOS* but I can't do it myself :c)
+* Currently supports *Windows*, *Linux* and *MacOS* (though I haven't gotten to compiling or testing for mac yet)
 
-* Run with `--help` to read the help page (though this page has much better documentation and examples)
+* Run with `--help` to read the help page (this one covers more examples though)
 
 <br>
 
-**NOTE:** I made this tool with the intention of it being intuitive, versatile and robust (error handling-wise) so it could fit more than just one very specific use case, therefore, if you have any suggestions or ideas for improving it, feel free to reach out or contribute if you want :)
+**NOTE:** This tool's goal is being simple to use and robust, (error handling-wise) to make it easy to batch-convert files without all the manual organizational headache, so suggestions are welcome
 
 <br>
 
@@ -22,7 +22,7 @@ In order to use this tool you will first need to install FFmpeg, so here are two
 
 If you're using Windows 10.1709 or newer, you can install it by simply opening PowerShell and running: 
 
-    > winget install ffmpeg
+    winget install ffmpeg
 
 <br>
 
@@ -30,13 +30,13 @@ If you're using Windows 10.1709 or newer, you can install it by simply opening P
 
 In Linux you can probably install it just by using your local package manager. Here's the command for Debian/Ubuntu-based distros: 
 
-    > sudo apt install ffmpeg
+    sudo apt install ffmpeg
 
 <br>
 
 You can then check if your installation succeeded by running the version command below and seeing if it produces any output:
 
-    > ffmpeg -version
+    ffmpeg -version
 
 <br>
 
@@ -44,30 +44,26 @@ You can then check if your installation succeeded by running the version command
 
 This tool's argument syntax is not that different from FFmpeg itself, with the basic structure being:
  
-    > rffmpeg -path <in-path> -in <in-fmt(s)> -opts <parameters> -out <out-ext>
+    rffmpeg [PATH(S)] -i [IN-FMT(S)] -p [PARAMS] -o [OUT-FMT]
 
 Here's a basic RFFmpeg command that looks for wav files and converts them to mp3:
 
-    > rffmpeg -path C:\Users\Music -in wav -out mp3
+    > rffmpeg C:\Users\Music -i wav -o mp3
   
 
 <br>
 
  ### **Arguments**
  
- * __\*__**path** : the directory(ies) the tool will look for files in, used as: `-path /usr/folder`
 
-    * It can hold a list of directories separated by a delimiter, which is '*' on Windows and ':' on the other OS's. Here are two examples: `-path 'C:\Users\Music*C:\音乐'` (Windows), `-path '/usr/Music:/usr/音乐'` (Others)
+ * **-i**   :   one or more formats you wish to transcode separated by commas, like: `-in mp4,m4v,mov`
 
- * __\*__**in**   : one or more formats you wish to transcode separated by commas, like: `-in mp4,m4v,mov`
+ * **-p**   :   optional ffmpeg conversion parameters, as in: `-p '-c:v vp9 -crf 32 -c:a copy'` 
 
- * **opts**       : ffmpeg conversion parameters sorrounded by quotes, as in: `-opts '-c:v vp9 -crf 32 -c:a copy'` 
+ * **-o**   :   extension for your output files (dot is implicit)
 
- * __\*__**out**  : specifies the extension your output files will use, as in `-out webm`
+    * If you specify identical input and output formats, use the **-subfolder** or **-newpath** option otherwise the program won't run
 
-    * If you specify identical input and output formats, use the **--newfolder** or **--newpath** option otherwise the program won't run 
-
- __\*__ All arguments marked with '__*__' are mandatory
 
 <br>
 
@@ -75,16 +71,16 @@ Here's a basic RFFmpeg command that looks for wav files and converts them to mp3
 
 You can also pass any of the flags below to help you organize your batch conversions a little
 
- * **--newfolder**   : puts your converted files inside a new folder (which is itself created inside the input file's directory)
-    * You can also give it a custom name using an equal sign, as in: `--newfolder=你好`
- * **--newpath**   : puts your converted files inside a new directory
-    * Unlike --newfolder, you have to explicitly name the new path, as in: `--newpath=/usr/Music/你好`
+ * **-subfolder** : puts your converted files inside a new folder (which is itself created inside the input file's directory)
+    * You can also give it a custom name using an equal sign, as in: `-subfolder=你好`
+ * **-newpath**  : puts your converted files inside a new absolute directory
+    * Unlike --newfolder, you have to explicitly name the new path, as in: `-newpath=/home/user/Music/你好`
 
- * **--cleanup**     : deletes the original files permanently after conversion (**don't use this if you're not sure the conversion will work properly**)
+ * **-cl**       : deletes the original files permanently after conversion (**don't use this if you're not sure the conversion will work properly**)
 
- * **--overwrite**   : automatically overwrites files if they conflict with the output files generated by FFmpeg  (the program appends an index by default)
+ * **-ow**       : automatically overwrites files if they conflict with the output files generated by FFmpeg  (the program appends an index by default)
 
- * **--norecursion** : disables file searches inside subfolders, in case your directory contains many folders you  don't want to mess with
+ * **-rn**       : disables file searches inside subfolders, in case your directory contains many folders you  don't want to mess with
 
 <br>
 
@@ -92,6 +88,6 @@ You can also pass any of the flags below to help you organize your batch convers
 
 Here's an example of a more specific call to rffmpeg that looks inside two specific folders for .flac and .m4a files, converts them to .opus using the libopus codec, and finally stores them in a new subfolder named 'transcoded'
 
-    > rffmpeg -path 'C:\Users\User\Music\Album1*C:\Users\User\Music\Album2' -in flac,m4a -opts '-c:a libopus -vbr on -b:a 128k' -out opus --newfolder=transcoded
+    rffmpeg C:\Users\User\Music C:\Users\User\Music\Album2 -i flac,m4a -p '-c:a libopus -vbr on -b:a 128k' -o opus -subfolder=transcoded
 
 ***

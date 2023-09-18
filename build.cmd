@@ -8,7 +8,7 @@ exit /b
 @rem actual recursive compilation loop
 :compile
 
-set   "FLAGS=/I .\lib\dirent shell32.lib /std:c17 /W4 /wd4996"
+set   "FLAGS=/I ./lib /I .\lib\dirent shell32.lib /std:c11 /W4 /wd4996"
 set "D_FLAGS=/Zi /MDd"
 set "R_FLAGS=/Os /favor:blend /MD"
 set "BIN_DIR=.\bin\"
