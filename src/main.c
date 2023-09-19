@@ -336,7 +336,7 @@ static void createTestProcess(void) {
         if (exitStatus != 0) {
             char status[FILE_BUF];
             snprintf(status, FILE_BUF - 1, "exit status: %d", exitStatus);
-            printErr("couldn't start ffmpeg", status);
+            printErr("couldn't call ffmpeg", status);
             exit(EXIT_FAILURE);
         }
     }

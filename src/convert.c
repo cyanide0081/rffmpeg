@@ -127,22 +127,28 @@ int convertFiles(const char **files,
             stats->convertedFiles++;
         }
 #else
-        char *ffmpegCall =
-            _asprintf("ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
-                      overwriteFlag, fullPath, args->ffOptions, fullOutPath);
+        pid_t procId = fork();
 
-        int systemCode = system(ffmpegCall);
-
-        printf("\n");
-
-        if (systemCode != EXIT_SUCCESS) {
-            printErr("call to FFmpeg failed", strerror(systemCode));
-            return systemCode;
+        if (procId == 0) {
+            execlp("ffmpeg", "ffmpeg", "-hide_banner", overwriteFlag, "-i",
+                   fullPath, args->ffOptions, fullOutPath, (char*)NULL);
+            exit(errno);
         } else {
-            stats->convertedFiles++;
-        }
+            int status;
+            waitpid(procId, &status, 0);
 
-        free(ffmpegCall);
+            int exitStatus = 0;
+
+            if (!WIFEXITED(status))
+                exitStatus = WEXITSTATUS(status);
+
+            if (exitStatus != 0) {
+                char status[FILE_BUF];
+                snprintf(status, FILE_BUF - 1, "exit status: %d", exitStatus);
+                printErr("couldn't call ffmpeg", status);
+                exit(EXIT_FAILURE);
+            }
+        }
 #endif
 
         if (args->options & OPT_CLEANUP) {
