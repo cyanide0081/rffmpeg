@@ -21,7 +21,7 @@
 
 static int handleArgErrors(arguments *args);
 static void createTestProcess(void);
-static void displayEndDialog(processInfo *processInformation);
+static void displayEndDialog(processInfo *procInfo);
 
 int main(int argc, char *argv[]) {
     inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
@@ -182,7 +182,6 @@ int main(int argc, char *argv[]) {
 #ifdef _WIN32
     SetConsoleCP(originalCP);
     SetConsoleOutputCP(originalOutputCP);
-
     restoreConsoleMode(originalConsoleMode);
 
     for (int i = 0; i < argc; i++)

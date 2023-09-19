@@ -1,76 +1,62 @@
+#include "data.h"
 #include <parse.h>
 
 #define expectToken(arg, tok) if (strcasecmp(arg, "-" tok) == 0)
 #define expectCompositeToken(arg, tok) if (strstr(arg, "-" tok))
+
+#define prompt(str) printf("%s > %s%s:%s ",\
+                           CHARCOLOR_RED,             \
+                           CHARCOLOR_WHITE,           \
+                           str,                       \
+                           CHARCOLOR_WHITE_BOLD);
+
 
 static char **_tokenizeArguments(char *string, const char *delimiter);
 
 /* Parses the argument strings from direct
  * console input in case no argument is given */
 void parseConsoleInput(arguments *args) {
-    char *inputPathsString = NULL;
-    size_t inputPathsSize = 0;
+    char *input = NULL;
+    size_t len = 0;
 
     /* TODO: handle parsing of multiple paths with quoted strings
        instead of the current sloppy OS-specific delimiters*/
-    printf("%s > %sInput path(s): %s",
-           CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+    prompt("Input path(s)");
+    getline(&input, &len, stdin);
+    trimSpaces(input);
 
-    getline(&inputPathsString, &inputPathsSize, stdin);
-    trimSpaces(inputPathsString);
+    args->inPaths = _tokenizeArguments(input, DIR_DELIMITER);
+    free(input);
 
-    args->inPaths = _tokenizeArguments(inputPathsString, DIR_DELIMITER);
+    prompt("Target format(s)");
+    getline(&input, &len, stdin);
+    trimSpaces(input);
 
-    free(inputPathsString);
+    args->inFormats = _tokenizeArguments(input, ", ");
+    free(input);
 
-    char *inputFormatsString = NULL;
-    size_t inputFormatsSize = 0;
-
-    printf("%s > %sTarget format(s): %s",
-           CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
-
-    getline(&inputFormatsString, &inputFormatsSize, stdin);
-    trimSpaces(inputFormatsString);
-
-    args->inFormats = _tokenizeArguments(inputFormatsString, ", ");
-
-    free(inputFormatsString);
-
-    size_t ffOptionsSize = 0;
-
-    printf("%s > %sFFmpeg options: %s",
-           CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
-
-    getline(&args->ffOptions, &ffOptionsSize, stdin);
+    prompt("FFmpeg options");
+    getline(&args->ffOptions, &len, stdin);
     trimSpaces(args->ffOptions);
 
-    size_t outFormatSize = 0;
-
-    printf("%s > %sOutput extension: %s",
-           CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
-
-    getline(&args->outFormat, &outFormatSize, stdin);
+    prompt("Output format");
+    getline(&args->outFormat, &len, stdin);
     trimSpaces(args->outFormat);
 
-    char *optionsString = NULL;
-    size_t optionsStringSize = 0;
+    prompt("Additional flags");
+    getline(&input, &len, stdin);
+    trimSpaces(input);
 
-    printf("%s > %sAdditional flags: %s",
-           CHARCOLOR_RED, CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD);
+    printf("%s\n", COLOR_DEFAULT);
 
-    getline(&optionsString, &optionsStringSize, stdin);
-    trimSpaces(optionsString);
-
-    printf("\n");
-    printf(COLOR_DEFAULT);
-
-    char **optionsList = _tokenizeArguments(optionsString, ", ");
+    char **optionsList = _tokenizeArguments(input, ", ");
     parseArgs(0, optionsList, args);
 
     for (int i = 0; optionsList[i] != NULL; i++)
         free(optionsList[i]);
 
     free(optionsList);
+    free(input);
 }
 
 /* Parses an array of strings to format an (arguments*) accordingly */
@@ -132,10 +118,10 @@ void parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
         expectCompositeToken(args[i], "newpath") {
             parsedArgs->options |= OPT_NEWPATH;
 
-            char *delimiterSection = strstr(args[i], "=");
+            char *delimPoint = strstr(args[i], "=");
 
-            if (delimiterSection != NULL) {
-                parsedArgs->customPathName = strdup(++delimiterSection);
+            if (delimPoint) {
+                parsedArgs->customPathName = strdup(++delimPoint);
             }
 
             continue;
