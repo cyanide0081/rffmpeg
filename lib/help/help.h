@@ -1,7 +1,7 @@
 #ifndef H_HELP_PAGE
 #define H_HELP_PAGE
 
-#include "../libs.h"
+#include <stdio.h>
 
 static void displayHelp(void) {
     printf(" Use me to automate an ffmpeg conversion in one or more directories\n");
@@ -29,7 +29,7 @@ static void displayHelp(void) {
     printf("\t%-20syou can choose a name with '-subfolder=[NAME]')\n", "");
     printf("\t%-20sstore converted files in a separate directory\n\n", "-newpath=[PATH]");
 
-    printf(" Example:\n\trffmpeg C:\\Users\\Music -i wav,aif -p \"-c:a libmp3lame -b:a 320k\" -o mp3\n -subfolder\n\n");
+    printf(" Example:\n\trffmpeg C:\\Users\\Music -i wav,aif -p \"-c:a libmp3lame -b:a 320k\" -o mp3\n\t-subfolder\n\n");
 
     printf(" (p.s.: you can run this as a console application with no arguments)\n\n");
 }
