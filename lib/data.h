@@ -1,12 +1,16 @@
 #ifndef H_TYPES
 #define H_TYPES
 
-#include <libs.h>
-#include <stdarg.h>
+#ifdef __linux__
+#include <linux/limits.h>
+#endif
 
 #ifdef _WIN32
 #include <win.h>
 #endif
+
+#include <libs.h>
+#include <stdarg.h>
 
 /* NOTE: this'll probably be obsolete soon */
 typedef enum inputMode {
@@ -58,6 +62,13 @@ typedef struct arguments {
 #define FILE_BUF MAX_PATH
 #else
 #define FILE_BUF NAME_MAX
+#endif
+
+#ifndef NDEBUG
+#define dprintf(fmt, ...) fprintf(stderr, "%s:%d:%s(): " fmt, \
+                                  __FILE__, __LINE__, __func__, __VA_ARGS__)
+#else
+#define dprintf(...) do {} while (false)
 #endif
 
 #define printErr(msg, dsc)                      \
