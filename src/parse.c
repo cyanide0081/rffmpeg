@@ -144,7 +144,7 @@ static char **_tokenizeArguments(char *string, const char *delimiter) {
         if (i == items) {
             size_t newCount = items * 2;
 
-            list = realloc(list, items * sizeof(char*));
+            xrealloc(list, items * sizeof(char*));
             memset(list + items, 0, newCount - items);
 
             items = newCount;

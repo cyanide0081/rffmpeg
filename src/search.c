@@ -50,7 +50,7 @@ char **getFiles(const arguments *args) {
             if (listIdx == listSize - 1) {
                 size_t newSize = listSize * 2;
 
-                list = realloc(list, newSize * sizeof(char*));
+                xrealloc(list, newSize * sizeof(char*));
                 memset((list + listSize), 0,
                        (newSize - listSize) * sizeof(char*));
 
@@ -120,7 +120,7 @@ static char **_getFilesFromDir(const char *dir,
                     if (listIdx == listSize - 1) {
                         size_t newSize = listSize * 2;
 
-                        list = realloc(list, newSize * sizeof(char*));
+                        xrealloc(list, newSize * sizeof(char*));
                         memset((list + listSize), 0,
                                (newSize - listSize) * sizeof(char*));
 
@@ -143,7 +143,7 @@ static char **_getFilesFromDir(const char *dir,
             if (strstr(fileName, fmts[i])) {
                 if (listIdx == listSize - 1) {
                     size_t newSize = listSize * 2;
-                    list = realloc(list, newSize * sizeof(char*));
+                    xrealloc(list, newSize * sizeof(char*));
                     memset(list + listSize, 0,
                            (newSize - listSize) * sizeof(char*));
 
@@ -166,7 +166,7 @@ static char **_getFilesFromDir(const char *dir,
         return NULL;
     }
 
-    list = realloc(list, (listIdx + 1) * sizeof(char*));
+    xrealloc(list, (listIdx + 1) * sizeof(char*));
     list[listIdx] = NULL;
 
     return list;

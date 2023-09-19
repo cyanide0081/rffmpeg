@@ -80,11 +80,16 @@ typedef struct arguments {
             CHARCOLOR_RED, dsc,                 \
             COLOR_DEFAULT)
 
-#ifndef _WIN32
-
-#define strerror_s(buf, bufsz, errno) strerror_r(errno, buf, bufsz)
-
-#endif
+#define xrealloc(buf, size) do {                        \
+        void *tmp = realloc(buf, size);                 \
+        if (!tmp) {                                     \
+            free(buf);                                  \
+            printErr("out of memory", strerror(errno)); \
+            exit(errno);                                \
+        }                                               \
+                                                        \
+        buf = tmp;                                      \
+    } while (false)                                     \
 
 arguments *initializeArguments(void);
 

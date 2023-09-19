@@ -135,7 +135,7 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
 
         memmove(buf, buf + bufIdx, bytes);
         memset(buf + bytes - 1, 0, (bufLen + 1) - bytes);
-        buf = realloc(buf, bytes);
+        xrealloc(buf, bytes);
     }
 
     return (char*)buf;
@@ -145,10 +145,7 @@ void *xcalloc(size_t numberOfElements, size_t sizeOfElements) {
     void *mem = calloc(numberOfElements, sizeOfElements);
 
     if (!mem) {
-        char errormsg[NAME_MAX] = "";
-        strerror_s(errormsg, NAME_MAX, errno);
-        printErr("not enough memory", errormsg);
-
+        printErr("not enough memory", strerror(errno));
         exit(errno);
     }
 
