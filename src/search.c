@@ -72,7 +72,9 @@ char **getFiles(const arguments *args) {
     return list;
 }
 
-static char **_getFilesFromDir(const char *dir, const char **fmts, const bool recurse) {
+static char **_getFilesFromDir(const char *dir,
+                               const char **fmts,
+                               const bool recurse) {
     size_t listSize = INITIAL_LIST_BUF;
     size_t listIdx = 0;
     char **list = xcalloc(listSize, sizeof(char*));

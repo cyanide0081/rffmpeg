@@ -1,6 +1,7 @@
 #ifndef H_LIBS
 #define H_LIBS
 
+#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -17,7 +18,7 @@
 #define dprintf(fmt, ...) fprintf(stderr, "%s:%d:%s(): " fmt, \
                                   __FILE__, __LINE__, __func__, __VA_ARGS__)
 #else
-#define dprintf(...)
+#define dprintf(...) do {} while (false)
 #endif
 
 /* OS-dependent headers */

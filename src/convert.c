@@ -190,9 +190,9 @@ static int _handleFileNameConflicts(char *pureName,
             sprintf(fullPath, "%s/%s-%03" PRIu64 ".%s",
              path, pureName, (uint64_t)++index, fileFormat);
 
-        snprintf(newName, FILE_BUFFER, "%s-%03" PRIu64,
+        snprintf(newName, FILE_BUF, "%s-%03" PRIu64,
                  pureName, (uint64_t)index);
-        memccpy(pureName, newName, '\0', FILE_BUFFER);
+        memccpy(pureName, newName, '\0', FILE_BUF);
     }
 
     free(fullPath);

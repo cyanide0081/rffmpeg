@@ -1,5 +1,4 @@
 #include <libs.h>
-#include <constants.h>
 #include <data.h>
 #include <parse.h>
 #include <search.h>
@@ -336,8 +335,8 @@ static void createTestProcess(void) {
            returned an error, and 2 means it wasn't found
            TODO: handle more exit codes down here! */
         if (exitStatus != 0) {
-            char status[FILE_BUFFER];
-            snprintf(status, FILE_BUFFER - 1, "exit status: %d", exitStatus);
+            char status[FILE_BUF];
+            snprintf(status, FILE_BUF - 1, "exit status: %d", exitStatus);
             printErr("couldn't start ffmpeg", status);
             exit(EXIT_FAILURE);
         }

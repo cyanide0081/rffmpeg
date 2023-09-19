@@ -2,7 +2,6 @@
 #define H_TYPES
 
 #include <libs.h>
-#include <constants.h>
 #include <stdarg.h>
 
 #ifdef _WIN32
@@ -39,6 +38,27 @@ typedef struct arguments {
 
     uint8_t options; // Bit fields for the optional arguments
 } arguments;
+
+
+#define PROGRAM_NAME    "RFFMPEG"
+#define PROGRAM_VERSION "v1.0.2"
+#define FULL_PROGRAM_TITLE   (PROGRAM_NAME " " PROGRAM_VERSION " (跨平台)")
+#define CONSOLE_WINDOW_TITLE (PROGRAM_NAME " " PROGRAM_VERSION)
+
+/* ANSI escape chars for colored shell output */
+#define COLOR_DEFAULT        "\x1b[0m"
+#define CHARCOLOR_RED        "\x1b[31m"
+#define CHARCOLOR_WHITE      "\x1b[37m"
+#define CHARCOLOR_RED_BOLD   "\x1b[91m"
+#define CHARCOLOR_WHITE_BOLD "\x1b[97m"
+
+#define LIST_BUF 16
+
+#ifdef _WIN32
+#define FILE_BUF MAX_PATH
+#else
+#define FILE_BUF NAME_MAX
+#endif
 
 #define printErr(msg, dsc)                      \
     fprintf(                                    \

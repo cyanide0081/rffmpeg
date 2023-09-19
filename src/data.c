@@ -3,8 +3,8 @@
 arguments *initializeArguments(void) {
     arguments *instance = xcalloc(1, sizeof(*instance));
 
-    instance->inPaths = xcalloc(LIST_BUFFER, sizeof(char*));
-    instance->inFormats = xcalloc(LIST_BUFFER, sizeof(char*));
+    instance->inPaths = xcalloc(LIST_BUF, sizeof(char*));
+    instance->inFormats = xcalloc(LIST_BUF, sizeof(char*));
 
     return instance;
 }
@@ -47,7 +47,6 @@ void trimSpaces(char *string) {
 
     char *end = string + length - 1;
 
-    /* Replace spaces with 0s */
     while (isspace(*end))  {
         *end-- = '\0';
     }
@@ -75,20 +74,15 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
        NOTE: (2) is probably impossible to do without getting info
        from the renderer itself since the length of a glyph will
        depend on the symbol font it's being rendered with (;-;) */
-
     size_t bufIdx = 0, chars = 0;
     size_t bufLen = strlen(str);
+
     /* we're supposed to treat the bytes as unsigned internally */
     unsigned char *buf = (unsigned char*)strdup(str);
 
     /* walk backwards through the string's bytes
        until we reach the max amount of symbols */
     for (bufIdx = bufLen - 1; (bufIdx > 0) && (chars < maxChars - 3); chars++) {
-        /* if (chars == maxChars - 3 && bufIdx >= 2) { */
-        /*     add = 3; */
-        /*     break; */
-        /* } */
-
         /* first check for ASCII bytes */
         if (!(buf[bufIdx] & 0x80)) {
             bufIdx--;
@@ -130,7 +124,7 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
         }
     }
 
-    ++bufIdx; // shift index to compensate for the last iteration's decrement
+    bufIdx++; // shift index to compensate for the last iteration's decrement
 
     if (bufIdx > 2) {
         for (size_t i = 0; i < 3; i++) {
@@ -176,22 +170,27 @@ char *_asprintf(const char *format, ...) {
     return string;
 }
 
-ssize_t getline(char **string, size_t *buffer, FILE *stream) {
-    #define LARGE_BUF 4096
-
+/* UNICODE_STRING limit (subauth.h) */
 #ifdef _WIN32
-    wchar_t wideBuf[LARGE_BUF];
+#define ARG_BUF (USHRT_MAX / 2)
+#else
+#define ARG_BUF ARG_MAX
+#endif
 
-    if (fgetws(wideBuf, LARGE_BUF, stream) == NULL)
+ssize_t getline(char **string, size_t *buffer, FILE *stream) {
+#ifdef _WIN32
+    wchar_t wideBuf[ARG_BUF];
+
+    if (fgetws(wideBuf, ARG_BUF, stream) == NULL)
         return -1;
 
     int size = UTF16toUTF8(wideBuf, -1, NULL, 0);
     char *buf = xcalloc(size, sizeof(char));
     UTF16toUTF8(wideBuf, -1, buf, size);
 #else
-    char buf[LARGE_BUF];
+    char buf[ARG_BUF];
 
-    if (fgets(buf, LARGE_BUF, stream) == NULL)
+    if (fgets(buf, ARG_BUF, stream) == NULL)
         return -1;
 #endif
 

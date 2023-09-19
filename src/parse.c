@@ -85,7 +85,6 @@ void parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
             parsedArgs->options |= OPT_DISPLAYHELP;
             return;
         }
-
         expectToken(args[i], "i") {
             parsedArgs->inFormats = _tokenizeArguments(args[++i], ", ");
             continue;
@@ -150,7 +149,7 @@ static char **_tokenizeArguments(char *string, const char *delimiter) {
     char *parserState = NULL;
     char *token = strtok_r(string, delimiter, &parserState);
 
-    size_t items = LIST_BUFFER;
+    size_t items = LIST_BUF;
     char **list = xcalloc(items, sizeof(char*));
 
     size_t i;
