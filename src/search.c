@@ -1,4 +1,3 @@
-#include <constants.h>
 #include <search.h>
 
 #define INITIAL_LIST_BUF 8

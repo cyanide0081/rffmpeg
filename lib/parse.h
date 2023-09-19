@@ -2,8 +2,7 @@
 #define H_PARSERS_P
 
 #include <libs.h>
-#include <types.h>
-#include <terminal.h>
+#include <data.h>
 
 #ifdef _WIN32
 #include <win.h>

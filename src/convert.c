@@ -1,5 +1,10 @@
 #include <convert.h>
 
+static bool _fileExists(const char *fileName);
+static int _handleFileNameConflicts(char *pureName,
+                                    const char *fileFormat,
+                                    const char *path);
+
 int convertFiles(const char **files,
                  arguments *args,
                  processInfo *stats) {
@@ -66,7 +71,7 @@ int convertFiles(const char **files,
             overwriteFlag = "-y";
         } else {
             overwriteFlag = "";
-            handleFileNameConflicts(fileNameNoExt, args->outFormat, outPath);
+            _handleFileNameConflicts(fileNameNoExt, args->outFormat, outPath);
         }
 
         char *fullOutPath =
@@ -92,12 +97,11 @@ int convertFiles(const char **files,
 
         free(ffmpegCallW);
 
-        if (createdProcess == false) {
+        if (createdProcess == fpalse) {
             DWORD err = GetLastError();
             wchar_t *errMsgW = NULL;
             int sizeW =
-                FormatMessageW(
-                               FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
                                FORMAT_MESSAGE_FROM_SYSTEM |
                                FORMAT_MESSAGE_IGNORE_INSERTS,
                                NULL,
@@ -164,4 +168,53 @@ int convertFiles(const char **files,
     }
 
     return EXIT_SUCCESS;
+}
+
+/* Appends 3-digit index to output filename in case it already exists */
+static int _handleFileNameConflicts(char *pureName,
+                                    const char *fileFormat,
+                                    const char *path) {
+    size_t fullPathSize =
+        snprintf(NULL, 0, "%s/%s.-xxx%s", path, pureName, fileFormat) + 1;
+
+    char *fullPath = xcalloc(fullPathSize, sizeof(char));
+    sprintf(fullPath, "%s/%s.%s", path, pureName, fileFormat);
+
+    char newName[NAME_MAX];
+
+    /* Keep appending indexes until it results in a unique file name */
+    if (_fileExists(fullPath)) {
+        size_t index = 0;
+
+        while (_fileExists(fullPath))
+            sprintf(fullPath, "%s/%s-%03" PRIu64 ".%s",
+             path, pureName, (uint64_t)++index, fileFormat);
+
+        snprintf(newName, FILE_BUFFER, "%s-%03" PRIu64,
+                 pureName, (uint64_t)index);
+        memccpy(pureName, newName, '\0', FILE_BUFFER);
+    }
+
+    free(fullPath);
+
+    return EXIT_SUCCESS;
+}
+
+
+static bool _fileExists(const char *fileName) {
+#ifdef _WIN32
+    int len = UTF8toUTF16(fileName, -1, NULL, 0);
+    wchar_t *fileNameW = xcalloc(len, sizeof(wchar_t));
+    UTF8toUTF16(fileName, -1, fileNameW, len);
+    WIN32_FIND_DATAW fileData;
+
+    bool result = FindFirstFileW(fileNameW, &fileData) !=
+        INVALID_HANDLE_VALUE ? true : false;
+
+    free(fileNameW);
+    return result;
+#else /* POSIX */
+    struct stat statBuffer;
+    return stat(fileName, &statBuffer) == 0 ? true : false;
+#endif
 }

@@ -9,19 +9,6 @@
 #include <win.h>
 #endif
 
-static void **_internalStrAddresses = NULL;
-
-/* TODO: figure out wtf this thing is gonna be */
-typedef struct String {
-    char *text;
-    size_t len;
-    size_t cap;
-} String;
-
-#define StringAlloc(str, src) \
-
-#define StringPush()
-
 /* NOTE: this'll probably be obsolete soon */
 typedef enum inputMode {
     ARGUMENTS, CONSOLE
@@ -52,6 +39,15 @@ typedef struct arguments {
 
     uint8_t options; // Bit fields for the optional arguments
 } arguments;
+
+#define printErr(msg, dsc)                      \
+    fprintf(                                    \
+            stderr,                             \
+            "%s ERROR: %s%s (%s%s%s)\n\n",      \
+            CHARCOLOR_RED,                      \
+            CHARCOLOR_WHITE, msg,               \
+            CHARCOLOR_RED, dsc,                 \
+            COLOR_DEFAULT)
 
 #ifndef _WIN32
 

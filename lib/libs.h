@@ -11,6 +11,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <assert.h>
+#include <inttypes.h>
 
 #ifndef NDEBUG
 #define dprintf(fmt, ...) fprintf(stderr, "%s:%d:%s(): " fmt, \

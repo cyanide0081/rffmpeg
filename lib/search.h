@@ -2,10 +2,8 @@
 #define H_SEARCH
 
 #include <libs.h>
-#include <types.h>
-#include <parsers.h>
-#include <handlers.h>
-#include <terminal.h>
+#include <data.h>
+#include <parse.h>
 
 char **getFiles(const arguments *args);
 

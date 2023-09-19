@@ -1,5 +1,4 @@
-#include <types.h>
-#include <terminal.h>
+#include <data.h>
 
 arguments *initializeArguments(void) {
     arguments *instance = xcalloc(1, sizeof(*instance));
