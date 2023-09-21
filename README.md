@@ -72,9 +72,9 @@ Here's a basic RFFmpeg command that looks for wav files and converts them to mp3
 You can also pass any of the flags below to help you organize your batch conversions a little
 
  * **-subfolder** : puts your converted files inside a new folder (which is itself created inside the input file's directory)
-    * You can also give it a custom name using an equal sign, as in: `-subfolder=你好`
- * **-newpath**  : puts your converted files inside a new absolute directory
-    * Unlike --newfolder, you have to explicitly name the new path, as in: `-newpath=/home/user/Music/你好`
+    * You can also give it a custom name like this: `-subfolder:你好`
+ * **-outpath**  : puts your converted files inside a new absolute directory
+    * Unlike --newfolder, you have to explicitly name the new path, as in: `-newpath:/home/user/Music/你好`
 
  * **-cl**       : deletes the original files permanently after conversion (**don't use this if you're not sure the conversion will work properly**)
 
@@ -88,6 +88,6 @@ You can also pass any of the flags below to help you organize your batch convers
 
 Here's an example of a more specific call to rffmpeg that looks inside two specific folders for .flac and .m4a files, converts them to .opus using the libopus codec, and finally stores them in a new subfolder named 'transcoded'
 
-    rffmpeg C:\Users\User\Music C:\Users\User\Music\Album2 -i flac,m4a -p '-c:a libopus -vbr on -b:a 128k' -o opus -subfolder=transcoded
+    rffmpeg C:\Users\User\Music C:\Users\User\Music\Album2 -i flac,m4a -p '-c:a libopus -vbr on -b:a 128k' -o opus -subfolder:transcoded
 
 ***
