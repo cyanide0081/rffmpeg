@@ -1,4 +1,4 @@
-@rem Build script for Windows using clang (gcc prob works without change)
+@rem Build script for Windows using Clang (MSVC libs)
 @echo off
 
 call :compile %~1
@@ -9,11 +9,9 @@ exit /b
 :compile
 
 set        "CC=clang"
-set     "FLAGS=-I./lib -I./lib/dirent -std=gnu11 -Wall -Wextra -pedantic -lshell32"
-set "WIN_FLAGS=-D_CRT_SECURE_NO_WARNINGS -DWIN32_LEAN_AND_MEAN -DUNICODE -D_UNICODE"
+set     "FLAGS=-I./lib -I./lib/dirent -std=c11 -Wall -Wextra -pedantic"
+set "WIN_FLAGS=-D_CRT_SECURE_NO_WARNINGS -DWIN32_LEAN_AND_MEAN -DUNICODE -D_UNICODE -lshell32 -lkernel32 -lmsvcrt -Xlinker /NODEFAULTLIB:libcmt"
 set   "D_FLAGS=-ggdb"
-
-@rem TODO: figure out how to link to C:\Windows\System32\msvcrt.dll and reduce exe size
 set   "R_FLAGS=-DNDEBUG -Os"
 set   "BIN_DIR=bin"
 
