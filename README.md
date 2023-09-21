@@ -64,7 +64,6 @@ Here's a basic RFFmpeg command that looks for wav files and converts them to mp3
 
     * If you specify identical input and output formats, use the **-subfolder** or **-newpath** option otherwise the program won't run
 
-
 <br>
 
  ### **Additional Flags**
@@ -74,7 +73,7 @@ You can also pass any of the flags below to help you organize your batch convers
  * **-subfolder** : puts your converted files inside a new folder (which is itself created inside the input file's directory)
     * You can also give it a custom name like this: `-subfolder:你好`
  * **-outpath**  : puts your converted files inside a new absolute directory
-    * Unlike --newfolder, you have to explicitly name the new path, as in: `-newpath:/home/user/Music/你好`
+    * Unlike -subfolder, you have to explicitly name the new path, as in: `-outpath:~/Music/你好`
 
  * **-cl**       : deletes the original files permanently after conversion (**don't use this if you're not sure the conversion will work properly**)
 
