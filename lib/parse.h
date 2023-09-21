@@ -4,10 +4,6 @@
 #include <libs.h>
 #include <data.h>
 
-#ifdef _WIN32
-#include <win.h>
-#endif
-
 /* Argument identifiers' constants */
 #define ARG_INPUTPATHS         "-path"
 #define ARG_INPUTFORMATS       "-in"

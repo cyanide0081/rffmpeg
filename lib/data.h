@@ -5,14 +5,13 @@
 #include <linux/limits.h>
 #endif
 
+#include <libs.h>
+#include <stdarg.h>
+
 #ifdef _WIN32
 #include <win.h>
 #endif
 
-#include <libs.h>
-#include <stdarg.h>
-
-/* NOTE: this'll probably be obsolete soon */
 typedef enum inputMode {
     ARGUMENTS, CONSOLE
 } inputMode;
@@ -104,5 +103,7 @@ char *trimUTF8StringTo(const char *str, size_t maxChars);
 void *xcalloc(size_t numberOfElements, size_t sizeOfElements);
 
 char *_asprintf(const char *format, ...);
+
+ssize_t getline(char **string, size_t *buffer, FILE *stream);
 
 #endif // H_TYPES

@@ -180,8 +180,8 @@ static bool _isDirectory(const char *dir) {
 
     return S_ISDIR(pathStats.st_mode);
 #else
-    wchar_t dirW[PATH_BUFFER];
-    UTF8toUTF16(dir, -1, dirW, PATH_BUFFER);
+    wchar_t dirW[PATH_BUF];
+    UTF8toUTF16(dir, -1, dirW, PATH_BUF);
 
     DWORD fileAttr = GetFileAttributesW(dirW);
 

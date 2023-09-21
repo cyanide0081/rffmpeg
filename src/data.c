@@ -174,7 +174,7 @@ char *_asprintf(const char *format, ...) {
 #define ARG_BUF ARG_MAX
 #endif
 
-ssize_t getline(char **string, size_t *buffer, FILE *stream) {
+ssize_t getline(char **dst, size_t *bufSize, FILE *stream) {
 #ifdef _WIN32
     wchar_t wideBuf[ARG_BUF];
 
@@ -193,10 +193,10 @@ ssize_t getline(char **string, size_t *buffer, FILE *stream) {
 
     trimSpaces(buf);
 
-    if (*buffer == 0)
-        *string = strdup(buf);
+    if (*bufSize == 0)
+        *dst = strdup(buf);
     else
-        memccpy(*string, buf, '\0', *buffer);
+        memccpy(*dst, buf, '\0', *bufSize);
 
-    return strlen(*string);
+    return strlen(*dst);
 }

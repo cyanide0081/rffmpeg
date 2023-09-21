@@ -34,9 +34,6 @@ int main(int argc, char *argv[]) {
      *    WideCharToMultiByte() and use normal char functions
      *    for output to stdout or stderr */
 
-    #define UNICODE
-    #define _UNICODE
-
     /* Setup Unicode (UTF-16LE) console Input for Windows */
     _setmode(_fileno(stdin), _O_U16TEXT);
 
@@ -44,8 +41,8 @@ int main(int argc, char *argv[]) {
     UINT originalOutputCP = GetConsoleOutputCP();
 
     /* Set all code pages to UTF-8 */
-    if (!IsValidCodePage(CP_UTF8) |
-        !SetConsoleCP(CP_UTF8) |
+    if (!IsValidCodePage(CP_UTF8) ||
+        !SetConsoleCP(CP_UTF8) ||
         !SetConsoleOutputCP(CP_UTF8)
         ) {
         DWORD err = GetLastError();
@@ -76,14 +73,14 @@ int main(int argc, char *argv[]) {
     /* Enable virtual terminal sequences for colored console output */
     DWORD originalConsoleMode;
     enableVirtualTerminalProcessing(&originalConsoleMode);
-    wchar_t originalConsoleWindowTitle[FILE_BUFFER];
+    wchar_t originalConsoleWindowTitle[FILE_BUF];
 
     if (inputMode == CONSOLE) {
         size_t size = strlen(CONSOLE_WINDOW_TITLE) + 1;
         wchar_t *windowTitle = xcalloc(size, sizeof(wchar_t));
 
         UTF8toUTF16(CONSOLE_WINDOW_TITLE, -1, windowTitle, (int)size);
-        GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUFFER);
+        GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUF);
         SetConsoleTitleW(windowTitle);
         free(windowTitle);
     }
@@ -196,7 +193,7 @@ static int handleArgErrors(arguments *args) {
     /* Set current working directory as input path if none is provided */
     if (args->inPaths[0] == NULL) {
 #ifdef _WIN32
-        int len = GetCurrentDirectoryW(NULL, 0);
+        int len = GetCurrentDirectoryW(0, NULL);
         wchar_t *currentDirW = xcalloc(len, sizeof(wchar_t));
         GetCurrentDirectoryW((DWORD)len, currentDirW);
 
@@ -283,7 +280,7 @@ static int handleArgErrors(arguments *args) {
 
 static void createTestProcess(void) {
 #ifdef _WIN32
-    STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
+    STARTUPINFOW ffmpegStartupInfo = {0};
     PROCESS_INFORMATION ffmpegProcessInfo;
     wchar_t ffmpegProcessCall[] = u"ffmpeg -loglevel quiet";
 

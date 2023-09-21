@@ -86,20 +86,27 @@ int convertFiles(const char **files,
         dprintf("FULLOUTPATH: \"%s\"\n\n", fullOutPath);
 
 #ifdef _WIN32
+        /* execlp("ffmpeg", "ffmpeg", "-hide_banner", overwriteFlag, "-i", */
+        /*            fullPath, args->ffOptions, fullOutPath, (char*)NULL); */
+
+        char *ffmpegCall =
+            _asprintf("ffmpeg -hide_banner %s -i \"%s\" \"%s\" \"%s\"",
+                      overwriteFlag, fullPath, args->ffOptions, fullOutPath);
+
         size_t callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
         wchar_t *ffmpegCallW = xcalloc(callBuf, sizeof(wchar_t));
         UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, (int)callBuf);
 
-        STARTUPINFOW ffmpegStartupInfo = { sizeof(ffmpegStartupInfo) };
+        STARTUPINFOW ffmpegStartupInfo = {0};
         PROCESS_INFORMATION ffmpegProcessInfo;
         bool createdProcess = CreateProcessW(NULL, ffmpegCallW, NULL,
                                              NULL, FALSE, 0, NULL, NULL,
                                              &ffmpegStartupInfo,
                                              &ffmpegProcessInfo);
-
+        free(ffmpegCall);
         free(ffmpegCallW);
 
-        if (createdProcess == fpalse) {
+        if (!createdProcess) {
             DWORD err = GetLastError();
             wchar_t *errMsgW = NULL;
             int sizeW =
