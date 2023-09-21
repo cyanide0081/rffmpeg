@@ -1,5 +1,7 @@
 #include <convert.h>
 
+#define PATH_DELIM '/'
+
 static bool _fileExists(const char *fileName);
 static int _handleFileNameConflicts(char *pureName,
                                     const char *fileFormat,
@@ -20,15 +22,15 @@ int convertFiles(const char **files,
 
         assert(inputFormat);
 
-        #define PATH_SEPARATOR_CHAR '/'
         const char *fullPath = files[idx];
-        const char *pathSeparator = (fullPath + strlen(fullPath) - 1);
+        const char *pathDelimPoint = (fullPath + strlen(fullPath) - 1);
 
-        while (*pathSeparator != PATH_SEPARATOR_CHAR)
-            pathSeparator--;
+        while (*pathDelimPoint != PATH_DELIM)
+            pathDelimPoint--;
 
-        char *filePath = strndup(fullPath, (pathSeparator - fullPath));
-        char *baseName = strdup(pathSeparator + 1);
+        char *filePath = strndup(fullPath, (pathDelimPoint - fullPath));
+        char *baseName = strdup(pathDelimPoint + 1);
+
         assert(filePath);
         assert(baseName);
 

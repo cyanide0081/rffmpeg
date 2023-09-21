@@ -3,16 +3,14 @@
 #include <parse.h>
 #include <search.h>
 #include <convert.h>
-#include <help/help.h>
+#include <help.h>
 
 /* TODO:
- * 1. improve file search logging and create prompt() macro for stdout printing
- *    as well as one for windows error message formatting (stupidly long proc)
- *    (and maybe some for managing dynamic strings, idiot)
- * 2. create abstraction around strings dynamic string lists so you don't have
- *    to write 100000 malloc/free/realloc statements
- * 3. add multi-threading to the conversion procedure (and maybe searching too)
- * 4. implement --version command (maybe)
+ * 1. create macro for windows error message formatting (stupidly long proc)
+ * 2. detect if only directories were passed as arguments and if so take program
+ *    flow to the second argument of the console parsing section
+ * 2. add multi-threading to the conversion procedure (and maybe searching too)
+ * 3. implement --version command (maybe)
  *
  * FIXME:
  * 1. resolve non-absolute pathnames by feeding them to realpath()
@@ -27,8 +25,7 @@ int main(int argc, char *argv[]) {
     inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
 #ifdef _WIN32
-    /* NOTE: Windows Unicode I/O prioritizing UTF-8:
-     *
+    /* NOTE: Windows Unicode console I/O prioritizing UTF-8:
      * 1. Set character translation mode for stdin to UTF-16LE
      * 2. Set console codepages to UTF-8
      * 3. Use wide chars for everything related to console
@@ -105,7 +102,7 @@ int main(int argc, char *argv[]) {
     LocalFree(argvW);
 #endif  /* _WIN32 */
 
-    processInfo processInfo = { 0 };
+    processInfo procInfo = {0};
 
     printf("%s%s%s\n\n", CHARCOLOR_RED, FULL_PROGRAM_TITLE, COLOR_DEFAULT);
 
@@ -122,7 +119,7 @@ int main(int argc, char *argv[]) {
     int exitCode = EXIT_SUCCESS;
 
     if (parsedArgs->options & OPT_DISPLAYHELP && inputMode == ARGUMENTS) {
-        displayHelp();
+        printf(HELP_PAGE);
     } else if ((exitCode = handleArgErrors(parsedArgs)) == EXIT_SUCCESS) {
         struct timespec startTime, endTime;
         clock_gettime(CLOCK_MONOTONIC_RAW, &startTime);
@@ -146,7 +143,7 @@ int main(int argc, char *argv[]) {
 
             if (input == 'Y' || input == 'y') {
                 exitCode = convertFiles((const char **)fileList,
-                                       parsedArgs, &processInfo);
+                                       parsedArgs, &procInfo);
             } else {
                 exitCode = EXIT_FAILURE;
             }
@@ -158,12 +155,12 @@ int main(int argc, char *argv[]) {
 
             clock_gettime(CLOCK_MONOTONIC_RAW, &endTime);
 
-            processInfo.executionTime =
+            procInfo.executionTime =
                 (double)(endTime.tv_sec - startTime.tv_sec) +
                 (endTime.tv_nsec - startTime.tv_nsec) / 1e9;
 
             if (exitCode != EXIT_FAILURE)
-                displayEndDialog(&processInfo);
+                displayEndDialog(&procInfo);
         } else {
             printErr("found no matching files", "aborting");
         }
@@ -222,18 +219,22 @@ static int handleArgErrors(arguments *args) {
 
     if (args->inFormats[0] == NULL || *args->inFormats[0] == '\0') {
         printErr("no input format", "NULL");
+        /* printf("%s run with --help%s for more information%s\n\n", */
+        /*        CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD, COLOR_DEFAULT); */
         code = EXIT_FAILURE;
     }
 
     if (args->outFormat == NULL || *args->outFormat == '\0') {
         printErr("no output format", "NULL");
+        /* printf("%s run with --help%s for more information%s\n\n", */
+        /*        CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD, COLOR_DEFAULT); */
         code = EXIT_FAILURE;
     }
 
     if ((args->options & OPT_NEWFOLDER)
         && (strlen(args->customFolderName) >= NAME_MAX - 1)
         ) {
-        char *maxLen = _asprintf("%d", NAME_MAX - 1);
+        char *maxLen = _asprintf("%d bytes", NAME_MAX);
         printErr("custom folder name exceeds maximum allowed length", maxLen);
         free(maxLen);
 
@@ -267,10 +268,10 @@ static int handleArgErrors(arguments *args) {
             && !(args->options & OPT_NEWFOLDER)
             && !(args->options & OPT_NEWPATH)
             ) {
-            printErr("can't use ffmpeg with identical input \
-                       and output formats",
-                       "use '--newpath' or '--newfolder' \
-                       to save the files in a new directory");
+            printErr("can't use ffmpeg with identical input "
+                     "and output formats",
+                     "use '-newpath' or '-subfolder' "
+                     "to save the files in a new directory");
 
             code = EXIT_FAILURE;
             break;

@@ -45,7 +45,7 @@ typedef struct arguments {
 
 
 #define PROGRAM_NAME    "RFFMPEG"
-#define PROGRAM_VERSION "v1.0.2"
+#define PROGRAM_VERSION "v1.1.0"
 #define FULL_PROGRAM_TITLE   (PROGRAM_NAME " " PROGRAM_VERSION " (跨平台)")
 #define CONSOLE_WINDOW_TITLE (PROGRAM_NAME " " PROGRAM_VERSION)
 
