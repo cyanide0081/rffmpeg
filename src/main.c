@@ -134,11 +134,10 @@ int main(int argc, char *argv[]) {
                    CHARCOLOR_RED, (int)fileCount, CHARCOLOR_WHITE,
                    CHARCOLOR_WHITE_BOLD);
 
-            char input = (char)getchar();
-
+            int input = tolower(getchar());
             printf("\n");
 
-            if (input == 'Y' || input == 'y') {
+            if (input == 'y') {
                 exitCode = convertFiles((const char **)fileList,
                                        parsedArgs, &procInfo);
             } else {
