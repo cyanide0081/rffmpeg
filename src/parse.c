@@ -18,47 +18,44 @@ static char **_tokenizeArguments(char *string, const char *delimiter);
 /* Parses the argument strings from direct
  * console input in case no argument is given */
 void parseConsoleInput(arguments *args) {
-    char *input = NULL;
-    size_t len = 0;
+    char input[ARG_BUF] = {0};
 
     /* TODO: handle parsing of multiple paths with quoted strings
        instead of the current sloppy OS-specific delimiters*/
     prompt("Input path(s) (separated by a '" DIR_DELIMITER "')");
-    getline(&input, &len, stdin);
-    trimSpaces(input);
-
+    readLine(input, ARG_BUF);
     args->inPaths = _tokenizeArguments(input, DIR_DELIMITER);
-    free(input);
 
     prompt("Target format(s)");
-    getline(&input, &len, stdin);
-    trimSpaces(input);
-
+    readLine(input, ARG_BUF);
     args->inFormats = _tokenizeArguments(input, ", ");
-    free(input);
 
     prompt("FFmpeg options");
-    getline(&args->ffOptions, &len, stdin);
-    trimSpaces(args->ffOptions);
+    readLine(input, ARG_BUF);
+    args->ffOptions = strdup(input);
 
     prompt("Output format");
-    getline(&args->outFormat, &len, stdin);
-    trimSpaces(args->outFormat);
+    readLine(input, ARG_BUF);
+    args->outFormat = strdup(input);
 
     prompt("Additional flags");
-    getline(&input, &len, stdin);
-    trimSpaces(input);
+    readLine(input, ARG_BUF);
 
     printf("%s\n", COLOR_DEFAULT);
 
+    /* FIXME: fix parsing bug here */
     char **optionsList = _tokenizeArguments(input, ", ");
-    parseArgs(0, optionsList, args);
+    size_t listSize = 0;
 
-    for (int i = 0; optionsList[i] != NULL; i++)
+    while (*optionsList[listSize])
+        listSize++;
+
+    parseArgs(listSize, optionsList, args);
+
+    for (int i = 0; optionsList[i]; i++)
         free(optionsList[i]);
 
     free(optionsList);
-    free(input);
 }
 
 /* Parses an array of strings to format an (arguments*) accordingly */
@@ -109,21 +106,21 @@ void parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
 
             char *delimPoint = strstr(args[i], COMP_TOKEN_DELIM);
 
-            if (delimPoint != NULL) {
+            if (delimPoint) {
                 parsedArgs->options |= OPT_CUSTOMFOLDERNAME;
-
                 parsedArgs->customFolderName = strdup(++delimPoint);
             }
 
             continue;
         }
 
-        expectCompositeToken(args[i], "newpath") {
+        expectCompositeToken(args[i], "outpath") {
             parsedArgs->options |= OPT_NEWPATH;
 
             char *delimPoint = strstr(args[i], COMP_TOKEN_DELIM);
 
             if (delimPoint) {
+                parsedArgs->options |= OPT_CUSTOMPATHNAME;
                 parsedArgs->customPathName = strdup(++delimPoint);
             }
 

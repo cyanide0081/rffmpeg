@@ -59,9 +59,12 @@ typedef struct arguments {
 
 #ifdef _WIN32
 #define FILE_BUF MAX_PATH
+#define ARG_BUF (USHRT_MAX / 2)
 #else
 #define FILE_BUF NAME_MAX
+#define FILE_BUF NAME_MAX
 #endif
+
 
 #ifndef NDEBUG
 #define dprintf(fmt, ...) fprintf(stderr, "%s:%d:%s(): " fmt, \
@@ -104,6 +107,6 @@ void *xcalloc(size_t numberOfElements, size_t sizeOfElements);
 
 char *_asprintf(const char *format, ...);
 
-ssize_t getline(char **string, size_t *buffer, FILE *stream);
+void readLine(char *dst, size_t dstSize);
 
 #endif // H_TYPES

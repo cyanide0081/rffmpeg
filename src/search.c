@@ -140,7 +140,12 @@ static char **_getFilesFromDir(const char *dir,
         }
 
         for (int i = 0; fmts[i]; i++) {
-            if (strstr(fileName, fmts[i])) {
+            char ext[NAME_MAX] = "";
+            snprintf(ext, NAME_MAX, ".%s", fmts[i]);
+
+            const char *extPoint = strstr(fileName, ext);
+
+            if (extPoint && extPoint[strlen(ext)] == '\0') {
                 if (listIdx == listSize - 1) {
                     size_t newSize = listSize * 2;
                     xrealloc(list, newSize * sizeof(char*));

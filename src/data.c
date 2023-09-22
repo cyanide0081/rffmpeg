@@ -1,4 +1,6 @@
 #include <data.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 arguments *initializeArguments(void) {
     arguments *instance = xcalloc(1, sizeof(*instance));
@@ -167,36 +169,22 @@ char *_asprintf(const char *format, ...) {
     return string;
 }
 
-/* UNICODE_STRING limit (subauth.h) */
-#ifdef _WIN32
-#define ARG_BUF (USHRT_MAX / 2)
-#else
-#define ARG_BUF ARG_MAX
-#endif
-
-ssize_t getline(char **dst, size_t *bufSize, FILE *stream) {
+void readLine(char *dst, size_t dstSize) {
 #ifdef _WIN32
     wchar_t wideBuf[ARG_BUF];
 
-    if (fgetws(wideBuf, ARG_BUF, stream) == NULL)
-        return -1;
+    if (!fgetws(wideBuf, ARG_BUF, stdin)) {
+        printErr("unable to read from stdin", strerror(errno));
+        exit(errno);
+    }
 
-    int size = UTF16toUTF8(wideBuf, -1, NULL, 0);
-    char *buf = xcalloc(size, sizeof(char));
-    UTF16toUTF8(wideBuf, -1, buf, size);
+    UTF16toUTF8(wideBuf, -1, dst, dstSize);
 #else
-    char buf[ARG_BUF];
-
-    if (fgets(buf, ARG_BUF, stream) == NULL)
-        return -1;
+    if (!fgets(*dst, ARG_BUF, stdin)) {
+        printErr("unable to read from stdin", strerror(errno));
+        exit(errno);
+    }
 #endif
 
-    trimSpaces(buf);
-
-    if (*bufSize == 0)
-        *dst = strdup(buf);
-    else
-        memccpy(*dst, buf, '\0', *bufSize);
-
-    return strlen(*dst);
+    trimSpaces(dst);
 }

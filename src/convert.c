@@ -1,6 +1,5 @@
 #include <convert.h>
 
-#define PATH_DELIM '/'
 
 static bool _fileExists(const char *fileName);
 static int _handleFileNameConflicts(char *pureName,
@@ -25,7 +24,7 @@ int convertFiles(const char **files,
         const char *fullPath = files[idx];
         const char *pathDelimPoint = (fullPath + strlen(fullPath) - 1);
 
-        while (*pathDelimPoint != PATH_DELIM)
+        while (*pathDelimPoint != '\\' && *pathDelimPoint != '/')
             pathDelimPoint--;
 
         char *filePath = strndup(fullPath, (pathDelimPoint - fullPath));
@@ -68,11 +67,11 @@ int convertFiles(const char **files,
         memset(fileNameNoExt + strlen(fileNameNoExt) - strlen(inputFormat) - 1,
                0, strlen(inputFormat) + 1);
 
-        char *overwriteFlag = NULL;
+        const char *overwriteFlag = "";
+
         if (args->options & OPT_OVERWRITE) {
             overwriteFlag = "-y";
         } else {
-            overwriteFlag = "";
             _handleFileNameConflicts(fileNameNoExt, args->outFormat, outPath);
         }
 
@@ -84,18 +83,16 @@ int convertFiles(const char **files,
         dprintf("FILEPATH:    \"%s\"\n",   filePath);
         dprintf("BASENAME:    \"%s\"\n",   baseName);
         dprintf("FULLOUTPATH: \"%s\"\n\n", fullOutPath);
+        dprintf("OUTPATH:     \"%s\"\n\n", args->customPathName);
 
 #ifdef _WIN32
-        /* execlp("ffmpeg", "ffmpeg", "-hide_banner", overwriteFlag, "-i", */
-        /*            fullPath, args->ffOptions, fullOutPath, (char*)NULL); */
-
         char *ffmpegCall =
-            _asprintf("ffmpeg -hide_banner %s -i \"%s\" \"%s\" \"%s\"",
+            _asprintf("ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
                       overwriteFlag, fullPath, args->ffOptions, fullOutPath);
 
-        size_t callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
+        int callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
         wchar_t *ffmpegCallW = xcalloc(callBuf, sizeof(wchar_t));
-        UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, (int)callBuf);
+        UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, callBuf);
 
         STARTUPINFOW ffmpegStartupInfo = {0};
         PROCESS_INFORMATION ffmpegProcessInfo;
@@ -180,6 +177,7 @@ int convertFiles(const char **files,
         free(filePath);
         free(baseName);
         free(outPath);
+        free(fullOutPath);
     }
 
     return EXIT_SUCCESS;
