@@ -34,8 +34,8 @@ int convertFiles(const char **files,
         assert(baseName);
 
         char *outPath = NULL;
-        char *newFolderName = (args->options & OPT_CUSTOMFOLDERNAME) ?
-            args->customFolderName : args->outFormat;
+        const char *newFolderName = (args->options & OPT_CUSTOMFOLDERNAME) ?
+            args->customFolder : args->outFormat;
 
         if (args->options & OPT_NEWFOLDER) {
             char *newPath = _asprintf("%s/%s", filePath, newFolderName);
@@ -49,7 +49,7 @@ int convertFiles(const char **files,
 
             outPath = newPath;
         } else if (args->options & OPT_NEWPATH) {
-            char *newPath = strdup(args->customPathName);
+            char *newPath = strdup(args->customPath);
 
             if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                 printErr("Unable to create new directory", strerror(errno));
@@ -67,7 +67,7 @@ int convertFiles(const char **files,
         memset(fileNameNoExt + strlen(fileNameNoExt) - strlen(inputFormat) - 1,
                0, strlen(inputFormat) + 1);
 
-        const char *overwriteFlag = "";
+        const char *overwriteFlag = "-n";
 
         if (args->options & OPT_OVERWRITE) {
             overwriteFlag = "-y";
@@ -83,13 +83,14 @@ int convertFiles(const char **files,
         dprintf("FILEPATH:    \"%s\"\n",   filePath);
         dprintf("BASENAME:    \"%s\"\n",   baseName);
         dprintf("FULLOUTPATH: \"%s\"\n\n", fullOutPath);
-        dprintf("OUTPATH:     \"%s\"\n\n", args->customPathName);
+        dprintf("OUTPATH:     \"%s\"\n\n", args->customPath);
 
-#ifdef _WIN32
         char *ffmpegCall =
             _asprintf("ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
                       overwriteFlag, fullPath, args->ffOptions, fullOutPath);
 
+        dprintf("FFMPEGCALL: \"%s\"\n\n", ffmpegCall);
+#ifdef _WIN32
         int callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
         wchar_t *ffmpegCallW = xcalloc(callBuf, sizeof(wchar_t));
         UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, callBuf);
@@ -100,22 +101,22 @@ int convertFiles(const char **files,
                                              NULL, FALSE, 0, NULL, NULL,
                                              &ffmpegStartupInfo,
                                              &ffmpegProcessInfo);
-        free(ffmpegCall);
         free(ffmpegCallW);
 
         if (!createdProcess) {
             DWORD err = GetLastError();
             wchar_t *errMsgW = NULL;
-            int sizeW =
-                FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                               FORMAT_MESSAGE_FROM_SYSTEM |
-                               FORMAT_MESSAGE_IGNORE_INSERTS,
-                               NULL,
-                               err,
-                               MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                               (LPWSTR)&errMsgW,
-                               0,
-                               NULL);
+            int sizeW = FormatMessageW(
+                FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                FORMAT_MESSAGE_FROM_SYSTEM |
+                FORMAT_MESSAGE_IGNORE_INSERTS,
+                NULL,
+                err,
+                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                (LPWSTR)&errMsgW,
+                0,
+                NULL
+            );
 
             int size = UTF16toUTF8(errMsgW, (int)sizeW, NULL, 0);
             char *errMsg = xcalloc(size, sizeof(char));
@@ -136,8 +137,12 @@ int convertFiles(const char **files,
         pid_t procId = fork();
 
         if (procId == 0) {
-            execlp("ffmpeg", "ffmpeg", "-hide_banner", overwriteFlag, "-i",
-                   fullPath, args->ffOptions, fullOutPath, (char*)NULL);
+            /* NOTE: use system() for now cause i'm too lazy to build a
+               dynamic array of args due to ffOptions right now */
+            /* execlp("ffmpeg", "ffmpeg", overwriteFlag, "-i", */
+            /*        fullPath, args->ffOptions, fullOutPath, (char*)NULL); */
+
+            system(ffmpegCall);
             exit(errno);
         } else {
             int status;
@@ -154,8 +159,11 @@ int convertFiles(const char **files,
                 printErr("couldn't call ffmpeg", status);
                 exit(EXIT_FAILURE);
             }
+
+            stats->convertedFiles++;
         }
 #endif
+        free(ffmpegCall);
 
         if (args->options & OPT_CLEANUP) {
             if (remove(fullPath) != 0) {

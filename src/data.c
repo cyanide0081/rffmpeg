@@ -1,18 +1,17 @@
 #include <data.h>
-#include <stdio.h>
-#include <stdlib.h>
 
-arguments *initializeArguments(void) {
-    arguments *instance = xcalloc(1, sizeof(*instance));
+arguments *allocArguments(void) {
+    arguments *args = xcalloc(1, sizeof(arguments));
 
-    instance->inPaths = xcalloc(LIST_BUF, sizeof(char*));
-    instance->inFormats = xcalloc(LIST_BUF, sizeof(char*));
+    args->inPaths   = xcalloc(LIST_BUF, sizeof(char*));
+    args->inFormats = xcalloc(LIST_BUF, sizeof(char*));
+    /* args->ffOptions = xcalloc(LIST_BUF, sizeof(char*)); */
 
-    return instance;
+    return args;
 }
 
-void destroyArguments(arguments *args) {
-    if (args == NULL)
+void freeArguments(arguments *args) {
+    if (!args)
         return;
 
     for (int i = 0; args->inPaths[i] != NULL; i++)
@@ -21,11 +20,13 @@ void destroyArguments(arguments *args) {
     for (int i = 0; args->inFormats[i] != NULL; i++)
         free(args->inFormats[i]);
 
+    /* for (int i = 0; args->ffOptions[i] != NULL; i++) */
+    /*     free(args->ffOptions[i]); */
+
     free(args->inPaths);
     free(args->inFormats);
     free(args->ffOptions);
-    free(args->outFormat);
-    free(args->customFolderName);
+    free(args->customPath);
     free(args);
 }
 
@@ -73,7 +74,7 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
        (2) actually count glyphs inside the loop instead of just
        codepoints, since one glyph may be made out of more than
        one codepoint
-       NOTE: (2) is probably impossible to do without getting info
+       NOTE: '(2)' is probably impossible to do without getting info
        from the renderer itself since the length of a glyph will
        depend on the symbol font it's being rendered with (;-;) */
     size_t bufIdx = 0, chars = 0;
@@ -163,7 +164,7 @@ char *_asprintf(const char *format, ...) {
 
     va_end(args);
     va_start(args, format);
-    vsprintf(string, format, args); // Ignore compiler deprecation warning here
+    vsprintf(string, format, args);
     va_end(args);
 
     return string;
@@ -180,7 +181,7 @@ void readLine(char *dst, size_t dstSize) {
 
     UTF16toUTF8(wideBuf, -1, dst, dstSize);
 #else
-    if (!fgets(*dst, ARG_BUF, stdin)) {
+    if (!fgets(dst, dstSize, stdin)) {
         printErr("unable to read from stdin", strerror(errno));
         exit(errno);
     }

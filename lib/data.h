@@ -12,6 +12,8 @@
 #include <win.h>
 #endif
 
+#define FMT_BUF 32
+
 typedef enum inputMode {
     ARGUMENTS, CONSOLE
 } inputMode;
@@ -30,21 +32,20 @@ typedef struct fmtTime {
 
 typedef struct arguments {
     char **inPaths;
-    char **inFormats;
     char *ffOptions;
-    char *outFormat;
+    char **inFormats;
+    const char *outFormat;
 
     union {
-        char *customFolderName;
-        char *customPathName;
+        char *customFolder;
+        char *customPath;
     };
 
     uint8_t options; // Bit fields for the optional arguments
 } arguments;
 
-
-#define PROGRAM_NAME    "RFFMPEG"
-#define PROGRAM_VERSION "v1.1.0"
+#define PROGRAM_NAME         "RFFMPEG"
+#define PROGRAM_VERSION      "v1.1.0"
 #define FULL_PROGRAM_TITLE   (PROGRAM_NAME " " PROGRAM_VERSION " (跨平台)")
 #define CONSOLE_WINDOW_TITLE (PROGRAM_NAME " " PROGRAM_VERSION)
 
@@ -59,10 +60,10 @@ typedef struct arguments {
 
 #ifdef _WIN32
 #define FILE_BUF MAX_PATH
-#define ARG_BUF (USHRT_MAX / 2)
+#define ARG_BUF  SHRT_MAX /* max 'Unicode_String' size on Windows */
 #else
 #define FILE_BUF NAME_MAX
-#define FILE_BUF NAME_MAX
+#define ARG_BUF  ARG_MAX
 #endif
 
 
@@ -93,9 +94,9 @@ typedef struct arguments {
         buf = tmp;                                      \
     } while (false)                                     \
 
-arguments *initializeArguments(void);
+arguments *allocArguments(void);
 
-void destroyArguments(arguments *arguments);
+void freeArguments(arguments *arguments);
 
 fmtTime formatTime(double seconds);
 

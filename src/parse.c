@@ -1,5 +1,5 @@
-#include "data.h"
 #include <parse.h>
+
 
 #define expectToken(arg, tok) if (strcasecmp(arg, "-" tok) == 0)
 #define expectCompositeToken(arg, tok) if (strstr(arg, "-" tok))
@@ -13,7 +13,7 @@
                            CHARCOLOR_WHITE_BOLD);
 
 
-static char **_tokenizeArguments(char *string, const char *delimiter);
+static char **_getTokenizedStrings(char *string, const char *delimiter);
 
 /* Parses the argument strings from direct
  * console input in case no argument is given */
@@ -24,11 +24,11 @@ void parseConsoleInput(arguments *args) {
        instead of the current sloppy OS-specific delimiters*/
     prompt("Input path(s) (separated by a '" DIR_DELIMITER "')");
     readLine(input, ARG_BUF);
-    args->inPaths = _tokenizeArguments(input, DIR_DELIMITER);
+    args->inPaths = _getTokenizedStrings(input, DIR_DELIMITER);
 
     prompt("Target format(s)");
     readLine(input, ARG_BUF);
-    args->inFormats = _tokenizeArguments(input, ", ");
+    args->inFormats = _getTokenizedStrings(input, ", ");
 
     prompt("FFmpeg options");
     readLine(input, ARG_BUF);
@@ -44,7 +44,7 @@ void parseConsoleInput(arguments *args) {
     printf("%s\n", COLOR_DEFAULT);
 
     /* FIXME: fix parsing bug here */
-    char **optionsList = _tokenizeArguments(input, ", ");
+    char **optionsList = _getTokenizedStrings(input, " ");
     size_t listSize = 0;
 
     while (*optionsList[listSize])
@@ -52,7 +52,7 @@ void parseConsoleInput(arguments *args) {
 
     parseArgs(listSize, optionsList, args);
 
-    for (int i = 0; optionsList[i]; i++)
+    for (size_t i = 0; i < listSize; i++)
         free(optionsList[i]);
 
     free(optionsList);
@@ -71,7 +71,7 @@ void parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
             return;
         }
         expectToken(args[i], "i") {
-            parsedArgs->inFormats = _tokenizeArguments(args[++i], ", ");
+            parsedArgs->inFormats = _getTokenizedStrings(args[++i], ", ");
             continue;
         }
 
@@ -81,8 +81,7 @@ void parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
         }
 
         expectToken(args[i], "o") {
-
-            parsedArgs->outFormat = strdup(args[++i]);
+            parsedArgs->outFormat = args[++i];
             continue;
         }
 
@@ -108,7 +107,7 @@ void parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
 
             if (delimPoint) {
                 parsedArgs->options |= OPT_CUSTOMFOLDERNAME;
-                parsedArgs->customFolderName = strdup(++delimPoint);
+                parsedArgs->customFolder = strdup(++delimPoint);
             }
 
             continue;
@@ -121,7 +120,7 @@ void parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
 
             if (delimPoint) {
                 parsedArgs->options |= OPT_CUSTOMPATHNAME;
-                parsedArgs->customPathName = strdup(++delimPoint);
+                parsedArgs->customPath = strdup(++delimPoint);
             }
 
             continue;
@@ -131,7 +130,7 @@ void parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
     }
 }
 
-static char **_tokenizeArguments(char *string, const char *delimiter) {
+static char **_getTokenizedStrings(char *string, const char *delimiter) {
     char *parserState = NULL;
     char *token = strtok_r(string, delimiter, &parserState);
 

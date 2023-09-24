@@ -1,6 +1,10 @@
 #ifndef H_PARSERS_P
 #define H_PARSERS_P
 
+#ifdef __linux__
+#include <linux/limits.h>
+#endif
+
 #include <libs.h>
 #include <data.h>
 

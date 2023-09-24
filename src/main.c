@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
 
     createTestProcess();
 
-    arguments *parsedArgs = initializeArguments();
+    arguments *parsedArgs = allocArguments();
 
     if (inputMode == ARGUMENTS) {
         parseArgs(argc, argv, parsedArgs);
@@ -181,7 +181,7 @@ int main(int argc, char *argv[]) {
         free(argv[i]);
 #endif
 
-    destroyArguments(parsedArgs);
+    freeArguments(parsedArgs);
     return exitCode;
 }
 
@@ -210,9 +210,6 @@ static int handleArgErrors(arguments *args) {
 #endif
     }
 
-    if (args->ffOptions == NULL)
-        args->ffOptions = strdup("");
-
     if (args->inFormats[0] == NULL || *args->inFormats[0] == '\0') {
         printErr("no input format", "NULL");
         /* printf("%s run with --help%s for more information%s\n\n", */
@@ -220,26 +217,30 @@ static int handleArgErrors(arguments *args) {
         code = EXIT_FAILURE;
     }
 
-    if (args->outFormat == NULL || *args->outFormat == '\0') {
+    /* NOTE: temporary workaround since this can be null */
+    if (args->ffOptions == NULL)
+        args->ffOptions = strdup("");
+
+    if (*args->outFormat == '\0') {
         printErr("no output format", "NULL");
         /* printf("%s run with --help%s for more information%s\n\n", */
         /*        CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD, COLOR_DEFAULT); */
         code = EXIT_FAILURE;
     }
 
-    if ((args->options & OPT_NEWFOLDER)
-        && (strlen(args->customFolderName) >= NAME_MAX - 1)
-        ) {
-        char *maxLen = _asprintf("%d bytes", NAME_MAX);
-        printErr("custom folder name exceeds maximum allowed length", maxLen);
-        free(maxLen);
+    if ((args->options & OPT_NEWFOLDER & OPT_CUSTOMFOLDERNAME)) {
+        if ((strlen(args->customFolder) >= NAME_MAX - 1)) {
+            char *maxLen = _asprintf("%d bytes", NAME_MAX);
+            printErr("custom folder name exceeds maximum allowed length", maxLen);
+            free(maxLen);
+        }
 
         code = EXIT_FAILURE;
     }
 
     if (args->options & OPT_NEWPATH) {
-        if (args->customPathName == NULL) {
-            printErr("empty custom pathname field", "usage: --newpath=name");
+        if (args->customPath == NULL || *args->customPath == '\0') {
+            printErr("empty custom path field", "usage: -outpath:[PATH]");
 
             code = EXIT_FAILURE;
         }
@@ -247,12 +248,12 @@ static int handleArgErrors(arguments *args) {
         /* TODO: prompt the user to choose whether they want
            to remove windows's default pathname limit 8) */
 #ifdef _WIN32
-        if (strlen(args->customPathName) >= MAX_PATH) {
-            char *maxLength = _asprintf("%d bytes", MAX_PATH);
+        if (strlen(args->customPath) >= MAX_PATH) {
+            char maxLen[FMT_BUF] = {0};
+            sprintf(maxLen, "%d bytes", MAX_PATH);
 
-            printErr("custom path name exceeds maximum allowed length",
-                     maxLength);
-            free(maxLength);
+            printErr("custom path string exceeds maximum allowed length",
+                     maxLen);
 
             code = EXIT_FAILURE;
         }
@@ -266,7 +267,7 @@ static int handleArgErrors(arguments *args) {
             ) {
             printErr("can't use ffmpeg with identical input "
                      "and output formats",
-                     "use '-newpath' or '-subfolder' "
+                     "use '-outpath' or '-subfolder' "
                      "to save the files in a new directory");
 
             code = EXIT_FAILURE;
