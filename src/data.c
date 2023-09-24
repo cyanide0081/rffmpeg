@@ -23,10 +23,15 @@ void freeArguments(arguments *args) {
     /* for (int i = 0; args->ffOptions[i] != NULL; i++) */
     /*     free(args->ffOptions[i]); */
 
+
+
     free(args->inPaths);
     free(args->inFormats);
     free(args->ffOptions);
-    free(args->customPath);
+
+    if (args->customPath)
+        free(args->customPath);
+
     free(args);
 }
 

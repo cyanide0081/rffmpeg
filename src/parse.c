@@ -47,7 +47,7 @@ void parseConsoleInput(arguments *args) {
     char **optionsList = _getTokenizedStrings(input, " ");
     size_t listSize = 0;
 
-    while (*optionsList[listSize])
+    while (optionsList[listSize])
         listSize++;
 
     parseArgs(listSize, optionsList, args);
