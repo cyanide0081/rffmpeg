@@ -5,7 +5,6 @@ arguments *allocArguments(void) {
 
     args->inPaths   = xcalloc(LIST_BUF, sizeof(char*));
     args->inFormats = xcalloc(LIST_BUF, sizeof(char*));
-    /* args->ffOptions = xcalloc(LIST_BUF, sizeof(char*)); */
 
     return args;
 }
@@ -19,11 +18,6 @@ void freeArguments(arguments *args) {
 
     for (int i = 0; args->inFormats[i] != NULL; i++)
         free(args->inFormats[i]);
-
-    /* for (int i = 0; args->ffOptions[i] != NULL; i++) */
-    /*     free(args->ffOptions[i]); */
-
-
 
     free(args->inPaths);
     free(args->inFormats);
@@ -82,6 +76,7 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
        NOTE: '(2)' is probably impossible to do without getting info
        from the renderer itself since the length of a glyph will
        depend on the symbol font it's being rendered with (;-;) */
+
     size_t bufIdx = 0, chars = 0;
     size_t bufLen = strlen(str);
 
