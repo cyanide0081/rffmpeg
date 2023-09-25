@@ -3,8 +3,6 @@
 #define INITIAL_LIST_BUF 8
 #define MAX_DIR_PRINT_LEN (80 - 14)
 
-static bool _isDirectory(const char *dir);
-
 static char **_getFilesFromDir(const char *dir,
                                const char **fmts,
                                const bool recurse);
@@ -112,7 +110,7 @@ static char **_getFilesFromDir(const char *dir,
         }
 
         /* Recursively search in case it's a directory */
-        if (_isDirectory(fullInPath) && recurse) {
+        if (isDirectory(fullInPath) && recurse) {
             char **recList = _getFilesFromDir(fullInPath, fmts, recurse);
 
             if (recList) {
@@ -175,26 +173,4 @@ static char **_getFilesFromDir(const char *dir,
     list[listIdx] = NULL;
 
     return list;
-}
-
-static bool _isDirectory(const char *dir) {
-#ifndef _WIN32
-    struct stat pathStats;
-    if (stat(dir, &pathStats) != 0)
-        return false;
-
-    return S_ISDIR(pathStats.st_mode);
-#else
-    wchar_t dirW[PATH_BUF];
-    UTF8toUTF16(dir, -1, dirW, PATH_BUF);
-
-    DWORD fileAttr = GetFileAttributesW(dirW);
-
-    if (fileAttr == INVALID_FILE_ATTRIBUTES)
-        return false;
-    if (fileAttr & FILE_ATTRIBUTE_DIRECTORY)
-        return true;
-
-    return false;
-#endif
 }

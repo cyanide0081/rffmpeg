@@ -48,11 +48,18 @@ typedef struct arguments {
 #define CONSOLE_WINDOW_TITLE ("RFFmpeg " PROGRAM_VERSION)
 
 /* ANSI escape chars for colored shell output */
+
+#ifdef _WIN32
 #define COLOR_DEFAULT        "\x1b[0m"
 #define COLOR_ACCENT         "\x1b[91m"
 #define COLOR_INPUT          "\x1b[97m"
 #define COLOR_ERROR          "\x1b[91m"
-
+#else
+#define COLOR_DEFAULT        "\033[0m"
+#define COLOR_ACCENT         "\033[91m"
+#define COLOR_INPUT          "\033[97m"
+#define COLOR_ERROR          "\033[91m"
+#endif
 
 #define LIST_BUF 16
 
@@ -75,7 +82,7 @@ typedef struct arguments {
 #define printErr(msg, dsc)                      \
     fprintf(                                    \
             stderr,                             \
-            "%s ERROR: %s%s: %s%s%s\n\n",      \
+            "%s ERROR: %s%s: %s\"%s\"%s\n\n",      \
             COLOR_ERROR,                        \
             COLOR_DEFAULT, msg,               \
             COLOR_INPUT, dsc,                 \
@@ -107,5 +114,7 @@ void *xcalloc(size_t numberOfElements, size_t sizeOfElements);
 char *_asprintf(const char *format, ...);
 
 void readLine(char *dst, size_t dstSize);
+
+bool isDirectory(const char *dir);
 
 #endif // H_TYPES

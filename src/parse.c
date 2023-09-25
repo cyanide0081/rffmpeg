@@ -1,17 +1,15 @@
 #include <parse.h>
 
-
 #define expectToken(arg, tok) if (strcasecmp(arg, "-" tok) == 0)
 #define expectCompositeToken(arg, tok) if (strstr(arg, "-" tok))
 
 #define COMP_TOKEN_DELIM ":"
 
-#define prompt(str) printf("%s > %s%s:%s ",\
+#define prompt(str) printf("%s > %s%s:%s ",           \
                            COLOR_ACCENT,              \
                            COLOR_DEFAULT,             \
                            str,                       \
                            COLOR_INPUT);
-
 
 static char **_getTokenizedStrings(char *string, const char *delimiter);
 
@@ -128,8 +126,22 @@ void parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
             continue;
         }
 
-        parsedArgs->inPaths[parsedArgsIdx++] = strdup(args[i]);
+        if (isDirectory(args[i])) {
+            parsedArgs->inPaths[parsedArgsIdx++] = strdup(args[i]);
+        } else {
+            printErr("unrecognized option", args[i]);
+        }
     }
+
+    /* handle null args here */
+    if (!parsedArgs->ffOptions)
+        parsedArgs->ffOptions = strdup("");
+
+    if (!*parsedArgs->inFormats)
+        *parsedArgs->inFormats = strdup("");
+
+    if (!parsedArgs->customPath)
+        parsedArgs->customPath = strdup("");
 }
 
 static char **_getTokenizedStrings(char *string, const char *delimiter) {
@@ -139,6 +151,10 @@ static char **_getTokenizedStrings(char *string, const char *delimiter) {
     size_t items = LIST_BUF;
     char **list = xcalloc(items, sizeof(char*));
 
+    if (!token) {
+        *list = strdup("");
+        return list;
+    }
     size_t i;
 
     for (i = 0; token; i++) {

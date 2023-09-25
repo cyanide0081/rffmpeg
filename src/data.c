@@ -189,3 +189,25 @@ void readLine(char *dst, size_t dstSize) {
 
     trimSpaces(dst);
 }
+
+bool isDirectory(const char *dir) {
+#ifndef _WIN32
+    struct stat pathStats;
+    if (stat(dir, &pathStats) != 0)
+        return false;
+
+    return S_ISDIR(pathStats.st_mode);
+#else
+    wchar_t dirW[PATH_BUF];
+    UTF8toUTF16(dir, -1, dirW, PATH_BUF);
+
+    DWORD fileAttr = GetFileAttributesW(dirW);
+
+    if (fileAttr == INVALID_FILE_ATTRIBUTES)
+        return false;
+    if (fileAttr & FILE_ATTRIBUTE_DIRECTORY)
+        return true;
+
+    return false;
+#endif
+}

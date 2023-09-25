@@ -89,7 +89,6 @@ int convertFiles(const char **files,
             _asprintf("ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
                       overwriteFlag, fullPath, args->ffOptions, fullOutPath);
 
-        dprintf("FFMPEGCALL: \"%s\"\n\n", ffmpegCall);
 #ifdef _WIN32
         int callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
         wchar_t *ffmpegCallW = xcalloc(callBuf, sizeof(wchar_t));
@@ -164,6 +163,7 @@ int convertFiles(const char **files,
         }
 #endif
         free(ffmpegCall);
+        printf("\n");
 
         if (args->options & OPT_CLEANUP) {
             if (remove(fullPath) != 0) {

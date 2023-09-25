@@ -4,14 +4,14 @@
 #include <search.h>
 #include <convert.h>
 #include <help.h>
-#include <winuser.h>
+#include <stdlib.h>
 
 /* TODO:
  * 1. create macro for windows error message formatting (stupidly long proc)
  * 2. detect if only directories were passed as arguments and if so take program
  *    flow to the second argument of the console parsing section
- * 2. add multi-threading to the conversion procedure (and maybe searching too)
- * 3. implement --version command (maybe)
+ * 3. add multi-threading to the conversion procedure (and maybe searching too)
+ * 4. implement --version command (maybe)
  *
  * FIXME:
  * 1. resolve non-absolute pathnames by feeding them to realpath()
@@ -162,13 +162,18 @@ int main(int argc, char *argv[]) {
             if (exitCode != EXIT_FAILURE)
                 displayEndDialog(&procInfo);
         } else {
-            printErr("found no matching files", "aborting");
+            printErr("found no matching files", "(aborting)");
         }
     }
 
     if (inputMode == CONSOLE) {
-        printf(" %s(Press %sENTER%s to exit)",
+        printf(" %s(Press %sENTER%s to exit) ",
                COLOR_DEFAULT, COLOR_INPUT, COLOR_DEFAULT);
+
+        /* first clear the input buffer */
+        char c;
+        while ((c = getchar()) != '\n' && c != EOF);
+
         getchar();
         printf("\n");
 
@@ -192,8 +197,6 @@ int main(int argc, char *argv[]) {
 
 /* Handles edge cases regarding arguments as well as errors */
 static int handleArgErrors(arguments *args) {
-    int code = EXIT_SUCCESS;
-
     /* Set current working directory as input path if none is provided */
     if (args->inPaths[0] == NULL) {
 #ifdef _WIN32
@@ -215,39 +218,32 @@ static int handleArgErrors(arguments *args) {
 #endif
     }
 
-    if (args->inFormats[0] == NULL || *args->inFormats[0] == '\0') {
-        printErr("no input format", "NULL");
-        /* printf("%s run with --help%s for more information%s\n\n", */
-        /*        CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD, COLOR_DEFAULT); */
-        code = EXIT_FAILURE;
+    /* TODO: move this handling to the end of the parsing function */
+    if (*args->inFormats[0] == '\0') {
+        printErr("no input format", "(NULL)");
+        return EXIT_FAILURE;
     }
 
-    /* NOTE: temporary workaround since this can be null */
-    if (args->ffOptions == NULL)
-        args->ffOptions = strdup("");
-
-    if (*args->outFormat == '\0') {
-        printErr("no output format", "NULL");
-        /* printf("%s run with --help%s for more information%s\n\n", */
-        /*        CHARCOLOR_WHITE, CHARCOLOR_WHITE_BOLD, COLOR_DEFAULT); */
-        code = EXIT_FAILURE;
+    if (!args->outFormat) {
+        printErr("no output format", "(NULL)");
+        return EXIT_FAILURE;
     }
 
-    if ((args->options & OPT_NEWFOLDER & OPT_CUSTOMFOLDERNAME)) {
+    if ((args->options & (OPT_NEWFOLDER & OPT_CUSTOMFOLDERNAME))) {
         if ((strlen(args->customFolder) >= NAME_MAX - 1)) {
             char *maxLen = _asprintf("%d bytes", NAME_MAX);
             printErr("custom folder name exceeds maximum allowed length", maxLen);
             free(maxLen);
         }
 
-        code = EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 
     if (args->options & OPT_NEWPATH) {
         if (args->customPath == NULL || *args->customPath == '\0') {
             printErr("empty custom path field", "usage: -outpath:[PATH]");
 
-            code = EXIT_FAILURE;
+            return EXIT_FAILURE;
         }
 
         /* TODO: prompt the user to choose whether they want
@@ -256,11 +252,10 @@ static int handleArgErrors(arguments *args) {
         if (strlen(args->customPath) >= MAX_PATH) {
             char maxLen[FMT_BUF] = {0};
             sprintf(maxLen, "%d bytes", MAX_PATH);
-
             printErr("custom path string exceeds maximum allowed length",
                      maxLen);
 
-            code = EXIT_FAILURE;
+            return EXIT_FAILURE;
         }
 #endif
     }
@@ -275,12 +270,11 @@ static int handleArgErrors(arguments *args) {
                      "use '-outpath' or '-subfolder' "
                      "to save the files in a new directory");
 
-            code = EXIT_FAILURE;
-            break;
+            return EXIT_FAILURE;
         }
     }
 
-    return code;
+    return EXIT_SUCCESS;
 }
 
 static void createTestProcess(void) {
