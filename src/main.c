@@ -4,6 +4,7 @@
 #include <search.h>
 #include <convert.h>
 #include <help.h>
+#include <winuser.h>
 
 /* TODO:
  * 1. create macro for windows error message formatting (stupidly long proc)
@@ -101,7 +102,10 @@ int main(int argc, char *argv[]) {
 
     processInfo procInfo = {0};
 
-    printf("%s%s%s\n\n", CHARCOLOR_RED, FULL_PROGRAM_TITLE, COLOR_DEFAULT);
+
+    printf("%s%s%s\n\n", COLOR_ACCENT,
+           "RFFMPEG " PROGRAM_VERSION " (月光)",
+           COLOR_DEFAULT);
 
     createTestProcess();
 
@@ -130,12 +134,12 @@ int main(int argc, char *argv[]) {
                 fileCount++;
 
             printf("%s > %sAbout to convert %s%d%s files. Continue? (Y/n):%s ",
-                   CHARCOLOR_RED, CHARCOLOR_WHITE,
-                   CHARCOLOR_RED, (int)fileCount, CHARCOLOR_WHITE,
-                   CHARCOLOR_WHITE_BOLD);
+                   COLOR_ACCENT, COLOR_DEFAULT,
+                   COLOR_ACCENT, (int)fileCount, COLOR_DEFAULT,
+                   COLOR_INPUT);
 
             int input = tolower(getchar());
-            printf("\n");
+            printf("%s\n", COLOR_DEFAULT);
 
             if (input == 'y') {
                 exitCode = convertFiles((const char **)fileList,
@@ -163,7 +167,8 @@ int main(int argc, char *argv[]) {
     }
 
     if (inputMode == CONSOLE) {
-        printf(" %s(Press any key to exit) %s", CHARCOLOR_WHITE, COLOR_DEFAULT);
+        printf(" %s(Press %sENTER%s to exit)",
+               COLOR_DEFAULT, COLOR_INPUT, COLOR_DEFAULT);
         getchar();
         printf("\n");
 
@@ -350,16 +355,16 @@ static void displayEndDialog(processInfo *processInformation) {
     } else {
         fmtTime executionTime = formatTime(processInformation->executionTime);
 
-        printf(" %sDONE!%s\n", CHARCOLOR_RED, COLOR_DEFAULT);
+        printf(" %sDONE!%s\n", COLOR_ACCENT, COLOR_DEFAULT);
         printf("\n");
-        printf(" %sProcessed files: %s%" PRIu64 "%s\n", CHARCOLOR_WHITE,
-               CHARCOLOR_RED, (uint64_t)processInformation->convertedFiles,
+        printf(" %sProcessed files: %s%" PRIu64 "%s\n", COLOR_DEFAULT,
+               COLOR_ACCENT, (uint64_t)processInformation->convertedFiles,
                COLOR_DEFAULT);
-        printf(" %sDeleted files:   %s%" PRIu64 "%s\n", CHARCOLOR_WHITE,
-               CHARCOLOR_RED, (uint64_t)processInformation->deletedFiles,
+        printf(" %sDeleted files:   %s%" PRIu64 "%s\n", COLOR_DEFAULT,
+               COLOR_ACCENT, (uint64_t)processInformation->deletedFiles,
                COLOR_DEFAULT);
         printf(" %sElapsed time:    %s%02" PRIu64 ":%02" PRIu64 ":%05.2lf%s\n",
-               CHARCOLOR_WHITE, CHARCOLOR_RED,
+               COLOR_DEFAULT, COLOR_ACCENT,
                executionTime.hours, executionTime.minutes, executionTime.seconds,
                COLOR_DEFAULT);
         printf("\n");

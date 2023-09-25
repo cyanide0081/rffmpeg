@@ -8,20 +8,6 @@
 #include <libs.h>
 #include <data.h>
 
-/* Argument identifiers' constants */
-#define ARG_INPUTPATHS         "-path"
-#define ARG_INPUTFORMATS       "-in"
-#define ARG_INPUTPARAMETERS    "-opts"
-#define ARG_OUTPUTFORMAT       "-out"
-
-/* Optional flags' constants */
-#define OPT_DISPLAYHELP_STRING "--help"
-#define OPT_NEWFOLDER_STRING   "--newfolder"
-#define OPT_NEWPATH_STRING     "--newpath"
-#define OPT_CLEANUP_STRING     "--cleanup"
-#define OPT_NORECURSION_STRING "--norecursion"
-#define OPT_OVERWRITE_STRING   "--overwrite"
-
 /* Option bitmasks */
 #define OPT_DISPLAYHELP        0x01
 #define OPT_NORECURSION        0x02

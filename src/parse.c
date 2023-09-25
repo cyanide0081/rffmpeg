@@ -7,10 +7,10 @@
 #define COMP_TOKEN_DELIM ":"
 
 #define prompt(str) printf("%s > %s%s:%s ",\
-                           CHARCOLOR_RED,             \
-                           CHARCOLOR_WHITE,           \
+                           COLOR_ACCENT,              \
+                           COLOR_DEFAULT,             \
                            str,                       \
-                           CHARCOLOR_WHITE_BOLD);
+                           COLOR_INPUT);
 
 
 static char **_getTokenizedStrings(char *string, const char *delimiter);
@@ -24,26 +24,28 @@ void parseConsoleInput(arguments *args) {
        instead of the current sloppy OS-specific delimiters*/
     prompt("Input path(s) (separated by a '" DIR_DELIMITER "')");
     readLine(input, ARG_BUF);
+    printf(COLOR_DEFAULT);
     args->inPaths = _getTokenizedStrings(input, DIR_DELIMITER);
 
     prompt("Target format(s)");
     readLine(input, ARG_BUF);
+    printf(COLOR_DEFAULT);
     args->inFormats = _getTokenizedStrings(input, ", ");
 
     prompt("FFmpeg options");
     readLine(input, ARG_BUF);
+    printf(COLOR_DEFAULT);
     args->ffOptions = strdup(input);
 
     prompt("Output format");
     readLine(input, ARG_BUF);
     args->outFormat = strdup(input);
+    printf(COLOR_DEFAULT);
 
     prompt("Additional flags");
     readLine(input, ARG_BUF);
-
     printf("%s\n", COLOR_DEFAULT);
 
-    /* FIXME: fix parsing bug here */
     char **optionsList = _getTokenizedStrings(input, " ");
     size_t listSize = 0;
 

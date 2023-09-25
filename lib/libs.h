@@ -26,6 +26,6 @@
 #include <sys/wait.h>
 #include <limits.h>
 #endif
-
+/* TODO: fix the linux/limits.h problem at the root */
 
 #endif  /* H_LIBS */

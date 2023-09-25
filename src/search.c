@@ -20,9 +20,9 @@ char **getFiles(const arguments *args) {
         const char *dir = args->inPaths[i];
         char *trimmedDir = trimUTF8StringTo(dir, MAX_DIR_PRINT_LEN);
 
-        printf("%s scanning %s@ %s\"%s\"\n\n",
-               CHARCOLOR_WHITE, CHARCOLOR_RED,
-               CHARCOLOR_WHITE_BOLD, trimmedDir);
+        printf("%s scanning %s@ %s\"%s\"%s\n\n",
+               COLOR_DEFAULT, COLOR_ACCENT,
+               COLOR_INPUT, trimmedDir, COLOR_DEFAULT);
 
         char **files = _getFilesFromDir(dir, (const char**)args->inFormats,
                                         !(args->options & OPT_NORECURSION));
@@ -37,9 +37,9 @@ char **getFiles(const arguments *args) {
                 fileCount++;
 
         printf("%s (found %s%lu%s files)%s\n\n",
-               CHARCOLOR_WHITE, CHARCOLOR_RED,
+               COLOR_DEFAULT, COLOR_ACCENT,
                (unsigned long)fileCount,
-               CHARCOLOR_WHITE, COLOR_DEFAULT);
+               COLOR_DEFAULT, COLOR_DEFAULT);
 
         free(trimmedDir);
 

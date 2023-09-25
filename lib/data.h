@@ -44,17 +44,15 @@ typedef struct arguments {
     uint8_t options; // Bit fields for the optional arguments
 } arguments;
 
-#define PROGRAM_NAME         "RFFMPEG"
 #define PROGRAM_VERSION      "v1.1.0"
-#define FULL_PROGRAM_TITLE   (PROGRAM_NAME " " PROGRAM_VERSION " (跨平台)")
-#define CONSOLE_WINDOW_TITLE (PROGRAM_NAME " " PROGRAM_VERSION)
+#define CONSOLE_WINDOW_TITLE ("RFFmpeg " PROGRAM_VERSION)
 
 /* ANSI escape chars for colored shell output */
 #define COLOR_DEFAULT        "\x1b[0m"
-#define CHARCOLOR_RED        "\x1b[31m"
-#define CHARCOLOR_WHITE      "\x1b[37m"
-#define CHARCOLOR_RED_BOLD   "\x1b[91m"
-#define CHARCOLOR_WHITE_BOLD "\x1b[97m"
+#define COLOR_ACCENT         "\x1b[91m"
+#define COLOR_INPUT          "\x1b[97m"
+#define COLOR_ERROR          "\x1b[91m"
+
 
 #define LIST_BUF 16
 
@@ -77,10 +75,10 @@ typedef struct arguments {
 #define printErr(msg, dsc)                      \
     fprintf(                                    \
             stderr,                             \
-            "%s ERROR: %s%s (%s%s%s)\n\n",      \
-            CHARCOLOR_RED,                      \
-            CHARCOLOR_WHITE, msg,               \
-            CHARCOLOR_RED, dsc,                 \
+            "%s ERROR: %s%s: %s%s%s\n\n",      \
+            COLOR_ERROR,                        \
+            COLOR_DEFAULT, msg,               \
+            COLOR_INPUT, dsc,                 \
             COLOR_DEFAULT)
 
 #define xrealloc(buf, size) do {                        \
