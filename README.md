@@ -2,7 +2,8 @@
 
 Command-line/Console window tool for batch-processing files inside a specific directory (or more) with FFmpeg
 
-* Currently supports *Windows*, *Linux* and *MacOS* (though I haven't gotten to compiling or testing for mac yet)
+* Currently ships binaries for *Windows* and *Linux*
+* Building for *MacOS* and *Free/OpenBSD* should work without problems but I haven't tested that yet
 
 * Run with `--help` to read the help page (this one covers more examples though)
 
@@ -48,7 +49,7 @@ This tool's argument syntax is not that different from FFmpeg itself, with the b
 
 Here's a basic RFFmpeg command that looks for wav files and converts them to mp3:
 
-    > rffmpeg C:\Users\Music -i wav -o mp3
+    rffmpeg C:\Users\Music -i wav -o mp3
   
 
 <br>
@@ -56,11 +57,11 @@ Here's a basic RFFmpeg command that looks for wav files and converts them to mp3
  ### **Arguments**
  
 
- * **-i**   :   one or more formats you wish to transcode separated by commas, like: `-in mp4,m4v,mov`
+ * **-i**   :   one or more formats you wish to transcode separated by commas, like: `-i mp4,m4v,mkv`
 
- * **-p**   :   optional ffmpeg conversion parameters, as in: `-p '-c:v vp9 -crf 32 -c:a copy'` 
+ * **-p**   :   optional ffmpeg conversion parameters, as in: `-p "-c:v vp9 -crf 32 -c:a copy"` 
 
- * **-o**   :   extension for your output files (dot is implicit)
+ * **-o**   :   extension for your output files (dot is implicit) `-o webm`
 
     * If you specify identical input and output formats, use the **-subfolder** or **-newpath** option otherwise the program won't run
 
@@ -73,7 +74,7 @@ You can also pass any of the flags below to help you organize your batch convers
  * **-subfolder** : puts your converted files inside a new folder (which is itself created inside the input file's directory)
     * You can also give it a custom name like this: `-subfolder:你好`
  * **-outpath**  : puts your converted files inside a new absolute directory
-    * Unlike -subfolder, you have to explicitly name the new path, as in: `-outpath:~/Music/你好`
+    * Unlike -subfolder, you have to explicitly name the new path, as in: `-outpath:/home/Music/你好`
 
  * **-cl**       : deletes the original files permanently after conversion (**don't use this if you're not sure the conversion will work properly**)
 
@@ -87,6 +88,6 @@ You can also pass any of the flags below to help you organize your batch convers
 
 Here's an example of a more specific call to rffmpeg that looks inside two specific folders for .flac and .m4a files, converts them to .opus using the libopus codec, and finally stores them in a new subfolder named 'transcoded'
 
-    rffmpeg C:\Users\User\Music C:\Users\User\Music\Album2 -i flac,m4a -p '-c:a libopus -vbr on -b:a 128k' -o opus -subfolder:transcoded
+    rffmpeg /home/Music /home/Videos -i flac,m4a -p "-c:a libopus -vbr on -b:a 128k" -o opus -subfolder:transcoded
 
 ***
