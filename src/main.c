@@ -1,10 +1,9 @@
-#include <libs.h>
+
 #include <data.h>
 #include <parse.h>
 #include <search.h>
 #include <convert.h>
 #include <help.h>
-#include <stdlib.h>
 
 /* TODO:
  * 1. create macro for windows error message formatting (stupidly long proc)
@@ -17,6 +16,20 @@
  * 1. resolve non-absolute pathnames by feeding them to realpath()
  *    before passing them to the main file-searching procedure
  *    (or implement your own, since the available one kinda sucks) */
+
+
+/* FIXME: skips user input if a conversion succeeded */
+#ifdef _WIN32
+#define _waitForNewLine()                                           \
+    wint_t c = getwchar();                                          \
+    ungetwc(c, stdin);                                              \
+    while ((c = getwchar()) != u'\n' && c != u'\r' && c != WEOF)
+#else
+#define _waitForNewLine()                               \
+    int c;                                              \
+    while ((c = getchar()) != '\n' && c != EOF);        \
+    getchar()
+#endif
 
 static int handleArgErrors(arguments *args);
 static void createTestProcess(void);
@@ -170,11 +183,7 @@ int main(int argc, char *argv[]) {
         printf(" %s(Press %sENTER%s to exit) ",
                COLOR_DEFAULT, COLOR_INPUT, COLOR_DEFAULT);
 
-        /* first clear the input buffer */
-        char c;
-        while ((c = getchar()) != '\n' && c != EOF);
-
-        getchar();
+        _waitForNewLine();
         printf("\n");
 
 #ifdef _WIN32
