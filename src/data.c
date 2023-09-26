@@ -59,6 +59,7 @@ void trimSpaces(char *string) {
         memset(string + strlen(string) + 1, 0, start - string);
     }
 }
+
 #define ERR_INVALID_UTF8 "found invalid UTF-8"
 
 /* Trims a long (NUL terminated) UTF-8 encoded string if it exceeds

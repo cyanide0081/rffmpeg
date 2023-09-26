@@ -48,20 +48,19 @@ typedef struct arguments {
 #define CONSOLE_WINDOW_TITLE ("RFFmpeg " PROGRAM_VERSION)
 
 /* ANSI escape chars for colored shell output */
-
-#ifdef _WIN32
+#ifndef NO_ANSI_ESCAPE_CODES
 #define COLOR_DEFAULT        "\x1b[0m"
 #define COLOR_ACCENT         "\x1b[91m"
 #define COLOR_INPUT          "\x1b[97m"
 #define COLOR_ERROR          "\x1b[91m"
 #else
-#define COLOR_DEFAULT        "\033[0m"
-#define COLOR_ACCENT         "\033[91m"
-#define COLOR_INPUT          "\033[97m"
-#define COLOR_ERROR          "\033[91m"
+#define COLOR_DEFAULT
+#define COLOR_ACCENT
+#define COLOR_INPUT
+#define COLOR_ERROR
 #endif
 
-#define LIST_BUF 16
+#define LIST_BUF 8
 
 #ifdef _WIN32
 #define FILE_BUF MAX_PATH
@@ -71,9 +70,21 @@ typedef struct arguments {
 #define ARG_BUF  ARG_MAX
 #endif
 
+/* FIXME: skips user input if a conversion succeeded */
+#ifdef _WIN32
+#define _waitForNewLine()                                           \
+    wint_t c = getwchar();                                          \
+    ungetwc(c, stdin);                                              \
+    while ((c = getwchar()) != u'\n' && c != u'\r' && c != WEOF)
+#else
+#define _waitForNewLine()                               \
+    int c;                                              \
+    while ((c = getchar()) != '\n' && c != EOF);        \
+    getchar()
+#endif
 
 #ifndef NDEBUG
-#define dprintf(fmt, ...) fprintf(stderr, "%s:%d:%s(): " fmt, \
+#define dprintf(fmt, ...) fprintf(stderr, "%s:%d:%s(): " fmt,           \
                                   __FILE__, __LINE__, __func__, __VA_ARGS__)
 #else
 #define dprintf(...) do {} while (false)
@@ -82,10 +93,10 @@ typedef struct arguments {
 #define printErr(msg, dsc)                      \
     fprintf(                                    \
             stderr,                             \
-            "%s ERROR: %s%s: %s\"%s\"%s\n\n",      \
+            "%s ERROR: %s%s: %s\"%s\"%s\n\n",   \
             COLOR_ERROR,                        \
-            COLOR_DEFAULT, msg,               \
-            COLOR_INPUT, dsc,                 \
+            COLOR_DEFAULT, msg,                 \
+            COLOR_INPUT, dsc,                   \
             COLOR_DEFAULT)
 
 #define xrealloc(buf, size) do {                        \

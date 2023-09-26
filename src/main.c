@@ -16,20 +16,6 @@
  *    before passing them to the main file-searching procedure
  *    (or implement your own, since the available one kinda sucks) */
 
-
-/* FIXME: skips user input if a conversion succeeded */
-#ifdef _WIN32
-#define _waitForNewLine()                                           \
-    wint_t c = getwchar();                                          \
-    ungetwc(c, stdin);                                              \
-    while ((c = getwchar()) != u'\n' && c != u'\r' && c != WEOF)
-#else
-#define _waitForNewLine()                               \
-    int c;                                              \
-    while ((c = getchar()) != '\n' && c != EOF);        \
-    getchar()
-#endif
-
 static int handleArgErrors(arguments *args);
 static void createTestProcess(void);
 static void displayEndDialog(processInfo *procInfo);
@@ -114,10 +100,8 @@ int main(int argc, char *argv[]) {
 
     processInfo procInfo = {0};
 
-
     printf("%s%s%s\n\n", COLOR_ACCENT,
-           "RFFMPEG " PROGRAM_VERSION " (月光)",
-           COLOR_DEFAULT);
+           "RFFMPEG " PROGRAM_VERSION " (月光)", COLOR_DEFAULT);
 
     createTestProcess();
 

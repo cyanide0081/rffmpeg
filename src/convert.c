@@ -1,6 +1,5 @@
 #include <convert.h>
 
-
 static bool _fileExists(const char *fileName);
 static int _handleFileNameConflicts(char *pureName,
                                     const char *fileFormat,
@@ -220,7 +219,6 @@ static int _handleFileNameConflicts(char *pureName,
 
     return EXIT_SUCCESS;
 }
-
 
 static bool _fileExists(const char *fileName) {
 #ifdef _WIN32
