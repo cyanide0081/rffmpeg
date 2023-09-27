@@ -159,7 +159,8 @@ int main(int argc, char *argv[]) {
             if (exitCode != EXIT_FAILURE)
                 displayEndDialog(&procInfo);
         } else {
-            printErr("found no matching files", "(aborting)");
+            printf(" found no matching files (%saborting%s)\n\n",
+                   COLOR_ACCENT, COLOR_DEFAULT);
         }
     }
 
