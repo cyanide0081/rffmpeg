@@ -20,7 +20,8 @@ int main(int argc, char *argv[]) {
     inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
 
 #ifdef _WIN32
-    /* NOTE: Windows Unicode console I/O prioritizing UTF-8:
+    /* NOTE:
+     * Windows Unicode console I/O prioritizing UTF-8:
      * 1. Set character translation mode for stdin to UTF-16LE
      * 2. Set console codepages to UTF-8
      * 3. Use wide chars for everything related to console
@@ -29,13 +30,12 @@ int main(int argc, char *argv[]) {
      *    WideCharToMultiByte() and use normal char functions
      *    for output to stdout or stderr */
 
-    /* Setup Unicode (UTF-16LE) console Input for Windows */
+    /* Set console input mode to Unicode (UTF-16LE) */
     _setmode(_fileno(stdin), _O_U16TEXT);
 
     UINT originalCP       = GetConsoleCP();
     UINT originalOutputCP = GetConsoleOutputCP();
 
-    /* Set all code pages to UTF-8 */
     if (!IsValidCodePage(CP_UTF8) ||
         !SetConsoleCP(CP_UTF8) ||
         !SetConsoleOutputCP(CP_UTF8)
@@ -45,7 +45,6 @@ int main(int argc, char *argv[]) {
         exit(err);
     }
 
-    /* Enable virtual terminal sequences for colored console output */
     DWORD originalConsoleMode;
     enableVirtualTerminalProcessing(&originalConsoleMode);
     wchar_t originalConsoleWindowTitle[FILE_BUF];

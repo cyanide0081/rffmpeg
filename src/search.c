@@ -1,13 +1,14 @@
+#include "data.h"
 #include <search.h>
 
-#define INITIAL_LIST_BUF 8
-#define MAX_DIR_PRINT_LEN (80 - 14)
+#define INITIAL_LIST_BUF  (8)
+#define LINE_LEN          (80)
 
 static char **_getFilesFromDir(const char *dir,
                                const char **fmts,
                                const bool recurse);
 
-int fileErr = 0;
+static int fileErr = 0;
 
 char **getFiles(const arguments *args) {
     size_t listSize = INITIAL_LIST_BUF;
@@ -16,7 +17,16 @@ char **getFiles(const arguments *args) {
 
     for (int i = 0; args->inPaths[i]; i++) {
         const char *dir = args->inPaths[i];
-        char *trimmedDir = trimUTF8StringTo(dir, MAX_DIR_PRINT_LEN);
+        char *trimmedDir = trimUTF8StringTo(dir, LINE_LEN - 40);
+
+        if (!isDirectory(dir)) {
+            printf("%s \"%s\"%s is not a directory (%signoring%s)\n\n",
+                   COLOR_INPUT, trimmedDir, COLOR_DEFAULT,
+                   COLOR_ACCENT, COLOR_DEFAULT);
+
+            free(trimmedDir);
+            continue;
+        }
 
         printf("%s scanning %s@ %s\"%s\"%s\n\n",
                COLOR_DEFAULT, COLOR_ACCENT,
@@ -27,8 +37,10 @@ char **getFiles(const arguments *args) {
 
         size_t fileCount = 0;
 
-        if (fileErr)
+        if (fileErr) {
+            free(trimmedDir);
             continue;
+        }
 
         if (files)
             while (files[fileCount])
@@ -41,8 +53,10 @@ char **getFiles(const arguments *args) {
 
         free(trimmedDir);
 
-        if (!files)
+        if (!files) {
+            free(trimmedDir);
             continue;
+        }
 
         for (int idx = 0; files[idx]; idx++) {
             if (listIdx == listSize - 1) {
