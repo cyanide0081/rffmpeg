@@ -3,7 +3,6 @@
 #include <search.h>
 #include <convert.h>
 #include <help.h>
-#include <stdlib.h>
 
 /* TODO:
  * - detect if only directories were passed as arguments and if so take program
