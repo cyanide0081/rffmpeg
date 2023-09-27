@@ -5,8 +5,6 @@
 #include <help.h>
 
 /* TODO:
- * - detect if only directories were passed as arguments and if so take program
- *   flow to the second argument of the console parsing section
  * - add multi-threading to the conversion procedure (and maybe searching too)
  * - implement --version command (maybe)
  *

@@ -113,21 +113,13 @@ typedef struct arguments {
     } while (false)                                     \
 
 arguments *allocArguments(void);
-
 void freeArguments(arguments *arguments);
-
 fmtTime formatTime(double seconds);
-
 void trimSpaces(char *string);
-
 char *trimUTF8StringTo(const char *str, size_t maxChars);
-
 void *xcalloc(size_t numberOfElements, size_t sizeOfElements);
-
 char *_asprintf(const char *format, ...);
-
 void readLine(char *dst, size_t dstSize);
-
 bool isDirectory(const char *dir);
 
 #endif // H_TYPES
