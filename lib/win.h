@@ -10,12 +10,11 @@
 #ifdef _MSC_VER
 #include <basetsd.h>
 
-typedef SSIZE_T ssize_t;
-
 #define strncasecmp _strnicmp
 #define strcasecmp _stricmp
 #define strtok_r strtok_s
 #define CLOCK_MONOTONIC_RAW 0
+#define ssize_t SSIZE_T
 #endif  /* MSC_VER */
 
 #define DIR _WDIR
@@ -33,6 +32,29 @@ typedef SSIZE_T ssize_t;
     MultiByteToWideChar(CP_UTF8, 0, mbs, mbc, wcs, wcc)
 #define UTF16toUTF8(wcs, wcc, mbs, mbc)                             \
     WideCharToMultiByte(CP_UTF8, 0, wcs, wcc, mbs, mbc, NULL, NULL)
+
+#define printWinErrMsg(preamble, err)                               \
+    wchar_t *errMsgW = NULL;                                        \
+        int sizeW = FormatMessageW(                                 \
+            FORMAT_MESSAGE_ALLOCATE_BUFFER |                        \
+            FORMAT_MESSAGE_FROM_SYSTEM |                            \
+            FORMAT_MESSAGE_IGNORE_INSERTS,                          \
+            NULL,                                                   \
+            err,                                                    \
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),              \
+            (LPWSTR)&errMsgW,                                       \
+            0,                                                      \
+            NULL                                                    \
+        );                                                          \
+                                                                    \
+        int size = UTF16toUTF8(errMsgW, (int)sizeW, NULL, 0);       \
+        char *errMsg = xcalloc(size, sizeof(char));                 \
+        UTF16toUTF8(errMsgW, sizeW, errMsg, size);                  \
+        trimSpaces(errMsg);                                         \
+                                                                    \
+        printErr(preamble, errMsg);                                 \
+        LocalFree(errMsgW);                                         \
+        free(errMsg)
 
 static char *strndup(const char *str, size_t n) {
     if (strlen(str) <= n) {

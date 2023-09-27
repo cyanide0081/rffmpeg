@@ -105,27 +105,7 @@ int convertFiles(const char **files,
 
         if (!createdProcess) {
             DWORD err = GetLastError();
-            wchar_t *errMsgW = NULL;
-            int sizeW = FormatMessageW(
-                FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                FORMAT_MESSAGE_FROM_SYSTEM |
-                FORMAT_MESSAGE_IGNORE_INSERTS,
-                NULL,
-                err,
-                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                (LPWSTR)&errMsgW,
-                0,
-                NULL
-            );
-
-            int size = UTF16toUTF8(errMsgW, (int)sizeW, NULL, 0);
-            char *errMsg = xcalloc(size, sizeof(char));
-            UTF16toUTF8(errMsgW, sizeW, errMsg, size);
-            trimSpaces(errMsg);
-
-            printErr("call to FFmpeg failed", errMsg);
-            LocalFree(errMsgW);
-            free(errMsg);
+            printWinErrMsg("call to FFmpeg failed", err);
         } else {
             WaitForSingleObject(ffmpegProcessInfo.hProcess, INFINITE);
             CloseHandle(ffmpegProcessInfo.hProcess);

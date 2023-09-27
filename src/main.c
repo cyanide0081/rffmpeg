@@ -6,16 +6,15 @@
 #include <stdlib.h>
 
 /* TODO:
- * 1. create macro for windows error message formatting (stupidly long proc)
- * 2. detect if only directories were passed as arguments and if so take program
- *    flow to the second argument of the console parsing section
- * 3. add multi-threading to the conversion procedure (and maybe searching too)
- * 4. implement --version command (maybe)
+ * - detect if only directories were passed as arguments and if so take program
+ *   flow to the second argument of the console parsing section
+ * - add multi-threading to the conversion procedure (and maybe searching too)
+ * - implement --version command (maybe)
  *
  * FIXME:
- * 1. resolve non-absolute pathnames by feeding them to realpath()
- *    before passing them to the main file-searching procedure
- *    (or implement your own, since the available one kinda sucks) */
+ * - resolve non-absolute pathnames by feeding them to realpath()
+ *   before passing them to the main file-searching procedure
+     (or implement your own, since the available one kinda sucks) */
 
 static void createTestProcess(void);
 static void displayEndDialog(processInfo *procInfo);
@@ -45,27 +44,7 @@ int main(int argc, char *argv[]) {
         !SetConsoleOutputCP(CP_UTF8)
         ) {
         DWORD err = GetLastError();
-        wchar_t *errMsgW = NULL;
-        int sizeW = FormatMessageW(
-            FORMAT_MESSAGE_ALLOCATE_BUFFER |
-            FORMAT_MESSAGE_FROM_SYSTEM |
-            FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL,
-            err,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-            (LPWSTR)&errMsgW,
-            0,
-            NULL
-        );
-
-        int size = UTF16toUTF8(errMsgW, (int)sizeW, NULL, 0);
-        char *errMsg = xcalloc(size, sizeof(char));
-        UTF16toUTF8(errMsgW, sizeW, errMsg, size);
-        trimSpaces(errMsg);
-
-        printErr("couldn't set ANSI codepage to UTF-8", errMsg);
-        LocalFree(errMsgW);
-        free(errMsg);
+        printWinErrMsg("couldn't set ANSI codepage to UTF-8", err);
         exit(err);
     }
 
@@ -205,24 +184,7 @@ static void createTestProcess(void) {
     }
 
     DWORD err = GetLastError();
-    wchar_t *errMsgW = NULL;
-    int sizeW = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                               FORMAT_MESSAGE_FROM_SYSTEM |
-                               FORMAT_MESSAGE_IGNORE_INSERTS,
-                               NULL,
-                               err,
-                               MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                               (LPWSTR)&errMsgW,
-                               0,
-                               NULL);
-
-    int size = UTF16toUTF8(errMsgW, (int)sizeW, NULL, 0);
-    char *errMsg = xcalloc(size, sizeof(char));
-    UTF16toUTF8(errMsgW, sizeW, errMsg, size);
-
-    printErr("couldn't start ffmpeg", errMsg);
-    LocalFree(errMsgW);
-    free(errMsg);
+    printWinErrMsg("couldn't start ffmpeg", err);
     exit(err);
 #else
     pid_t processID = fork();
