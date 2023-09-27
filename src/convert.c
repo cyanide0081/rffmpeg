@@ -23,7 +23,7 @@ int convertFiles(const char **files,
         const char *fullPath = files[idx];
         const char *pathDelimPoint = (fullPath + strlen(fullPath) - 1);
 
-        while (*pathDelimPoint != '\\' && *pathDelimPoint != '/')
+        while (*pathDelimPoint != PATH_SEP)
             pathDelimPoint--;
 
         char *filePath = strndup(fullPath, (pathDelimPoint - fullPath));
@@ -37,7 +37,8 @@ int convertFiles(const char **files,
             args->customFolder : args->outFormat;
 
         if (args->options & OPT_NEWFOLDER) {
-            char *newPath = _asprintf("%s/%s", filePath, newFolderName);
+            char *newPath = _asprintf("%s%c%s",
+                                      filePath, PATH_SEP, newFolderName);
 
             if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                 printErr("Unable to create subdirectory", strerror(errno));
@@ -75,7 +76,8 @@ int convertFiles(const char **files,
         }
 
         char *fullOutPath =
-            _asprintf("%s/%s.%s", outPath, fileNameNoExt, args->outFormat);
+            _asprintf("%s%c%s.%s",
+                      outPath, PATH_SEP, fileNameNoExt, args->outFormat);
 
         /* debug info printing */
         dprintf("FULLPATH:    \"%s\"\n",   fullPath);
@@ -139,7 +141,6 @@ int convertFiles(const char **files,
                dynamic array of args due to ffOptions right now */
             /* execlp("ffmpeg", "ffmpeg", overwriteFlag, "-i", */
             /*        fullPath, args->ffOptions, fullOutPath, (char*)NULL); */
-
             system(ffmpegCall);
             exit(errno);
         } else {
@@ -195,10 +196,11 @@ static int _handleFileNameConflicts(char *pureName,
                                     const char *fileFormat,
                                     const char *path) {
     size_t fullPathSize =
-        snprintf(NULL, 0, "%s/%s.-xxx%s", path, pureName, fileFormat) + 1;
+        snprintf(NULL, 0, "%s%c%s.-xxx%s",
+                 path, PATH_SEP, pureName, fileFormat) + 1;
 
     char *fullPath = xcalloc(fullPathSize, sizeof(char));
-    sprintf(fullPath, "%s/%s.%s", path, pureName, fileFormat);
+    sprintf(fullPath, "%s%c%s.%s", path, PATH_SEP, pureName, fileFormat);
 
     char newName[NAME_MAX];
 
@@ -207,8 +209,8 @@ static int _handleFileNameConflicts(char *pureName,
         size_t index = 0;
 
         while (_fileExists(fullPath))
-            sprintf(fullPath, "%s/%s-%03" PRIu64 ".%s",
-             path, pureName, (uint64_t)++index, fileFormat);
+            sprintf(fullPath, "%s%c%s-%03" PRIu64 ".%s",
+                    path, PATH_SEP, pureName, (uint64_t)++index, fileFormat);
 
         snprintf(newName, FILE_BUF, "%s-%03" PRIu64,
                  pureName, (uint64_t)index);

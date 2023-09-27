@@ -101,7 +101,7 @@ static char **_getFilesFromDir(const char *dir,
 #else
         char *fileName = strdup(entry->d_name);
 #endif
-        char *fullInPath = _asprintf("%s/%s", dir, fileName);
+        char *fullInPath = _asprintf("%s%c%s", dir, PATH_SEP, fileName);
 
         if (strcmp(fileName, ".") == 0 || strcmp(fileName, "..") == 0) {
             free(fileName);

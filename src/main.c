@@ -3,6 +3,7 @@
 #include <search.h>
 #include <convert.h>
 #include <help.h>
+#include <stdlib.h>
 
 /* TODO:
  * 1. create macro for windows error message formatting (stupidly long proc)
@@ -16,7 +17,6 @@
  *    before passing them to the main file-searching procedure
  *    (or implement your own, since the available one kinda sucks) */
 
-static int handleArgErrors(arguments *args);
 static void createTestProcess(void);
 static void displayEndDialog(processInfo *procInfo);
 
@@ -107,17 +107,18 @@ int main(int argc, char *argv[]) {
 
     arguments *parsedArgs = allocArguments();
 
-    if (inputMode == ARGUMENTS) {
-        parseArgs(argc, argv, parsedArgs);
-    } else {
-        parseConsoleInput(parsedArgs);
-    }
-
     int exitCode = EXIT_SUCCESS;
+    int state = PARSE_STATE_OK;
+
+    if (inputMode == ARGUMENTS) {
+        state = parseArgs(argc, argv, parsedArgs);
+    } else {
+        state = parseConsoleInput(parsedArgs);
+    }
 
     if (parsedArgs->options & OPT_DISPLAYHELP && inputMode == ARGUMENTS) {
         printf(HELP_PAGE);
-    } else if ((exitCode = handleArgErrors(parsedArgs)) == EXIT_SUCCESS) {
+    } else if (state == PARSE_STATE_OK) {
         struct timespec startTime, endTime;
         clock_gettime(CLOCK_MONOTONIC_RAW, &startTime);
 
@@ -187,88 +188,6 @@ int main(int argc, char *argv[]) {
     return exitCode;
 }
 
-/* Handles edge cases regarding arguments as well as errors */
-static int handleArgErrors(arguments *args) {
-    /* Set current working directory as input path if none is provided */
-    if (args->inPaths[0] == NULL) {
-#ifdef _WIN32
-        int len = GetCurrentDirectoryW(0, NULL);
-        wchar_t *currentDirW = xcalloc(len, sizeof(wchar_t));
-        GetCurrentDirectoryW((DWORD)len, currentDirW);
-
-        len = UTF16toUTF8(currentDirW, -1, NULL, 0);
-        args->inPaths[0] = xcalloc(len, sizeof(char));
-
-        UTF16toUTF8(currentDirW, -1, args->inPaths[0], len);
-        free(currentDirW);
-#else
-        if (!(args->inPaths[0] = getcwd(NULL, 0))) {
-            printErr("couldn't retrieve current working directory",
-                     strerror(errno));
-            exit(errno);
-        }
-#endif
-    }
-
-    /* TODO: move this handling to the end of the parsing function */
-    if (*args->inFormats[0] == '\0') {
-        printErr("no input format", "(NULL)");
-        return EXIT_FAILURE;
-    }
-
-    if (!args->outFormat) {
-        printErr("no output format", "(NULL)");
-        return EXIT_FAILURE;
-    }
-
-    if ((args->options & (OPT_NEWFOLDER & OPT_CUSTOMFOLDERNAME))) {
-        if ((strlen(args->customFolder) >= NAME_MAX - 1)) {
-            char *maxLen = _asprintf("%d bytes", NAME_MAX);
-            printErr("custom folder name exceeds maximum allowed length", maxLen);
-            free(maxLen);
-        }
-
-        return EXIT_FAILURE;
-    }
-
-    if (args->options & OPT_NEWPATH) {
-        if (args->customPath == NULL || *args->customPath == '\0') {
-            printErr("empty custom path field", "usage: -outpath:[PATH]");
-
-            return EXIT_FAILURE;
-        }
-
-        /* TODO: prompt the user to choose whether they want
-           to remove windows's default pathname limit 8) */
-#ifdef _WIN32
-        if (strlen(args->customPath) >= MAX_PATH) {
-            char maxLen[FMT_BUF] = {0};
-            sprintf(maxLen, "%d bytes", MAX_PATH);
-            printErr("custom path string exceeds maximum allowed length",
-                     maxLen);
-
-            return EXIT_FAILURE;
-        }
-#endif
-    }
-
-    for (int i = 0; args->inFormats[i] != NULL; i++) {
-        if (strcmp(args->inFormats[i], args->outFormat) == 0
-            && !(args->options & OPT_NEWFOLDER)
-            && !(args->options & OPT_NEWPATH)
-            ) {
-            printErr("can't use ffmpeg with identical input "
-                     "and output formats",
-                     "use '-outpath' or '-subfolder' "
-                     "to save the files in a new directory");
-
-            return EXIT_FAILURE;
-        }
-    }
-
-    return EXIT_SUCCESS;
-}
-
 static void createTestProcess(void) {
 #ifdef _WIN32
     STARTUPINFOW ffmpegStartupInfo = {0};
@@ -334,24 +253,24 @@ static void createTestProcess(void) {
 #endif
 }
 
-static void displayEndDialog(processInfo *processInformation) {
-    if (processInformation->convertedFiles == 0) {
+static void displayEndDialog(processInfo *procInfo) {
+    if (procInfo->convertedFiles == 0) {
         printErr("unable to convert files",
                  "double-check your ffmpeg parameters");
     } else {
-        fmtTime executionTime = formatTime(processInformation->executionTime);
+        fmtTime execTime = formatTime(procInfo->executionTime);
 
         printf(" %sDONE!%s\n", COLOR_ACCENT, COLOR_DEFAULT);
         printf("\n");
         printf(" %sProcessed files: %s%" PRIu64 "%s\n", COLOR_DEFAULT,
-               COLOR_ACCENT, (uint64_t)processInformation->convertedFiles,
+               COLOR_ACCENT, (uint64_t)procInfo->convertedFiles,
                COLOR_DEFAULT);
         printf(" %sDeleted files:   %s%" PRIu64 "%s\n", COLOR_DEFAULT,
-               COLOR_ACCENT, (uint64_t)processInformation->deletedFiles,
+               COLOR_ACCENT, (uint64_t)procInfo->deletedFiles,
                COLOR_DEFAULT);
         printf(" %sElapsed time:    %s%02" PRIu64 ":%02" PRIu64 ":%05.2lf%s\n",
                COLOR_DEFAULT, COLOR_ACCENT,
-               executionTime.hours, executionTime.minutes, executionTime.seconds,
+               execTime.hours, execTime.minutes, execTime.seconds,
                COLOR_DEFAULT);
         printf("\n");
     }

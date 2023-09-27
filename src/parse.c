@@ -15,7 +15,7 @@ static char **_getTokenizedStrings(char *string, const char *delimiter);
 
 /* Parses the argument strings from direct
  * console input in case no argument is given */
-void parseConsoleInput(arguments *args) {
+int parseConsoleInput(arguments *args) {
     char input[ARG_BUF] = {0};
 
     /* TODO: handle parsing of multiple paths with quoted strings
@@ -50,25 +50,27 @@ void parseConsoleInput(arguments *args) {
     while (optionsList[listSize])
         listSize++;
 
-    parseArgs(listSize, optionsList, args);
+    int state = parseArgs(listSize, optionsList, args);
 
     for (size_t i = 0; i < listSize; i++)
         free(optionsList[i]);
 
     free(optionsList);
+
+    return state;
 }
 
 /* Parses an array of strings to format an (arguments*) accordingly */
-void parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
+int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
     if (listSize == 0)
-        return;
+        return PARSE_STATE_EMPTY;
 
     size_t count =  listSize, parsedArgsIdx = 0;
 
     for (size_t i = 1; i < count && args[i]; i++) {
         expectToken(args[i], "-help") {
             parsedArgs->options |= OPT_DISPLAYHELP;
-            return;
+            return PARSE_STATE_OK;
         }
         expectToken(args[i], "i") {
             parsedArgs->inFormats = _getTokenizedStrings(args[++i], ", ");
@@ -129,7 +131,11 @@ void parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
         if (isDirectory(args[i])) {
             parsedArgs->inPaths[parsedArgsIdx++] = strdup(args[i]);
         } else {
-            printErr("unrecognized option", args[i]);
+            printErr("invalid option", args[i]);
+            printf(" (run with %s--help%s for info)\n\n",
+                   COLOR_INPUT, COLOR_DEFAULT);
+
+            return PARSE_STATE_INVALID;
         }
     }
 
@@ -142,6 +148,84 @@ void parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
 
     if (!parsedArgs->customPath)
         parsedArgs->customPath = strdup("");
+
+    /* Set current working directory as input path if none is provided */
+    if (parsedArgs->inPaths[0] == NULL) {
+#ifdef _WIN32
+        int len = GetCurrentDirectoryW(0, NULL);
+        wchar_t *currentDirW = xcalloc(len, sizeof(wchar_t));
+        GetCurrentDirectoryW((DWORD)len, currentDirW);
+
+        len = UTF16toUTF8(currentDirW, -1, NULL, 0);
+        parsedArgs->inPaths[0] = xcalloc(len, sizeof(char));
+
+        UTF16toUTF8(currentDirW, -1, parsedArgs->inPaths[0], len);
+        free(currentDirW);
+#else
+        if (!(parsedArgs->inPaths[0] = getcwd(NULL, 0))) {
+            printErr("couldn't retrieve current working directory",
+                     strerror(errno));
+            return PARSE_STATE_CWD_ERROR;
+        }
+#endif
+    }
+
+    if (*parsedArgs->inFormats[0] == '\0') {
+        printErr("no input format", "(NULL)");
+        return PARSE_STATE_BAD_ARG;
+    }
+
+    if (!parsedArgs->outFormat) {
+        printErr("no output format", "(NULL)");
+        return PARSE_STATE_BAD_ARG;
+    }
+
+    if ((parsedArgs->options & (OPT_NEWFOLDER & OPT_CUSTOMFOLDERNAME))) {
+        if ((strlen(parsedArgs->customFolder) >= NAME_MAX - 1)) {
+            char *maxLen = _asprintf("%d bytes", NAME_MAX);
+            printErr("custom folder name exceeds maximum allowed length", maxLen);
+            free(maxLen);
+        }
+
+        return PARSE_STATE_LONG_ARG;
+    }
+
+    if (parsedArgs->options & OPT_NEWPATH) {
+        if (parsedArgs->customPath == NULL || *parsedArgs->customPath == '\0') {
+            printErr("empty custom path field", "usage: -outpath:[PATH]");
+
+            return PARSE_STATE_BAD_ARG;
+        }
+
+        /* TODO: prompt the user to choose whether they want
+           to remove windows's default pathname limit 8) */
+#ifdef _WIN32
+        if (strlen(parsedArgs->customPath) >= MAX_PATH) {
+            char maxLen[FMT_BUF] = {0};
+            sprintf(maxLen, "%d bytes", MAX_PATH);
+            printErr("custom path string exceeds maximum allowed length",
+                     maxLen);
+
+            return PARSE_STATE_LONG_ARG;
+        }
+#endif
+    }
+
+    for (int i = 0; parsedArgs->inFormats[i] != NULL; i++) {
+        if (strcmp(parsedArgs->inFormats[i], parsedArgs->outFormat) == 0
+            && !(parsedArgs->options & OPT_NEWFOLDER)
+            && !(parsedArgs->options & OPT_NEWPATH)
+            ) {
+            printErr("can't use ffmpeg with identical input "
+                     "and output formats",
+                     "use '-outpath' or '-subfolder' "
+                     "to save the files in a new directory");
+
+            return PARSE_STATE_EXT_CONFLICT;
+        }
+    }
+
+    return PARSE_STATE_OK;
 }
 
 static char **_getTokenizedStrings(char *string, const char *delimiter) {

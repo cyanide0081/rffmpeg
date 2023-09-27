@@ -18,15 +18,23 @@
 #define OPT_NEWPATH            0x40
 #define OPT_CUSTOMPATHNAME     0x80
 
+#define PARSE_STATE_OK             0
+#define PARSE_STATE_EMPTY          1
+#define PARSE_STATE_INVALID        2
+#define PARSE_STATE_CWD_ERROR      3
+#define PARSE_STATE_BAD_ARG        4
+#define PARSE_STATE_LONG_ARG       5
+#define PARSE_STATE_EXT_CONFLICT   6
+
 #ifdef _WIN32
 #define DIR_DELIMITER ";"
 #else
 #define DIR_DELIMITER ":"
 #endif
 
-void parseConsoleInput(arguments *args);
+int parseConsoleInput(arguments *args);
 
-void parseArgs(const int count,
+int parseArgs(const int count,
                char *rawArguments[],
                arguments *parsedArguments);
 

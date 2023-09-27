@@ -65,9 +65,11 @@ typedef struct arguments {
 #ifdef _WIN32
 #define FILE_BUF MAX_PATH
 #define ARG_BUF  SHRT_MAX /* max 'Unicode_String' size on Windows */
+#define PATH_SEP '\\'
 #else
 #define FILE_BUF NAME_MAX
 #define ARG_BUF  ARG_MAX
+#define PATH_SEP '/'
 #endif
 
 /* FIXME: skips user input if a conversion succeeded */
