@@ -13,6 +13,15 @@ Command-line/Console window tool for batch-processing files inside a specific di
 
 <br>
 
+## **Table of contents**
+
+1. [Installation](#installation)
+2. [Usage](#usage)
+3. [Building](#building)
+
+<br>
+
+<a name="installation"></a>
 ## **Installation**
 
 In order to use this tool you will first need to install FFmpeg, so here are two ways to do it:
@@ -41,6 +50,7 @@ You can then check if your installation succeeded by running the version command
 
 <br>
 
+<a name="usage"></a>
 ## **Usage**
 
 This tool's argument syntax is not that different from FFmpeg itself, with the basic structure being:
@@ -88,9 +98,12 @@ You can also pass any of the flags below to help you organize your batch convers
 
 <br>
 
+<a name="building"></a>
 ## **Building**
 
 You can build this program by simply having the LLVM [clang](https://releases.llvm.org/download.html) compiler installed
+
+<br>
 
 ### **POSIX** (Linux, MacOS, FreeBSD, ...)
 
