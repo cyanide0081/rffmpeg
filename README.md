@@ -102,10 +102,14 @@ You can also build in release mode with:
 
     ./build.sh rel
 
+<br>
+
 ### **Windows**
 
 On Windows the build links with the [MSVC](https://visualstudio.microsoft.com/vs/features/cplusplus/) libraries so you'll have to install that
 if you don't have it already (though it should be pretty easy to build with something like MinGW if you modify the batch file a little)
+
+<br>
 
 To build it you can run the batch build script:
 
