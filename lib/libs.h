@@ -8,7 +8,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
-#include <sys/cdefs.h>
 #include <time.h>
 #include <dirent.h>
 #include <errno.h>
@@ -25,6 +24,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/cdefs.h>
 #ifdef __linux__
 #include <linux/limits.h>
 #else

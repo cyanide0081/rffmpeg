@@ -196,19 +196,6 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
 
             return PARSE_STATE_BAD_ARG;
         }
-
-        /* TODO: prompt the user to choose whether they want
-           to remove windows's default pathname limit 8) */
-#ifdef _WIN32
-        if (strlen(parsedArgs->customPath) >= MAX_PATH) {
-            char maxLen[FMT_BUF] = {0};
-            sprintf(maxLen, "%d bytes", MAX_PATH);
-            printErr("custom path string exceeds maximum allowed length",
-                     maxLen);
-
-            return PARSE_STATE_LONG_ARG;
-        }
-#endif
     }
 
     for (int i = 0; parsedArgs->inFormats[i] != NULL; i++) {

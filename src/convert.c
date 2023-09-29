@@ -182,18 +182,18 @@ static int _handleFileNameConflicts(char *pureName,
     char *fullPath = xcalloc(fullPathSize, sizeof(char));
     sprintf(fullPath, "%s%c%s.%s", path, PATH_SEP, pureName, fileFormat);
 
-    char newName[NAME_MAX];
+    char newName[FILE_BUF];
 
     /* Keep appending indexes until it results in a unique file name */
     if (_fileExists(fullPath)) {
         size_t index = 0;
 
         while (_fileExists(fullPath))
-            sprintf(fullPath, "%s%c%s-%03" PRIu64 ".%s",
-                    path, PATH_SEP, pureName, (uint64_t)++index, fileFormat);
+            sprintf(fullPath, "%s%c%s-%03ld.%s",
+                    path, PATH_SEP, pureName, (long)++index, fileFormat);
 
-        snprintf(newName, FILE_BUF, "%s-%03" PRIu64,
-                 pureName, (uint64_t)index);
+        snprintf(newName, FILE_BUF, "%s-%03ld",
+                 pureName, (long)index);
         memccpy(pureName, newName, '\0', FILE_BUF);
     }
 

@@ -2,6 +2,7 @@
 #define H_WIN
 
 /* WinAPI compatibility/abstraction layer */
+#include <stdio.h>
 #ifdef _WIN32
 
 #include <libs.h>
@@ -9,21 +10,29 @@
 /* Substitutions for MSVC compiler */
 #ifdef _MSC_VER
 #include <basetsd.h>
+
 #define strncasecmp _strnicmp
 #define strcasecmp _stricmp
 #define strtok_r strtok_s
-#define CLOCK_MONOTONIC_RAW 0
 #define ssize_t SSIZE_T
-#endif  /* MSC_VER */
+#define CLOCK_MONOTONIC_RAW 0
+#endif /* MSC_VER */
+
+/* max UNICODE_STRING size (subauth.h)  */
+#define ARG_BUF  SHRT_MAX
+#define FILE_BUF FILENAME_MAX
+#define PATH_SEP '\\'
+#define PATH_BUF ARG_BUF
 
 #define DIR _WDIR
 #define dirent _wdirent
 #define strdup _strdup
 #define memccpy _memccpy
-#define getchar getwchar
 
-#define mkdir(a, b) mkdirWin(a, b)
-#define opendir(d) opendirWin(d)
+#define mkdir(a, b) mkdirWIN(a, b)
+#define opendir(d) opendirWIN(d)
+#define remove(d)   removeWIN(d)
+
 #define readdir(d) _wreaddir(d)
 #define closedir(d) _wclosedir(d)
 
@@ -84,16 +93,15 @@ static int clock_gettime(int clockId, struct timespec *spec) {
     return 0;
 }
 
-/* NOTE: maybe change this later to SHRT_MAX if we ever implement
-   the disabling of windows's default 260-byte path size limit */
-#define PATH_BUF MAX_PATH
-
 /* Overrides mkdir to get around differences between std and ms versions */
-static int mkdirWin(const char *dir, int mode) {
+static int mkdirWIN(const char *dir, int mode) {
     (void)mode;
 
+    char prefixedDir[PATH_BUF];
+    sprintf_s(prefixedDir, PATH_BUF, "\\\\?\\%s", dir);
+
     wchar_t dirW[PATH_BUF];
-    UTF8toUTF16(dir, -1, dirW, PATH_BUF);
+    UTF8toUTF16(prefixedDir, -1, dirW, PATH_BUF);
 
     WIN32_FIND_DATAW fileData;
 
@@ -107,12 +115,28 @@ static int mkdirWin(const char *dir, int mode) {
     return EXIT_SUCCESS;
 }
 
-/* Overrides opendir() to support UNICODE directories on Windows */
-static DIR *opendirWin(const char *dir) {
+/* Overrides opendir() to support long UNICODE directories on Windows */
+static DIR *opendirWIN(const char *dir) {
+    char prefixedDir[PATH_BUF];
+    sprintf_s(prefixedDir, PATH_BUF, "\\\\?\\%s", dir);
+
     wchar_t dirW[PATH_BUF];
-    UTF8toUTF16(dir, -1, dirW, PATH_BUF);
+    UTF8toUTF16(prefixedDir, -1, dirW, PATH_BUF);
 
     return _wopendir(dirW);
+}
+
+static int removeWIN(const char *dir) {
+    char prefixedDir[PATH_BUF];
+    sprintf_s(prefixedDir, PATH_BUF, "\\\\?\\%s", dir);
+
+    wchar_t dirW[PATH_BUF];
+    UTF8toUTF16(prefixedDir, -1, dirW, PATH_BUF);
+
+    if (!DeleteFileW(dirW))
+        return GetLastError();
+
+    return EXIT_SUCCESS;
 }
 
 static int restoreConsoleMode(DWORD originalConsoleMode) {
@@ -140,5 +164,5 @@ static int enableVirtualTerminalProcessing(PDWORD originalConsoleMode) {
     return EXIT_SUCCESS;
 }
 
-#endif // _WIN32
-#endif // H_WIN
+#endif /* _WIN32 */
+#endif /* H_WIN */
