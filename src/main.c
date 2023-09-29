@@ -5,19 +5,20 @@
 #include <help.h>
 
 /* TODO:
+*  - finish profiling the code's most important bits
  * - add multi-threading to the conversion procedure (and maybe searching too)
  * - implement --version command (maybe)
  *
  * FIXME:
  * - resolve non-absolute pathnames by feeding them to realpath()
  *   before passing them to the main file-searching procedure
-     (or implement your own, since the available one kinda sucks) */
+ *   (or implement your own, since the available one kinda sucks) */
 
 static void createTestProcess(void);
 static void displayEndDialog(processInfo *procInfo);
 
 int main(int argc, char *argv[]) {
-    inputMode inputMode = argc == 1 ? CONSOLE : ARGUMENTS;
+    inputMode inputMode = argc > 1 ? ARGUMENTS : CONSOLE;
 
 #ifdef _WIN32
     /* NOTE:
@@ -129,7 +130,7 @@ int main(int argc, char *argv[]) {
 
             procInfo.executionTime =
                 (double)(endTime.tv_sec - startTime.tv_sec) +
-                (endTime.tv_nsec - startTime.tv_nsec) / 1e9;
+                (endTime.tv_nsec - startTime.tv_nsec) / 1e9F;
 
             if (exitCode != EXIT_FAILURE)
                 displayEndDialog(&procInfo);
@@ -234,3 +235,45 @@ static void displayEndDialog(processInfo *procInfo) {
         printf("\n");
     }
 }
+
+/* code profiling wrapper functions */
+#ifdef CLANG_INSTR_FUNCS
+#define __USE_GNU
+#include <dlfcn.h>
+
+static struct timespec funcStartTime = {0};
+static struct timespec funcEndTime   = {0};
+
+/* overriding clang's instrumentation functions for profiling */
+void __attribute__((__no_instrument_function__))
+    __cyg_profile_func_enter(void *thisFunc, void *callSite) {
+    (void)callSite;
+
+    clock_gettime(CLOCK_MONOTONIC_RAW, &funcStartTime);
+
+    Dl_info info;
+    dladdr(thisFunc, &info);
+
+    if (info.dli_sname)
+        printf(" calling %s():", info.dli_sname);
+}
+
+void __attribute__((__no_instrument_function__))
+    __cyg_profile_func_exit(void *thisFunc, void *callSite) {
+    (void)callSite;
+
+    clock_gettime(CLOCK_MONOTONIC_RAW, &funcEndTime);
+
+    double time =
+        (double)(funcEndTime.tv_sec - funcStartTime.tv_sec) +
+        (funcEndTime.tv_nsec - funcStartTime.tv_nsec) / 1e9F;
+
+    Dl_info info;
+    dladdr(thisFunc, &info);
+
+    if (info.dli_sname)
+        printf(" exiting %s() [elapsed time: %.3lfμs]\n\n",
+               info.dli_sname, time * 1e6);
+}
+
+#endif

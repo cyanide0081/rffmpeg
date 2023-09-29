@@ -9,7 +9,6 @@
 /* Substitutions for MSVC compiler */
 #ifdef _MSC_VER
 #include <basetsd.h>
-
 #define strncasecmp _strnicmp
 #define strcasecmp _stricmp
 #define strtok_r strtok_s
@@ -35,26 +34,26 @@
 
 #define printWinErrMsg(preamble, err)                               \
     wchar_t *errMsgW = NULL;                                        \
-        int sizeW = FormatMessageW(                                 \
-            FORMAT_MESSAGE_ALLOCATE_BUFFER |                        \
-            FORMAT_MESSAGE_FROM_SYSTEM |                            \
-            FORMAT_MESSAGE_IGNORE_INSERTS,                          \
-            NULL,                                                   \
-            err,                                                    \
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),              \
-            (LPWSTR)&errMsgW,                                       \
-            0,                                                      \
-            NULL                                                    \
-        );                                                          \
+    int sizeW = FormatMessageW(                                     \
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |                            \
+        FORMAT_MESSAGE_FROM_SYSTEM |                                \
+        FORMAT_MESSAGE_IGNORE_INSERTS,                              \
+        NULL,                                                       \
+        err,                                                        \
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),                  \
+        (LPWSTR)&errMsgW,                                           \
+        0,                                                          \
+        NULL                                                        \
+    );                                                              \
                                                                     \
-        int size = UTF16toUTF8(errMsgW, (int)sizeW, NULL, 0);       \
-        char *errMsg = xcalloc(size, sizeof(char));                 \
-        UTF16toUTF8(errMsgW, sizeW, errMsg, size);                  \
-        trimSpaces(errMsg);                                         \
+    int size = UTF16toUTF8(errMsgW, (int)sizeW, NULL, 0);           \
+    char *errMsg = xcalloc(size, sizeof(char));                     \
+    UTF16toUTF8(errMsgW, sizeW, errMsg, size);                      \
+    trimSpaces(errMsg);                                             \
                                                                     \
-        printErr(preamble, errMsg);                                 \
-        LocalFree(errMsgW);                                         \
-        free(errMsg)
+    printErr(preamble, errMsg);                                     \
+    LocalFree(errMsgW);                                             \
+    free(errMsg)
 
 static char *strndup(const char *str, size_t n) {
     if (strlen(str) <= n) {
@@ -73,8 +72,8 @@ static char *strndup(const char *str, size_t n) {
 }
 
 /* Implementation of clock_gettime for win32 */
-static int clock_gettime(int t, struct timespec *spec) {
-    (void)t;
+static int clock_gettime(int clockId, struct timespec *spec) {
+    (void)clockId;
     int64_t winTime;
     GetSystemTimeAsFileTime((FILETIME*)&winTime);
 
@@ -85,7 +84,9 @@ static int clock_gettime(int t, struct timespec *spec) {
     return 0;
 }
 
-#define PATH_BUF SHRT_MAX
+/* NOTE: maybe change this later to SHRT_MAX if we ever implement
+   the disabling of windows's default 260-byte path size limit */
+#define PATH_BUF MAX_PATH
 
 /* Overrides mkdir to get around differences between std and ms versions */
 static int mkdirWin(const char *dir, int mode) {

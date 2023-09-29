@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/cdefs.h>
 #include <time.h>
 #include <dirent.h>
 #include <errno.h>
@@ -24,8 +25,10 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#ifdef __linux__
+#include <linux/limits.h>
+#else
 #include <limits.h>
-#endif
-/* TODO: fix the linux/limits.h problem at the root */
-
-#endif  /* H_LIBS */
+#endif /* __linux__ */
+#endif /* OS headers */
+#endif /* H_LIBS */

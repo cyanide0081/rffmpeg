@@ -1,11 +1,11 @@
 #ifndef H_PARSERS_P
 #define H_PARSERS_P
 
+/* NOTE: i still don't know why the fuck i have to reinclude this */
 #ifdef __linux__
 #include <linux/limits.h>
 #endif
 
-#include <libs.h>
 #include <data.h>
 
 /* Option bitmasks */

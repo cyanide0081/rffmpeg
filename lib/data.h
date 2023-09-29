@@ -1,10 +1,6 @@
 #ifndef H_TYPES
 #define H_TYPES
 
-#ifdef __linux__
-#include <linux/limits.h>
-#endif
-
 #include <libs.h>
 #include <stdarg.h>
 
@@ -89,7 +85,7 @@ typedef struct arguments {
 #define dprintf(fmt, ...) fprintf(stderr, "%s:%d:%s(): " fmt,           \
                                   __FILE__, __LINE__, __func__, __VA_ARGS__)
 #else
-#define dprintf(...) do {} while (false)
+#define dprintf(...) (void)0
 #endif
 
 #define printErr(msg, dsc)                      \
@@ -101,7 +97,7 @@ typedef struct arguments {
             COLOR_INPUT, dsc,                   \
             COLOR_DEFAULT)
 
-#define xrealloc(buf, size) do {                        \
+#define xrealloc(buf, size) {                           \
         void *tmp = realloc(buf, size);                 \
         if (!tmp) {                                     \
             free(buf);                                  \
@@ -110,7 +106,7 @@ typedef struct arguments {
         }                                               \
                                                         \
         buf = tmp;                                      \
-    } while (false)                                     \
+    } (void)0                                           \
 
 arguments *allocArguments(void);
 void freeArguments(arguments *arguments);

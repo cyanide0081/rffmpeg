@@ -41,22 +41,24 @@ fmtTime formatTime(double seconds) {
 }
 
 void trimSpaces(char *string) {
+    if (*string == '\0')
+        return;
+
     size_t length = strlen(string);
     char *start = string;
 
     while (isspace(*start))
         start++;
 
-    char *end = string + length - 1;
+    char *end = string + length;
 
-    while (isspace(*end))  {
-        *end-- = '\0';
-    }
+    if (end > start)
+        while (isspace(*--end))
+            *end = '\0';
 
-    /* Shift spaceless part to the start */
     if (start != string) {
-        memmove(string, start, strlen(start) + 1);
-        memset(string + strlen(string) + 1, 0, start - string);
+        memmove(string, start, end - start + 1);
+        memset(end, '\0', start - string);
     }
 }
 
