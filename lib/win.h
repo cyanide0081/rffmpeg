@@ -42,7 +42,7 @@
 #define UTF16toUTF8(wcs, wcc, mbs, mbc)                             \
     WideCharToMultiByte(CP_UTF8, 0, wcs, wcc, mbs, mbc, NULL, NULL)
 
-#define printWinErrMsg(preamble, err)                               \
+#define printWinErrMsg(preamble, err) {                             \
     wchar_t *errMsgW = NULL;                                        \
     int sizeW = FormatMessageW(                                     \
         FORMAT_MESSAGE_ALLOCATE_BUFFER |                            \
@@ -63,14 +63,14 @@
                                                                     \
     printErr(preamble, errMsg);                                     \
     LocalFree(errMsgW);                                             \
-    free(errMsg)
+    free(errMsg);                                                   \
+} (void)0
 
 #define addUnicodePrefixToDir(src, dst) {                   \
     char prefixedDir[PATH_BUF];                             \
     sprintf_s(prefixedDir, PATH_BUF, "\\\\?\\%s", src);     \
     UTF8toUTF16(prefixedDir, -1, dst, PATH_BUF);            \
-    printf(" PREFIXED DIR: '%s'\n\n", prefixedDir);         \
-} (void)0                                                   \
+} (void)0
 
 static char *strndup(const char *str, size_t n) {
     if (strlen(str) <= n) {

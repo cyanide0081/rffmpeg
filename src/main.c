@@ -95,8 +95,7 @@ int main(int argc, char *argv[]) {
     if (parsedArgs->options & OPT_DISPLAYHELP && inputMode == ARGUMENTS) {
         printf(HELP_PAGE);
     } else if (state == PARSE_STATE_OK) {
-        struct timespec startTime, endTime;
-        clock_gettime(CLOCK_MONOTONIC_RAW, &startTime);
+
 
         char **fileList = getFiles(parsedArgs);
 
@@ -114,6 +113,9 @@ int main(int argc, char *argv[]) {
             int input = tolower(getchar());
             printf("%s\n", COLOR_DEFAULT);
 
+            struct timespec startTime = {0};
+            clock_gettime(CLOCK_MONOTONIC_RAW, &startTime);
+
             if (input == 'y') {
                 exitCode = convertFiles((const char **)fileList,
                                        parsedArgs, &procInfo);
@@ -121,12 +123,13 @@ int main(int argc, char *argv[]) {
                 exitCode = EXIT_FAILURE;
             }
 
+            struct timespec endTime = {0};
+            clock_gettime(CLOCK_MONOTONIC_RAW, &endTime);
+
             for (int i = 0; fileList[i]; i++)
                 free(fileList[i]);
 
             free(fileList);
-
-            clock_gettime(CLOCK_MONOTONIC_RAW, &endTime);
 
             procInfo.executionTime =
                 (double)(endTime.tv_sec - startTime.tv_sec) +
