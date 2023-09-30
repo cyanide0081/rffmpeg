@@ -67,15 +67,17 @@ typedef struct arguments {
 
 /* FIXME: skips user input if a conversion succeeded */
 #ifdef _WIN32
-#define _waitForNewLine()                                           \
+#define _waitForNewLine() {                                         \
     wint_t c = getwchar();                                          \
     ungetwc(c, stdin);                                              \
-    while ((c = getwchar()) != u'\n' && c != u'\r' && c != WEOF)
+    while ((c = getwchar()) != u'\n' && c != u'\r' && c != WEOF);   \
+} (void)0
 #else
-#define _waitForNewLine()                               \
+#define _waitForNewLine() {                             \
     int c;                                              \
     while ((c = getchar()) != '\n' && c != EOF);        \
-    getchar()
+    getchar()                                           \
+} (void)0
 #endif
 
 #ifndef NDEBUG
@@ -95,15 +97,15 @@ typedef struct arguments {
             COLOR_DEFAULT)
 
 #define xrealloc(buf, size) {                           \
-        void *tmp = realloc(buf, size);                 \
-        if (!tmp) {                                     \
-            free(buf);                                  \
-            printErr("out of memory", strerror(errno)); \
-            exit(errno);                                \
-        }                                               \
+    void *tmp = realloc(buf, size);                     \
+    if (!tmp) {                                         \
+        free(buf);                                      \
+        printErr("out of memory", strerror(errno));     \
+        exit(errno);                                    \
+    }                                                   \
                                                         \
-        buf = tmp;                                      \
-    } (void)0                                           \
+    buf = tmp;                                          \
+} (void)0                                               \
 
 arguments *allocArguments(void);
 void freeArguments(arguments *arguments);
