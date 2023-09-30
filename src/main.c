@@ -5,7 +5,7 @@
 #include <help.h>
 
 /* TODO:
-*  - finish profiling the code's most important bits
+ *  - finish profiling the code's most important routines
  * - add multi-threading to the conversion procedure (and maybe searching too)
  * - implement --version command (maybe)
  *
@@ -220,24 +220,25 @@ static void displayEndDialog(processInfo *procInfo) {
     } else {
         fmtTime execTime = formatTime(procInfo->executionTime);
 
-        printf(" %sDONE!%s\n", COLOR_ACCENT, COLOR_DEFAULT);
-        printf("\n");
-        printf(" %sProcessed files: %s%" PRIu64 "%s\n", COLOR_DEFAULT,
-               COLOR_ACCENT, (uint64_t)procInfo->convertedFiles,
+        printf(" %sDONE!%s\n\n", COLOR_ACCENT, COLOR_DEFAULT);
+
+        printf(" %sProcessed files: %s%lu%s\n", COLOR_DEFAULT,
+               COLOR_ACCENT, (unsigned long)procInfo->convertedFiles,
                COLOR_DEFAULT);
-        printf(" %sDeleted files:   %s%" PRIu64 "%s\n", COLOR_DEFAULT,
-               COLOR_ACCENT, (uint64_t)procInfo->deletedFiles,
+        printf(" %sDeleted files:   %s%lu%s\n", COLOR_DEFAULT,
+               COLOR_ACCENT, (unsigned long)procInfo->deletedFiles,
                COLOR_DEFAULT);
-        printf(" %sElapsed time:    %s%02" PRIu64 ":%02" PRIu64 ":%05.2lf%s\n",
+        printf(" %sElapsed time:    %s%02lu:%02lu:%05.2lf%s\n\n",
                COLOR_DEFAULT, COLOR_ACCENT,
-               execTime.hours, execTime.minutes, execTime.seconds,
+               (unsigned long)execTime.hours,
+               (unsigned long)execTime.minutes,
+               execTime.seconds,
                COLOR_DEFAULT);
-        printf("\n");
     }
 }
 
 /* code profiling wrapper functions */
-#ifdef CLANG_INSTR_FUNCS
+#ifdef  __USE_CLANG_INSTR_FUNCS
 #define __USE_GNU
 #include <dlfcn.h>
 

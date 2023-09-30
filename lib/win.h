@@ -7,14 +7,14 @@
 
 #include <libs.h>
 
-/* Substitutions for MSVC compiler */
+/* Substitutions for MSVC compiler/libs */
 #ifdef _MSC_VER
 #include <basetsd.h>
 
-#define strncasecmp _strnicmp
-#define strcasecmp _stricmp
-#define strtok_r strtok_s
-#define ssize_t SSIZE_T
+#define strncasecmp         _strnicmp
+#define strcasecmp          _stricmp
+#define strtok_r            strtok_s
+#define ssize_t             SSIZE_T
 #define CLOCK_MONOTONIC_RAW 0
 #endif /* MSC_VER */
 
@@ -24,16 +24,17 @@
 #define PATH_SEP '\\'
 #define PATH_BUF ARG_BUF
 
-#define DIR _WDIR
-#define dirent _wdirent
-#define strdup _strdup
+#define DIR     _WDIR
+#define dirent  _wdirent
+#define strdup  _strdup
 #define memccpy _memccpy
 
-#define mkdir(a, b) mkdirWIN(a, b)
-#define opendir(d) opendirWIN(d)
-#define remove(d)   removeWIN(d)
+#define mkdir(a, b) mkdir_WIN(a, b)
+#define opendir(d)  opendir_WIN(d)
+#define remove(d)   remove_WIN(d)
+#define getchar()   (int)getwchar()
 
-#define readdir(d) _wreaddir(d)
+#define readdir(d)  _wreaddir(d)
 #define closedir(d) _wclosedir(d)
 
 #define UTF8toUTF16(mbs, mbc, wcs, wcc)                 \
@@ -63,6 +64,13 @@
     printErr(preamble, errMsg);                                     \
     LocalFree(errMsgW);                                             \
     free(errMsg)
+
+#define addUnicodePrefixToDir(src, dst) {                   \
+    char prefixedDir[PATH_BUF];                             \
+    sprintf_s(prefixedDir, PATH_BUF, "\\\\?\\%s", src);     \
+    UTF8toUTF16(prefixedDir, -1, dst, PATH_BUF);            \
+    printf(" PREFIXED DIR: '%s'\n\n", prefixedDir);         \
+} (void)0                                                   \
 
 static char *strndup(const char *str, size_t n) {
     if (strlen(str) <= n) {
@@ -94,16 +102,12 @@ static int clock_gettime(int clockId, struct timespec *spec) {
 }
 
 /* Overrides mkdir to get around differences between std and ms versions */
-static int mkdirWIN(const char *dir, int mode) {
+static int mkdir_WIN(const char *dir, int mode) {
     (void)mode;
 
-    char prefixedDir[PATH_BUF];
-    sprintf_s(prefixedDir, PATH_BUF, "\\\\?\\%s", dir);
-
     wchar_t dirW[PATH_BUF];
-    UTF8toUTF16(prefixedDir, -1, dirW, PATH_BUF);
-
     WIN32_FIND_DATAW fileData;
+    addUnicodePrefixToDir(dir, dirW);
 
     if (FindFirstFileW(dirW, &fileData) != INVALID_HANDLE_VALUE)
         return EXIT_SUCCESS; // Dir already exists
@@ -116,22 +120,19 @@ static int mkdirWIN(const char *dir, int mode) {
 }
 
 /* Overrides opendir() to support long UNICODE directories on Windows */
-static DIR *opendirWIN(const char *dir) {
+static DIR *opendir_WIN(const char *dir) {
     char prefixedDir[PATH_BUF];
     sprintf_s(prefixedDir, PATH_BUF, "\\\\?\\%s", dir);
 
     wchar_t dirW[PATH_BUF];
-    UTF8toUTF16(prefixedDir, -1, dirW, PATH_BUF);
+    addUnicodePrefixToDir(dir, dirW);
 
     return _wopendir(dirW);
 }
 
-static int removeWIN(const char *dir) {
-    char prefixedDir[PATH_BUF];
-    sprintf_s(prefixedDir, PATH_BUF, "\\\\?\\%s", dir);
-
+static int remove_WIN(const char *dir) {
     wchar_t dirW[PATH_BUF];
-    UTF8toUTF16(prefixedDir, -1, dirW, PATH_BUF);
+    addUnicodePrefixToDir(dir, dirW);
 
     if (!DeleteFileW(dirW))
         return GetLastError();

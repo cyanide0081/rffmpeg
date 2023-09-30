@@ -3,6 +3,7 @@
 
 #include <libs.h>
 #include <stdarg.h>
+#include <stddef.h>
 
 #ifdef _WIN32
 #include <win.h>
@@ -21,8 +22,8 @@ typedef struct processInfo {
 } processInfo;
 
 typedef struct fmtTime {
-    uint64_t hours;
-    uint64_t minutes;
+    size_t hours;
+    size_t minutes;
     double seconds;
 } fmtTime;
 

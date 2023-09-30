@@ -31,10 +31,9 @@ void freeArguments(arguments *args) {
 
 fmtTime formatTime(double seconds) {
     fmtTime time = {
-        .hours = (int64_t)(seconds / 3600),
-        .minutes = (int64_t)((seconds - (time.hours * 3600)) / 60),
-        .seconds =
-            (double)(seconds - (time.hours * 3600) - (time.minutes * 60)),
+        .hours   = (size_t)(seconds / 3600),
+        .minutes = (size_t)((seconds - (time.hours * 3600)) / 60),
+        .seconds = (double)(seconds - (time.hours * 3600) - (time.minutes * 60))
     };
 
     return time;
