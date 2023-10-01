@@ -66,9 +66,15 @@
     free(errMsg);                                                   \
 } (void)0
 
-#define addUnicodePrefixToDir(src, dst) {                   \
+/* prepends "\\?\" to path and replaces '/' with '\' */
+#define formatPathToWIN32(src, dst) {                       \
     char prefixedDir[PATH_BUF];                             \
     sprintf_s(prefixedDir, PATH_BUF, "\\\\?\\%s", src);     \
+                                                            \
+    for (int i = 0; prefixedDir[i]; i++)                    \
+        if (prefixedDir[i] == '/')                          \
+            prefixedDir[i] = '\\';                          \
+                                                            \
     UTF8toUTF16(prefixedDir, -1, dst, PATH_BUF);            \
 } (void)0
 
@@ -107,7 +113,7 @@ static int mkdir_WIN(const char *dir, int mode) {
 
     wchar_t dirW[PATH_BUF];
     WIN32_FIND_DATAW fileData;
-    addUnicodePrefixToDir(dir, dirW);
+    formatPathToWIN32(dir, dirW);
 
     if (FindFirstFileW(dirW, &fileData) != INVALID_HANDLE_VALUE)
         return EXIT_SUCCESS; // Dir already exists
@@ -121,18 +127,15 @@ static int mkdir_WIN(const char *dir, int mode) {
 
 /* Overrides opendir() to support long UNICODE directories on Windows */
 static DIR *opendir_WIN(const char *dir) {
-    char prefixedDir[PATH_BUF];
-    sprintf_s(prefixedDir, PATH_BUF, "\\\\?\\%s", dir);
-
     wchar_t dirW[PATH_BUF];
-    addUnicodePrefixToDir(dir, dirW);
+    formatPathToWIN32(dir, dirW);
 
     return _wopendir(dirW);
 }
 
 static int remove_WIN(const char *dir) {
     wchar_t dirW[PATH_BUF];
-    addUnicodePrefixToDir(dir, dirW);
+    formatPathToWIN32(dir, dirW);
 
     if (!DeleteFileW(dirW))
         return GetLastError();

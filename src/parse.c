@@ -1,4 +1,5 @@
 #include <parse.h>
+#include <wchar.h>
 
 #define expectToken(arg, tok) if (strcasecmp(arg, "-" tok) == 0)
 #define expectCompositeToken(arg, tok) if (strstr(arg, "-" tok))
@@ -12,6 +13,7 @@
                            COLOR_INPUT);
 
 static char **_getTokenizedStrings(char *string, const char *delimiter);
+static char *getAbsolutePath(const char *dir);
 
 /* Parses the argument strings from direct
  * console input in case no argument is given */
@@ -129,7 +131,7 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
         }
 
         if (isDirectory(args[i])) {
-            parsedArgs->inPaths[parsedArgsIdx++] = strdup(args[i]);
+            parsedArgs->inPaths[parsedArgsIdx++] = getAbsolutePath(args[i]);
         } else {
             printErr("invalid option", args[i]);
             printf(" (run with %s--help%s for info)\n\n",
@@ -247,4 +249,26 @@ static char **_getTokenizedStrings(char *string, const char *delimiter) {
 
     (list)[i] = NULL;
     return list;
+}
+
+static char *getAbsolutePath(const char *dir) {
+#ifdef _WIN32
+    wchar_t dirW[PATH_BUF];
+    formatPathToWIN32(dir, dirW);
+
+    wchar_t absDirW[PATH_BUF];
+    GetFullPathNameW(dirW, PATH_BUF, absDirW, NULL);
+
+    DWORD sz = UTF16toUTF8(absDirW, -1, NULL, 0);
+    char *absDir = xcalloc(sz, sizeof(char));
+    UTF16toUTF8(absDirW, -1, absDir, sz);
+
+    return absDir;
+#else
+    /* TODO: do UNIX realpath() stuff here and test it
+     * with very long paths (larger than PATH_MAX bytes)
+     *     https://man7.org/linux/man-pages/man3/realpath.3.html
+     *     https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/realpath.3.html
+     *     https://man.freebsd.org/cgi/man.cgi?query=realpath&sektion=3&manpath=FreeBSD+5.1-current */
+#endif
 }

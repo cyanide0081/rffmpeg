@@ -201,7 +201,7 @@ bool isDirectory(const char *dir) {
     return S_ISDIR(pathStats.st_mode);
 #else
     wchar_t dirW[PATH_BUF];
-    UTF8toUTF16(dir, -1, dirW, PATH_BUF);
+    formatPathToWIN32(dir, dirW);
 
     DWORD fileAttr = GetFileAttributesW(dirW);
 

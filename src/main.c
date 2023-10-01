@@ -5,14 +5,14 @@
 #include <help.h>
 
 /* TODO:
- *  - finish profiling the code's most important routines
+ * - finish profiling the code's most important routines
  * - add multi-threading to the conversion procedure (and maybe searching too)
- * - implement --version command (maybe)
  *
  * FIXME:
  * - resolve non-absolute pathnames by feeding them to realpath()
  *   before passing them to the main file-searching procedure
- *   (or implement your own, since the available one kinda sucks) */
+ *   (or implement your own, since the available one kinda sucks)
+ *   (NOTE: already solved it on Windows) */
 
 static void createTestProcess(void);
 static void displayEndDialog(processInfo *procInfo);
@@ -65,10 +65,10 @@ int main(int argc, char *argv[]) {
     wchar_t **argvW = CommandLineToArgvW(cmdLine, &argcW);
 
     for (int i = 0; i < argcW; i++) {
-        size_t size = UTF16toUTF8(argvW[i], -1, NULL, 0);
+        int size = UTF16toUTF8(argvW[i], -1, NULL, 0);
         argv[i] = xcalloc(size, sizeof(char));
 
-        UTF16toUTF8(argvW[i], -1, argv[i], (int)size);
+        UTF16toUTF8(argvW[i], -1, argv[i], size);
     }
 
     LocalFree(argvW);
