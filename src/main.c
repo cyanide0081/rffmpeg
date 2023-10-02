@@ -89,8 +89,6 @@ int main(int argc, char *argv[]) {
     if (parsedArgs->options & OPT_DISPLAYHELP && inputMode == ARGUMENTS) {
         printf(HELP_PAGE);
     } else if (state == PARSE_STATE_OK) {
-
-
         char **fileList = getFiles(parsedArgs);
 
         if (fileList) {
@@ -105,6 +103,7 @@ int main(int argc, char *argv[]) {
                    COLOR_INPUT);
 
             int input = tolower(getchar());
+            _waitForNewLine();
             printf("%s\n", COLOR_DEFAULT);
 
             struct timespec startTime = {0};

@@ -20,8 +20,6 @@ static char *getAbsolutePath(const char *dir);
 int parseConsoleInput(arguments *args) {
     char input[ARG_BUF] = {0};
 
-    /* TODO: handle parsing of multiple paths with quoted strings
-       instead of the current sloppy OS-specific delimiters*/
     prompt("Input path(s) (separated by a '" DIR_DELIMITER "')");
     readLine(input, ARG_BUF);
     printf(COLOR_DEFAULT);
@@ -74,21 +72,23 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
             parsedArgs->options |= OPT_DISPLAYHELP;
             return PARSE_STATE_OK;
         }
-        expectToken(args[i], "i") {
-            parsedArgs->inFormats = _getTokenizedStrings(args[++i], ", ");
-            continue;
-        }
 
-        expectToken(args[i], "p") {
-            parsedArgs->ffOptions = strdup(args[++i]);
-            continue;
-        }
+        if (i < count - 1) {
+            expectToken(args[i], "i") {
+                parsedArgs->inFormats = _getTokenizedStrings(args[++i], ", ");
+                continue;
+            }
 
-        expectToken(args[i], "o") {
-            parsedArgs->outFormat = args[++i];
-            continue;
-        }
+            expectToken(args[i], "p") {
+                parsedArgs->ffOptions = strdup(args[++i]);
+                continue;
+            }
 
+            expectToken(args[i], "o") {
+                parsedArgs->outFormat = args[++i];
+                continue;
+            }
+        }
         expectToken(args[i], "cl") {
             parsedArgs->options |= OPT_CLEANUP;
             continue;
@@ -133,7 +133,7 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
         if (isDirectory(args[i])) {
             parsedArgs->inPaths[parsedArgsIdx++] = getAbsolutePath(args[i]);
         } else {
-            printErr("invalid option", args[i]);
+            printErr("invalid/incomplete option", args[i]);
             printf(" (run with %s--help%s for info)\n\n",
                    COLOR_INPUT, COLOR_DEFAULT);
 
@@ -152,7 +152,7 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
         parsedArgs->customPath = strdup("");
 
     /* Set current working directory as input path if none is provided */
-    if (parsedArgs->inPaths[0] == NULL) {
+    if (!parsedArgs->inPaths[0] || !*parsedArgs->inPaths[0]) {
 #ifdef _WIN32
         int len = GetCurrentDirectoryW(0, NULL);
         wchar_t *currentDirW = xcalloc(len, sizeof(wchar_t));
@@ -228,6 +228,7 @@ static char **_getTokenizedStrings(char *string, const char *delimiter) {
         *list = strdup("");
         return list;
     }
+
     size_t i;
 
     for (i = 0; token; i++) {

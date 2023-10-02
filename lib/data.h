@@ -65,18 +65,15 @@ typedef struct arguments {
 #define PATH_SEP '/'
 #endif
 
-/* FIXME: skips user input if a conversion succeeded */
 #ifdef _WIN32
 #define _waitForNewLine() {                                         \
     wint_t c = getwchar();                                          \
-    ungetwc(c, stdin);                                              \
     while ((c = getwchar()) != u'\n' && c != u'\r' && c != WEOF);   \
 } (void)0
 #else
 #define _waitForNewLine() {                             \
     int c;                                              \
     while ((c = getchar()) != '\n' && c != EOF);        \
-    getchar();                                          \
 } (void)0
 #endif
 
