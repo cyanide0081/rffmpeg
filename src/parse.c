@@ -15,8 +15,6 @@
 static char **_getTokenizedStrings(char *string, const char *delimiter);
 static char *getAbsolutePath(const char *dir);
 
-/* Parses the argument strings from direct
- * console input in case no argument is given */
 int parseConsoleInput(arguments *args) {
     char input[ARG_BUF] = {0};
 
