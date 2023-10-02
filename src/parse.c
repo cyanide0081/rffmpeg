@@ -1,5 +1,4 @@
 #include <parse.h>
-#include <wchar.h>
 
 #define expectToken(arg, tok) if (strcasecmp(arg, "-" tok) == 0)
 #define expectCompositeToken(arg, tok) if (strstr(arg, "-" tok))
@@ -65,7 +64,7 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
 
     size_t count = listSize, parsedArgsIdx = 0;
 
-    for (size_t i = 1; i < count && args[i]; i++) {
+    for (size_t i = 1; i < count; i++) {
         expectToken(args[i], "-help") {
             parsedArgs->options |= OPT_DISPLAYHELP;
             return PARSE_STATE_OK;
@@ -182,14 +181,25 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
         return PARSE_STATE_BAD_ARG;
     }
 
-    if ((parsedArgs->options & (OPT_NEWFOLDER & OPT_CUSTOMFOLDERNAME))) {
-        if ((strlen(parsedArgs->customFolder) >= NAME_MAX - 1)) {
-            char *maxLen = _asprintf("%d bytes", NAME_MAX);
-            printErr("custom folder name exceeds maximum allowed length", maxLen);
-            free(maxLen);
-        }
+    if ((parsedArgs->options & OPT_NEWFOLDER) &&
+        (parsedArgs->options & OPT_NEWPATH)
+        ) {
+        printErr("using multiple unique switches",
+                 "('-subfolder' and '-outpath' are mutually exclusive)");
 
-        return PARSE_STATE_LONG_ARG;
+        return PARSE_STATE_BAD_ARG;
+    }
+
+    if ((parsedArgs->options & OPT_NEWFOLDER) &&
+        (parsedArgs->options & OPT_CUSTOMFOLDERNAME)
+        ) {
+        if ((strlen(parsedArgs->customFolder) > FILE_BUF - 1)) {
+            char len[FMT_BUF];
+            snprintf(len, sizeof(len), "(%d bytes)", FILE_BUF);
+            printErr("custom folder name exceeds maximum allowed length", len);
+
+            return PARSE_STATE_LONG_ARG;
+        }
     }
 
     if (parsedArgs->options & OPT_NEWPATH) {
@@ -207,8 +217,8 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
             ) {
             printErr("can't use ffmpeg with identical input "
                      "and output formats",
-                     "use '-outpath' or '-subfolder' "
-                     "to save the files in a new directory");
+                     "(use '-outpath' or '-subfolder' "
+                     "to save the files in a new directory)");
 
             return PARSE_STATE_EXT_CONFLICT;
         }
