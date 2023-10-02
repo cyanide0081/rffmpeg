@@ -76,7 +76,7 @@ typedef struct arguments {
 #define _waitForNewLine() {                             \
     int c;                                              \
     while ((c = getchar()) != '\n' && c != EOF);        \
-    getchar()                                           \
+    getchar();                                          \
 } (void)0
 #endif
 

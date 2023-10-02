@@ -54,7 +54,6 @@ char **getFiles(const arguments *args) {
         free(trimmedDir);
 
         if (!files) {
-            free(trimmedDir);
             continue;
         }
 

@@ -6,13 +6,7 @@
 
 /* TODO:
  * - finish profiling the code's most important routines
- * - add multi-threading to the conversion procedure (and maybe searching too)
- *
- * FIXME:
- * - resolve non-absolute pathnames by feeding them to realpath()
- *   before passing them to the main file-searching procedure
- *   (or implement your own, since the available one kinda sucks)
- *   (NOTE: already solved it on Windows) */
+ * - add multi-threading to the conversion procedure (and maybe searching too) */
 
 static void createTestProcess(void);
 static void displayEndDialog(processInfo *procInfo);
