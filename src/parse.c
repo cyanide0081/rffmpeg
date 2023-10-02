@@ -65,7 +65,7 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
     if (listSize == 0)
         return PARSE_STATE_EMPTY;
 
-    size_t count =  listSize, parsedArgsIdx = 0;
+    size_t count = listSize, parsedArgsIdx = 0;
 
     for (size_t i = 1; i < count && args[i]; i++) {
         expectToken(args[i], "-help") {
@@ -73,6 +73,7 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
             return PARSE_STATE_OK;
         }
 
+        /* (making sure we don't try to read out-of-bounds memory here) */
         if (i < count - 1) {
             expectToken(args[i], "i") {
                 parsedArgs->inFormats = _getTokenizedStrings(args[++i], ", ");
@@ -89,6 +90,7 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
                 continue;
             }
         }
+
         expectToken(args[i], "cl") {
             parsedArgs->options |= OPT_CLEANUP;
             continue;
