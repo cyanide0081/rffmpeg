@@ -41,7 +41,7 @@ typedef struct arguments {
     uint8_t options; // Bit fields for the optional arguments
 } arguments;
 
-#define PROGRAM_VERSION      "v1.1.1"
+#define PROGRAM_VERSION      "v1.1.2"
 #define CONSOLE_WINDOW_TITLE ("RFFmpeg " PROGRAM_VERSION)
 
 /* ANSI escape chars for colored shell output */
