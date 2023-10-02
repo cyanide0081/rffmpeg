@@ -278,8 +278,11 @@ static char *getAbsolutePath(const char *dir) {
 #else
     /* TODO: do UNIX realpath() stuff here and test it
      * with very long paths (larger than PATH_MAX bytes)
-     * NOTE: the malloc() version of realpath may not be
-     * available in macos (in which case this will break) */
+     * NOTE:
+     * - paths longer than PATH_MAX bytes will probably always break
+     *   here since realpath() only allocates up to that much space
+     * - the malloc() version of realpath may not be
+     *   available in macos (in which case this will break) */
     return realpath(dir, NULL);
 #endif
 }
