@@ -67,7 +67,7 @@ typedef struct arguments {
 
 #ifdef _WIN32
 #define _waitForNewLine() {                                         \
-    wint_t c = getwchar();                                          \
+        wint_t c;                                                   \
     while ((c = getwchar()) != u'\n' && c != u'\r' && c != WEOF);   \
 } (void)0
 #else
