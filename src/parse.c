@@ -171,13 +171,19 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
 #endif
     }
 
-    if (*parsedArgs->inFormats[0] == '\0') {
-        printErr("no input format", "(NULL)");
+    if (!parsedArgs->inFormats[0] || !*parsedArgs->inFormats[0]) {
+        printErr("missing input format", "(null)");
+        printf(" (run with %s--help%s for info)\n\n",
+               COLOR_INPUT, COLOR_DEFAULT);
+
         return PARSE_STATE_BAD_ARG;
     }
 
-    if (!parsedArgs->outFormat) {
-        printErr("no output format", "(NULL)");
+    if (!parsedArgs->outFormat || !*parsedArgs->outFormat) {
+        printErr("missing output format", "(null)");
+        printf(" (run with %s--help%s for info)\n\n",
+               COLOR_INPUT, COLOR_DEFAULT);
+
         return PARSE_STATE_BAD_ARG;
     }
 
@@ -203,7 +209,7 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
     }
 
     if (parsedArgs->options & OPT_NEWPATH) {
-        if (parsedArgs->customPath == NULL || *parsedArgs->customPath == '\0') {
+        if (!parsedArgs->customPath || !*parsedArgs->customPath) {
             printErr("empty custom path field", "usage: -outpath:[PATH]");
 
             return PARSE_STATE_BAD_ARG;
@@ -211,9 +217,9 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
     }
 
     for (int i = 0; parsedArgs->inFormats[i] != NULL; i++) {
-        if (strcmp(parsedArgs->inFormats[i], parsedArgs->outFormat) == 0
-            && !(parsedArgs->options & OPT_NEWFOLDER)
-            && !(parsedArgs->options & OPT_NEWPATH)
+        if (strcmp(parsedArgs->inFormats[i], parsedArgs->outFormat) == 0 &&
+            !(parsedArgs->options & OPT_NEWFOLDER) &&
+            !(parsedArgs->options & OPT_NEWPATH)
             ) {
             printErr("can't use ffmpeg with identical input "
                      "and output formats",
