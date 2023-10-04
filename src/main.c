@@ -199,7 +199,7 @@ static void createTestProcess(void) {
            TODO: handle more exit codes down here! */
         if (exitStatus != 0) {
             char status[FILE_BUF];
-            snprintf(status, FILE_BUF - 1, "exit status: %d", exitStatus);
+            snprintf(status, FILE_BUF, "exit status: %d", exitStatus);
             printErr("couldn't call ffmpeg", status);
             exit(EXIT_FAILURE);
         }

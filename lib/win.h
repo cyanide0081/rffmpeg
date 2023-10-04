@@ -1,9 +1,9 @@
 #ifndef H_WIN
 #define H_WIN
 
-/* WinAPI compatibility/abstraction layer */
-#include <stdio.h>
-#ifdef _WIN32
+/* Win32 API compatibility/abstraction layer
+ * (uses dirent.h wrapper by Toni Ronkko
+ * when compiling with MSVC libraries) */
 
 #include <libs.h>
 
@@ -18,11 +18,12 @@
 #define CLOCK_MONOTONIC_RAW 0
 #endif /* MSC_VER */
 
-/* max UNICODE_STRING size (subauth.h)  */
-#define ARG_BUF  SHRT_MAX
+/* ARG_BUF allocates the maximum size of a UNICODE_STRING (subauth.h) and
+ * PATH_BUF allocates the maximum size of a qualified (Unicode) WIN32 path */
+#define ARG_BUF  USHRT_MAX
+#define PATH_BUF SHRT_MAX
 #define FILE_BUF FILENAME_MAX
 #define PATH_SEP '\\'
-#define PATH_BUF ARG_BUF
 
 #define DIR     _WDIR
 #define dirent  _wdirent
@@ -32,7 +33,6 @@
 #define mkdir(a, b) mkdir_WIN(a, b)
 #define opendir(d)  opendir_WIN(d)
 #define remove(d)   remove_WIN(d)
-#define getchar()   (int)getwchar()
 
 #define readdir(d)  _wreaddir(d)
 #define closedir(d) _wclosedir(d)
@@ -168,5 +168,4 @@ static int enableVirtualTerminalProcessing(PDWORD originalConsoleMode) {
     return EXIT_SUCCESS;
 }
 
-#endif /* _WIN32 */
 #endif /* H_WIN */
