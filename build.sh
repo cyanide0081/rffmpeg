@@ -3,9 +3,9 @@
 
 # recursive file searching and compilation routine
 compile() {
-    local   FLAGS="-I./lib -std=gnu11 -Wall -Wextra -pedantic"
+    local   FLAGS="-I./lib -std=gnu11 -Wall -Wextra -pedantic -Wno-unused-function"
     local D_FLAGS="-g"
-    local P_FLAGS="-finstrument-functions -ldl -rdynamic -D__USE_CLANG_INSTR_FUNCS"
+    local P_FLAGS="-finstrument-functions -ldl -rdynamic -DINSTRUMENTATION"
     local R_FLAGS="-DNDEBUG -O2 -s"
     local   files=""
 

@@ -1,32 +1,13 @@
 #include <data.h>
 
-arguments *allocArguments(void) {
-    arguments *args = xcalloc(1, sizeof(arguments));
+extern Arena *globalArena;
 
-    args->inPaths   = xcalloc(LIST_BUF, sizeof(char*));
-    args->inFormats = xcalloc(LIST_BUF, sizeof(char*));
+arguments *allocArguments(void) {
+    arguments *args = GlobalArenaPush(sizeof(arguments));
+    args->inPaths   = GlobalArenaPush(LIST_BUF * sizeof(char*));
+    args->inFormats = GlobalArenaPush(LIST_BUF * sizeof(char*));
 
     return args;
-}
-
-void freeArguments(arguments *args) {
-    if (!args)
-        return;
-
-    for (int i = 0; args->inPaths[i] != NULL; i++)
-        free(args->inPaths[i]);
-
-    for (int i = 0; args->inFormats[i] != NULL; i++)
-        free(args->inFormats[i]);
-
-    free(args->inPaths);
-    free(args->inFormats);
-    free(args->ffOptions);
-
-    if (args->customPath)
-        free(args->customPath);
-
-    free(args);
 }
 
 fmtTime formatTime(double seconds) {
@@ -67,9 +48,9 @@ void trimSpaces(char *string) {
 [maxChars] characters (codepoints) and inserts '...' at the start */
 char *trimUTF8StringTo(const char *str, size_t maxChars) {
     if (maxChars <= 3)
-        return strdup("...");
+        return GlobalArenaPushString("...");
     if (!str)
-        return strdup("(null)");
+        return GlobalArenaPushString("(null)");
 
     /* TODO: (1) check for overlong encodings and stuff aswell
        (2) actually count glyphs inside the loop instead of just
@@ -83,7 +64,7 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
     size_t bufLen = strlen(str);
 
     /* we're supposed to treat the bytes as unsigned internally */
-    unsigned char *buf = (unsigned char*)strdup(str);
+    unsigned char *buf = (unsigned char*)GlobalArenaPushString(str);
 
     /* walk backwards through the string's bytes
        until we reach the max amount of symbols */
@@ -93,13 +74,11 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
             bufIdx--;
             continue;
         } else if (bufIdx == 0) {
-            free(buf);
-            return strdup(ERR_INVALID_UTF8 " (leading non-ASCII byte)");
+            return GlobalArenaPushString(ERR_INVALID_UTF8 " (leading non-ASCII byte)");
         }
 
         if ((buf[bufIdx] & 0xC0) != 0x80) {
-            free(buf);
-            return strdup(ERR_INVALID_UTF8 " (illegal continuation byte)");
+            return GlobalArenaPushString(ERR_INVALID_UTF8 " (illegal continuation byte)");
         }
 
         bufIdx--; // we have ourselves a continuation byte :DDDDD
@@ -112,8 +91,7 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
                 ((buf[bufIdx] & 0xF8) == 0xF0)    // 4-byte leading code unit
                 ) {
                 if (buf[bufIdx] <= 0xC1 || buf[bufIdx] >= 0xF5) {
-                    free(buf);
-                    return strdup(ERR_INVALID_UTF8
+                    return GlobalArenaPushString(ERR_INVALID_UTF8
                                   "(illegal leading byte)");
                 }
 
@@ -122,8 +100,7 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
             } else if (((buf[bufIdx] & 0xC0) == 0x80) && (i < 2)) {
                 bufIdx--;
             } else {
-                free(buf);
-                return strdup(ERR_INVALID_UTF8
+                return GlobalArenaPushString(ERR_INVALID_UTF8
                               " (continuation byte out of place)");
             }
         }
@@ -140,37 +117,11 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
 
         memmove(buf, buf + bufIdx, bytes);
         memset(buf + bytes - 1, 0, (bufLen + 1) - bytes);
-        xrealloc(buf, bytes);
     }
 
     return (char*)buf;
 }
 
-void *xcalloc(size_t numberOfElements, size_t sizeOfElements) {
-    void *mem = calloc(numberOfElements, sizeOfElements);
-
-    if (!mem) {
-        printErr("not enough memory", strerror(errno));
-        exit(errno);
-    }
-
-    return mem;
-}
-
-char *_asprintf(const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-
-    size_t bytes = vsnprintf(NULL, 0, format, args) + 1;
-    char *string = xcalloc(bytes, sizeof(char));
-
-    va_end(args);
-    va_start(args, format);
-    vsprintf(string, format, args);
-    va_end(args);
-
-    return string;
-}
 
 void readLine(char *dst, size_t dstSize) {
 #ifdef _WIN32

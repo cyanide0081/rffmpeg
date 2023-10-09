@@ -13,22 +13,26 @@
 #include <errno.h>
 #include <assert.h>
 #include <inttypes.h>
+#include <stdarg.h>
 
 /* OS headers */
-#ifdef _WIN32
+#if defined _WIN32
 #include <windows.h>
 #include <shellapi.h>
 #include <fcntl.h>
 #include <io.h>
-#elif defined __unix__
+#elif defined __linux__ || defined __APPLE__ || defined BSD
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/cdefs.h>
+#include <sys/mman.h>
 #ifdef __linux__
 #include <linux/limits.h>
 #else
 #include <limits.h>
 #endif /* __linux__ */
+#else
+#error "unsupported OS/kernel"
 #endif /* OS headers */
 #endif /* H_LIBS */

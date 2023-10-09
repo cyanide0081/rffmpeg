@@ -1,5 +1,7 @@
 #include <parse.h>
 
+extern Arena *globalArena;
+
 #define expectToken(arg, tok) if (strcasecmp(arg, "-" tok) == 0)
 #define expectCompositeToken(arg, tok) if (strstr(arg, "-" tok))
 
@@ -30,11 +32,11 @@ int parseConsoleInput(arguments *args) {
     prompt("FFmpeg options");
     readLine(input, ARG_BUF);
     printf(COLOR_DEFAULT);
-    args->ffOptions = strdup(input);
+    args->ffOptions = GlobalArenaPushString(input);
 
     prompt("Output format");
     readLine(input, ARG_BUF);
-    args->outFormat = strdup(input);
+    args->outFormat = GlobalArenaPushString(input);
     printf(COLOR_DEFAULT);
 
     prompt("Additional flags");
@@ -47,14 +49,7 @@ int parseConsoleInput(arguments *args) {
     while (optionsList[listSize])
         listSize++;
 
-    int state = parseArgs(listSize, optionsList, args);
-
-    for (size_t i = 0; i < listSize; i++)
-        free(optionsList[i]);
-
-    free(optionsList);
-
-    return state;
+    return parseArgs(listSize, optionsList, args);
 }
 
 /* Parses an array of strings to format an (arguments*) accordingly */
@@ -154,15 +149,14 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
     if (!parsedArgs->inPaths[0] || !*parsedArgs->inPaths[0]) {
 #ifdef _WIN32
         int len = GetCurrentDirectoryW(0, NULL);
-        wchar_t *currentDirW = xcalloc(len, sizeof(wchar_t));
+        wchar_t *currentDirW = GlobalArenaPush(len * sizeof(wchar_t));
         GetCurrentDirectoryW((DWORD)len, currentDirW);
 
         len = UTF16toUTF8(currentDirW, -1, NULL, 0);
-        parsedArgs->inPaths[0] = xcalloc(len, sizeof(char));
-
+        parsedArgs->inPaths[0] = GlobalArenaPush(len * sizeof(char));
         UTF16toUTF8(currentDirW, -1, parsedArgs->inPaths[0], len);
-        free(currentDirW);
 #else
+
         if (!(parsedArgs->inPaths[0] = getcwd(NULL, 0))) {
             printErr("couldn't retrieve current working directory",
                      strerror(errno));
@@ -200,7 +194,7 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
         (parsedArgs->options & OPT_CUSTOMFOLDERNAME)
         ) {
         if ((strlen(parsedArgs->customFolder) > FILE_BUF - 1)) {
-            char len[FMT_BUF];
+            char len[FILE_BUF];
             snprintf(len, sizeof(len), "(%d bytes)", FILE_BUF);
             printErr("custom folder name exceeds maximum allowed length", len);
 
@@ -238,7 +232,7 @@ static char **_getTokenizedStrings(char *string, const char *delimiter) {
     char *token = strtok_r(string, delimiter, &parserState);
 
     size_t items = LIST_BUF;
-    char **list = xcalloc(items, sizeof(char*));
+    char **list = GlobalArenaPush(items * sizeof(char*));
 
     if (!token) {
         *list = strdup("");
@@ -251,15 +245,16 @@ static char **_getTokenizedStrings(char *string, const char *delimiter) {
         if (i == items) {
             size_t newCount = items * 2;
 
-            xrealloc(list, items * sizeof(char*));
-            memset(list + items, 0, newCount - items);
+            char **newList = GlobalArenaPush(newCount * sizeof(char));
+            memcpy(newList, list, items);
+            memset(newList + items, 0, newCount - items);
 
             items = newCount;
         }
 
         trimSpaces(token);
 
-        (list)[i] = strdup(token);
+        (list)[i] = GlobalArenaPushString(token);
 
         token = strtok_r(NULL, delimiter, &parserState);
     }
@@ -277,18 +272,25 @@ static char *getAbsolutePath(const char *dir) {
     GetFullPathNameW(dirW, PATH_BUF, absDirW, NULL);
 
     DWORD sz = UTF16toUTF8(absDirW, -1, NULL, 0);
-    char *absDir = xcalloc(sz, sizeof(char));
+    char *absDir = GlobalArenaPush(sz * sizeof(char));
     UTF16toUTF8(absDirW, -1, absDir, sz);
 
     return absDir;
 #else
-    /* TODO: do UNIX realpath() stuff here and test it
-     * with very long paths (larger than PATH_MAX bytes)
+    /* TODO:
+     * - do UNIX realpath() stuff here and test it
+     *   with very long paths (larger than PATH_MAX bytes)
      * NOTE:
      * - paths longer than PATH_MAX bytes will probably always break
-     *   here since realpath() only allocates up to that much space
-     * - the malloc() version of realpath may not be
-     *   available in macos (in which case this will break) */
-    return realpath(dir, NULL);
+     *   here since realpath() only allows up to that much space */
+
+    char *realPath = GlobalArenaPush(PATH_MAX);
+
+    if (!realpath(dir, realPath)) {
+        printErr("unable to get resolved path", strerror(errno));
+        return NULL;
+    }
+
+    return realPath;
 #endif
 }

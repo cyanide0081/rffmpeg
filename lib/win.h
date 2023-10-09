@@ -1,4 +1,4 @@
-#ifndef H_WIN
+#if !defined H_WIN && defined _WIN32
 #define H_WIN
 
 /* Win32 API compatibility/abstraction layer
@@ -57,13 +57,12 @@
     );                                                              \
                                                                     \
     int size = UTF16toUTF8(errMsgW, (int)sizeW, NULL, 0);           \
-    char *errMsg = xcalloc(size, sizeof(char));                     \
+    char *errMsg = GlobalArenaPush(size * sizeof(char));            \
     UTF16toUTF8(errMsgW, sizeW, errMsg, size);                      \
     trimSpaces(errMsg);                                             \
                                                                     \
     printErr(preamble, errMsg);                                     \
     LocalFree(errMsgW);                                             \
-    free(errMsg);                                                   \
 } (void)0
 
 /* prepends "\\?\" to path and replaces '/' with '\' */
@@ -77,22 +76,6 @@
                                                             \
     UTF8toUTF16(prefixedDir, -1, dst, PATH_BUF);            \
 } (void)0
-
-static char *strndup(const char *str, size_t n) {
-    if (strlen(str) <= n) {
-        return strdup(str);
-    }
-
-    char *r = calloc(n + 1, sizeof(char));
-
-    if (!r) {
-        fprintf(stderr, " out of memory: %s", strerror(errno));
-        exit(errno);
-    }
-
-    memcpy(r, str, n);
-    return r;
-}
 
 /* Implementation of clock_gettime for win32 */
 static int clock_gettime(int clockId, struct timespec *spec) {

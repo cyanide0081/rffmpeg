@@ -2,14 +2,13 @@
 #define H_TYPES
 
 #include <libs.h>
-#include <stdarg.h>
-#include <stddef.h>
+#include <arena.h>
 
 #ifdef _WIN32
 #include <win.h>
 #endif
 
-#define FMT_BUF 32
+#define FMT_BUF FILE_BUF
 
 typedef enum inputMode {
     ARGUMENTS, CONSOLE
@@ -66,22 +65,15 @@ typedef struct arguments {
 #endif
 
 #ifdef _WIN32
-#define _waitForNewLine() {                                         \
+#define waitForNewLine() {                                          \
     wint_t c;                                                       \
     while ((c = getwchar()) != u'\n' && c != u'\r' && c != WEOF);   \
 } (void)0
 #else
-#define _waitForNewLine() {                             \
+#define waitForNewLine() {                              \
     int c;                                              \
     while ((c = getchar()) != '\n' && c != EOF);        \
 } (void)0
-#endif
-
-#ifndef NDEBUG
-#define dprintf(fmt, ...) fprintf(stderr, "%s:%d:%s(): " fmt,           \
-                                  __FILE__, __LINE__, __func__, __VA_ARGS__)
-#else
-#define dprintf(...) (void)0
 #endif
 
 #define printErr(msg, dsc)                      \
@@ -93,24 +85,17 @@ typedef struct arguments {
             COLOR_INPUT, dsc,                   \
             COLOR_DEFAULT)
 
-#define xrealloc(buf, size) {                           \
-    void *tmp = realloc(buf, size);                     \
-    if (!tmp) {                                         \
-        free(buf);                                      \
-        printErr("out of memory", strerror(errno));     \
-        exit(errno);                                    \
-    }                                                   \
-                                                        \
-    buf = tmp;                                          \
-} (void)0                                               \
+#ifndef NDEBUG
+#define dprintf(fmt, ...) fprintf(stderr, "%s:%d:%s(): " fmt,           \
+                                  __FILE__, __LINE__, __func__, __VA_ARGS__)
+#else
+#define dprintf(...) (void)0
+#endif
 
 arguments *allocArguments(void);
-void freeArguments(arguments *arguments);
 fmtTime formatTime(double seconds);
 void trimSpaces(char *string);
 char *trimUTF8StringTo(const char *str, size_t maxChars);
-void *xcalloc(size_t numberOfElements, size_t sizeOfElements);
-char *_asprintf(const char *format, ...);
 void readLine(char *dst, size_t dstSize);
 bool isDirectory(const char *dir);
 

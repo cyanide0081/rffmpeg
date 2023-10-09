@@ -1,5 +1,7 @@
 #include <convert.h>
 
+extern Arena *globalArena;
+
 static bool _fileExists(const char *fileName);
 static int _handleFileNameConflicts(char *pureName,
                                     const char *fileFormat,
@@ -26,41 +28,37 @@ int convertFiles(const char **files,
         while (*pathDelimPoint != PATH_SEP)
             pathDelimPoint--;
 
-        char *filePath = strndup(fullPath, (pathDelimPoint - fullPath));
-        char *baseName = strdup(pathDelimPoint + 1);
+        char *filePath =
+            GlobalArenaPushStringN(fullPath, (pathDelimPoint - fullPath));
+        char *baseName = GlobalArenaPushString(pathDelimPoint + 1);
 
         assert(filePath);
         assert(baseName);
 
-        char *outPath = NULL;
+        char *outPath = filePath;
         const char *newFolderName = (args->options & OPT_CUSTOMFOLDERNAME) ?
             args->customFolder : args->outFormat;
 
         if (args->options & OPT_NEWFOLDER) {
-            char *newPath = _asprintf("%s%c%s",
-                                      filePath, PATH_SEP, newFolderName);
+            char *newPath = GlobalArenaSprintf("%s%c%s",
+                                               filePath, PATH_SEP,
+                                               newFolderName);
 
             if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                 printErr("Unable to create subdirectory", strerror(errno));
-                free(filePath);
-                free(baseName);
                 return EXIT_FAILURE;
             }
 
             outPath = newPath;
         } else if (args->options & OPT_NEWPATH) {
-            char *newPath = strdup(args->customPath);
+            char *newPath = args->customPath;
 
             if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                 printErr("Unable to create new directory", strerror(errno));
-                free(filePath);
-                free(baseName);
                 return EXIT_FAILURE;
             }
 
             outPath = newPath;
-        } else {
-            outPath = strdup(filePath);
         }
 
         char *fileNameNoExt = strdup(baseName);
@@ -76,8 +74,8 @@ int convertFiles(const char **files,
         }
 
         char *fullOutPath =
-            _asprintf("%s%c%s.%s",
-                      outPath, PATH_SEP, fileNameNoExt, args->outFormat);
+            GlobalArenaSprintf("%s%c%s.%s",
+                               outPath, PATH_SEP, fileNameNoExt, args->outFormat);
 
         /* debug info printing */
         dprintf("FULLPATH:    \"%s\"\n",   fullPath);
@@ -87,8 +85,9 @@ int convertFiles(const char **files,
         dprintf("OUTPATH:     \"%s\"\n\n", args->customPath);
 
         char *ffmpegCall =
-            _asprintf("ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
-                      overwriteFlag, fullPath, args->ffOptions, fullOutPath);
+            GlobalArenaSprintf("ffmpeg -hide_banner %s -i \"%s\" %s \"%s\"",
+                               overwriteFlag, fullPath,
+                               args->ffOptions, fullOutPath);
 
 #ifdef _WIN32
         int callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
@@ -142,7 +141,6 @@ int convertFiles(const char **files,
             stats->convertedFiles++;
         }
 #endif
-        free(ffmpegCall);
         printf("\n");
 
         if (args->options & OPT_CLEANUP) {
@@ -160,12 +158,6 @@ int convertFiles(const char **files,
                 printErr("unable to delete unused directory", strerror(errno));
             }
         }
-
-        free(fileNameNoExt);
-        free(filePath);
-        free(baseName);
-        free(outPath);
-        free(fullOutPath);
     }
 
     return EXIT_SUCCESS;
@@ -179,7 +171,7 @@ static int _handleFileNameConflicts(char *pureName,
         snprintf(NULL, 0, "%s%c%s.-xxx%s",
                  path, PATH_SEP, pureName, fileFormat) + 1;
 
-    char *fullPath = xcalloc(fullPathSize, sizeof(char));
+    char *fullPath = GlobalArenaPush(fullPathSize * sizeof(char));
     sprintf(fullPath, "%s%c%s.%s", path, PATH_SEP, pureName, fileFormat);
 
     char newName[FILE_BUF];
@@ -197,25 +189,22 @@ static int _handleFileNameConflicts(char *pureName,
         memccpy(pureName, newName, '\0', FILE_BUF);
     }
 
-    free(fullPath);
-
     return EXIT_SUCCESS;
 }
 
 static bool _fileExists(const char *fileName) {
 #ifdef _WIN32
     int len = UTF8toUTF16(fileName, -1, NULL, 0);
-    wchar_t *fileNameW = xcalloc(len, sizeof(wchar_t));
+    wchar_t *fileNameW = GlobalArenaPush(len * sizeof(wchar_t));
     UTF8toUTF16(fileName, -1, fileNameW, len);
     WIN32_FIND_DATAW fileData;
 
     bool result = FindFirstFileW(fileNameW, &fileData) !=
         INVALID_HANDLE_VALUE ? true : false;
 
-    free(fileNameW);
     return result;
 #else /* POSIX */
     struct stat statBuffer;
-    return stat(fileName, &statBuffer) == 0 ? true : false;
+    return stat(fileName, &statBuffer) == 0;
 #endif
 }

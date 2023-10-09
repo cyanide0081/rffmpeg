@@ -2,17 +2,23 @@
 #include <parse.h>
 #include <search.h>
 #include <convert.h>
+#include <arena.h>
 #include <help.h>
 
 /* TODO:
  * - finish profiling the code's most important routines
- * - add multi-threading to the conversion procedure (and maybe searching too) */
+ * - add multi-threading to the conversion procedure (and maybe searching too)
+ */
+
+Arena *globalArena = NULL; // for simplifying arena alloc calls
 
 static void createTestProcess(void);
 static void displayEndDialog(processInfo *procInfo);
 
 int main(int argc, char *argv[]) {
     inputMode inputMode = argc > 1 ? ARGUMENTS : CONSOLE;
+
+    GlobalArenaInit();
 
 #ifdef _WIN32
     /* NOTE:
@@ -37,7 +43,7 @@ int main(int argc, char *argv[]) {
         ) {
         DWORD err = GetLastError();
         printWinErrMsg("couldn't set ANSI codepage to UTF-8", err);
-        exit(err);
+        ExitProcess(err);
     }
 
     DWORD originalConsoleMode;
@@ -46,12 +52,11 @@ int main(int argc, char *argv[]) {
 
     if (inputMode == CONSOLE) {
         size_t size = strlen(CONSOLE_WINDOW_TITLE) + 1;
-        wchar_t *windowTitle = xcalloc(size, sizeof(wchar_t));
+        wchar_t *windowTitle = ArenaPush(globalArena, size * sizeof(wchar_t));
 
         UTF8toUTF16(CONSOLE_WINDOW_TITLE, -1, windowTitle, (int)size);
         GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUF);
         SetConsoleTitleW(windowTitle);
-        free(windowTitle);
     }
 
     int argcW = 0;
@@ -60,7 +65,7 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < argcW; i++) {
         int size = UTF16toUTF8(argvW[i], -1, NULL, 0);
-        argv[i] = xcalloc(size, sizeof(char));
+        argv[i] = GlobalArenaPush(size * sizeof(char));
 
         UTF16toUTF8(argvW[i], -1, argv[i], size);
     }
@@ -94,8 +99,7 @@ int main(int argc, char *argv[]) {
         if (fileList) {
             size_t fileCount = 0;
 
-            while (*(fileList + fileCount))
-                fileCount++;
+            while (*(fileList + fileCount)) fileCount++;
 
             printf("%s > %sAbout to convert %s%d%s files. Continue? (Y/n):%s ",
                    COLOR_ACCENT, COLOR_DEFAULT,
@@ -103,7 +107,7 @@ int main(int argc, char *argv[]) {
                    COLOR_INPUT);
 
             int input = tolower(getchar());
-            _waitForNewLine();
+            waitForNewLine();
             printf("%s\n", COLOR_DEFAULT);
 
             struct timespec startTime = {0};
@@ -118,11 +122,6 @@ int main(int argc, char *argv[]) {
 
             struct timespec endTime = {0};
             clock_gettime(CLOCK_MONOTONIC_RAW, &endTime);
-
-            for (int i = 0; fileList[i]; i++)
-                free(fileList[i]);
-
-            free(fileList);
 
             procInfo.executionTime =
                 (double)(endTime.tv_sec - startTime.tv_sec) +
@@ -140,7 +139,7 @@ int main(int argc, char *argv[]) {
         printf(" %s(Press %sENTER%s to exit) ",
                COLOR_DEFAULT, COLOR_INPUT, COLOR_DEFAULT);
 
-        _waitForNewLine();
+        waitForNewLine();
         printf("\n");
 
 #ifdef _WIN32
@@ -152,12 +151,10 @@ int main(int argc, char *argv[]) {
     SetConsoleCP(originalCP);
     SetConsoleOutputCP(originalOutputCP);
     restoreConsoleMode(originalConsoleMode);
-
-    for (int i = 0; i < argc; i++)
-        free(argv[i]);
 #endif
 
-    freeArguments(parsedArgs);
+    GlobalArenaRelease();
+
     return exitCode;
 }
 
@@ -198,8 +195,8 @@ static void createTestProcess(void) {
            returned an error, and 2 means it wasn't found
            TODO: handle more exit codes down here! */
         if (exitStatus != 0) {
-            char status[FILE_BUF];
-            snprintf(status, FILE_BUF, "exit status: %d", exitStatus);
+            char status[FMT_BUF];
+            snprintf(status, FMT_BUF, "exit status: %d", exitStatus);
             printErr("couldn't call ffmpeg", status);
             exit(EXIT_FAILURE);
         }
@@ -234,7 +231,7 @@ static void displayEndDialog(processInfo *procInfo) {
 }
 
 /* code profiling wrapper functions */
-#ifdef  __USE_CLANG_INSTR_FUNCS
+#ifdef  INSTRUMENTATION
 #define __USE_GNU
 #include <dlfcn.h>
 
@@ -270,7 +267,7 @@ void __attribute__((__no_instrument_function__))
 
     if (info.dli_sname)
         printf(" exiting %s() [elapsed time: %.3lfμs]\n\n",
-               info.dli_sname, time * 1e6);
+               info.dli_sname, time * 1e6F);
 }
 
 #endif
