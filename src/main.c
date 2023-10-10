@@ -1,9 +1,11 @@
 #include <data.h>
+#include <minwindef.h>
 #include <parse.h>
 #include <search.h>
 #include <convert.h>
 #include <arena.h>
 #include <help.h>
+#include <stdint.h>
 
 /* TODO:
  * - finish profiling the code's most important routines
@@ -231,9 +233,14 @@ static void displayEndDialog(processInfo *procInfo) {
 }
 
 /* code profiling wrapper functions */
-#ifdef  INSTRUMENTATION
+#ifdef INSTRUMENTATION
+
+#ifdef _WIN32
+#include <libloaderapi.h>
+#else
 #define __USE_GNU
 #include <dlfcn.h>
+#endif
 
 static struct timespec funcStartTime = {0};
 static struct timespec funcEndTime   = {0};
@@ -245,11 +252,23 @@ void __attribute__((__no_instrument_function__))
 
     clock_gettime(CLOCK_MONOTONIC_RAW, &funcStartTime);
 
+#ifdef _WIN32
+#error "incomplete windows profiling code"
+    HMODULE mod = GetModuleHandleW(NULL);
+    DWORD rva = (DWORD)((uintptr_t)thisFunc - (uintptr_t)mod);
+
+    wchar_t func[PATH_BUF] = {0};
+    GetModuleFileNameW(thisFunc, func, sizeof(func));
+
+    if (*func)
+        printf(" calling %ls():", func);
+#else
     Dl_info info;
     dladdr(thisFunc, &info);
 
     if (info.dli_sname)
         printf(" calling %s():", info.dli_sname);
+#endif
 }
 
 void __attribute__((__no_instrument_function__))
@@ -262,12 +281,21 @@ void __attribute__((__no_instrument_function__))
         (double)(funcEndTime.tv_sec - funcStartTime.tv_sec) +
         (funcEndTime.tv_nsec - funcStartTime.tv_nsec) / 1e9F;
 
+#ifdef _WIN32
+    wchar_t func[PATH_BUF] = {0};
+    GetModuleFileNameW(thisFunc, func, sizeof(func));
+
+    if (*func)
+        printf(" exiting %ls() [elapsed time: %.3lfμs]\n\n",
+               func, time * 1e6F);
+#else
     Dl_info info;
     dladdr(thisFunc, &info);
 
     if (info.dli_sname)
         printf(" exiting %s() [elapsed time: %.3lfμs]\n\n",
                info.dli_sname, time * 1e6F);
+#endif
 }
 
 #endif

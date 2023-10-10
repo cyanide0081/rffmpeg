@@ -91,7 +91,7 @@ int convertFiles(const char **files,
 
 #ifdef _WIN32
         int callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
-        wchar_t *ffmpegCallW = xcalloc(callBuf, sizeof(wchar_t));
+        wchar_t *ffmpegCallW = GlobalArenaPush(callBuf * sizeof(wchar_t));
         UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, callBuf);
 
         STARTUPINFOW ffmpegStartupInfo = {0};
