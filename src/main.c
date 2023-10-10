@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     processInfo procInfo = {0};
 
     printf("%s%s%s\n\n", COLOR_ACCENT,
-           "RFFMPEG " PROGRAM_VERSION " (月光)", COLOR_DEFAULT);
+           "RFFMPEG " PROGRAM_VERSION " (竞技场)", COLOR_DEFAULT);
 
     createTestProcess();
 
