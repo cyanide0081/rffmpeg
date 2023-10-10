@@ -100,11 +100,9 @@ int convertFiles(const char **files,
                                              NULL, FALSE, 0, NULL, NULL,
                                              &ffmpegStartupInfo,
                                              &ffmpegProcessInfo);
-        free(ffmpegCallW);
 
         if (!createdProcess) {
-            DWORD err = GetLastError();
-            printWinErrMsg("call to FFmpeg failed", err);
+            printWinErrMsg("call to FFmpeg failed", GetLastError());
         } else {
             WaitForSingleObject(ffmpegProcessInfo.hProcess, INFINITE);
             CloseHandle(ffmpegProcessInfo.hProcess);
@@ -199,10 +197,7 @@ static bool _fileExists(const char *fileName) {
     UTF8toUTF16(fileName, -1, fileNameW, len);
     WIN32_FIND_DATAW fileData;
 
-    bool result = FindFirstFileW(fileNameW, &fileData) !=
-        INVALID_HANDLE_VALUE ? true : false;
-
-    return result;
+    return FindFirstFileW(fileNameW, &fileData) != INVALID_HANDLE_VALUE;
 #else /* POSIX */
     struct stat statBuffer;
     return stat(fileName, &statBuffer) == 0;

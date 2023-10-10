@@ -34,6 +34,7 @@
 #define opendir(d)  opendir_WIN(d)
 #define remove(d)   remove_WIN(d)
 
+#define getchar()   getwchar()
 #define readdir(d)  _wreaddir(d)
 #define closedir(d) _wclosedir(d)
 
