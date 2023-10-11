@@ -1,11 +1,9 @@
 #include <data.h>
-#include <minwindef.h>
 #include <parse.h>
 #include <search.h>
 #include <convert.h>
 #include <arena.h>
 #include <help.h>
-#include <stdint.h>
 
 /* TODO:
  * - finish profiling the code's most important routines
