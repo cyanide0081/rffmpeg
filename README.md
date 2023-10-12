@@ -13,7 +13,7 @@ Command-line/Console window tool for batch-processing files inside a specific di
 
 <br>
 
-## **Table of contents**
+# **Table of contents**
 
 1. [Installation](#installation)
 2. [Usage](#usage)
@@ -22,15 +22,17 @@ Command-line/Console window tool for batch-processing files inside a specific di
 <br>
 
 <a name="installation"></a>
-## **Installation**
+# **Installation**
 
-In order to use this tool you will first need to install FFmpeg, so here are two ways to do it:
+**1.** Installing *FFmpeg*
+
+In order to use this tool you will first need to install FFmpeg, either by getting it from your systems's package manager (examples shown below), or by downloading the binaries from a [stable release](https://ffmpeg.org/download.html), extracting them and adding the `bin` folder to your `PATH`
 
 <br>
 
 ### **Windows (10+)**
 
-If you're using Windows 10.1709 or newer, you can install it by simply opening PowerShell and running: 
+If you're using Windows 10.1709 or newer, you can install it with *WinGet* by running: 
 
     winget install ffmpeg
 
@@ -38,7 +40,7 @@ If you're using Windows 10.1709 or newer, you can install it by simply opening P
 
 ### **Linux (Debian/Ubuntu-based)**
 
-In Linux you can probably install it just by using your local package manager. Here's the command for Debian/Ubuntu-based distros: 
+On Linux you can probably install it just by using your local package manager. Here's the command for Debian/Ubuntu-based distros: 
 
     sudo apt install ffmpeg
 
@@ -50,8 +52,14 @@ You can then check if your installation succeeded by running the version command
 
 <br>
 
+**2.** Installing *RFFmpeg* 
+
+To install this tool, just head to the [releases](https://github.com/cyanide0081/rffmpeg/releases) page and download the latest binaries for your system (if there are no pre-built ones for your system you can alternatively [build](#building) the program from source)
+
+(You can also optionally place the *rffmpeg* executable in the same directory as your *ffmpeg* binaries so you can run the tool from anywhere in your OS)
+
 <a name="usage"></a>
-## **Usage**
+# **Usage**
 
 This tool's argument syntax is not that different from FFmpeg itself, with the basic structure being:
  
@@ -81,7 +89,7 @@ to OPUS using the libopus codec, and finally stores them in a new subfolder name
 
 <br>
 
- ### **Additional Flags**
+ ### **Flags/Switches**
 
 You can also pass any of the flags below to help you organize your batch conversions a little
 
@@ -99,7 +107,7 @@ You can also pass any of the flags below to help you organize your batch convers
 <br>
 
 <a name="building"></a>
-## **Building**
+# **Building**
 
 You can build this program by simply having the LLVM [clang](https://releases.llvm.org/download.html) compiler installed
 
