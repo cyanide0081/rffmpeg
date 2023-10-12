@@ -28,23 +28,17 @@ Command-line/Console window tool for batch-processing files inside a specific di
 
 In order to use this tool you will first need to install FFmpeg, either by getting it from your systems's package manager (examples shown below), or by downloading the binaries from a [stable release](https://ffmpeg.org/download.html), extracting them and adding the `bin` folder to your `PATH`
 
-<br>
-
 ### **Windows (10+)**
 
 If you're using Windows 10.1709 or newer, you can install it with *WinGet* by running: 
 
     winget install ffmpeg
 
-<br>
-
 ### **Linux (Debian/Ubuntu-based)**
 
 On Linux you can probably install it just by using your local package manager. Here's the command for Debian/Ubuntu-based distros: 
 
     sudo apt install ffmpeg
-
-<br>
 
 You can then check if your installation succeeded by running the version command below and seeing if it produces any output:
 
@@ -57,6 +51,8 @@ You can then check if your installation succeeded by running the version command
 To install this tool, just head to the [releases](https://github.com/cyanide0081/rffmpeg/releases) page and download the latest binaries for your system (if there are no pre-built ones for your system you can alternatively [build](#building) the program from source)
 
 (You can also optionally place the *rffmpeg* executable in the same directory as your *ffmpeg* binaries so you can run the tool from anywhere in your OS)
+
+<br>
 
 <a name="usage"></a>
 # **Usage**
