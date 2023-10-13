@@ -165,9 +165,8 @@ int convertFiles(const char **files,
 static int _handleFileNameConflicts(char *pureName,
                                     const char *fileFormat,
                                     const char *path) {
-    size_t fullPathSize =
-        snprintf(NULL, 0, "%s%c%s.-xxx%s",
-                 path, PATH_SEP, pureName, fileFormat) + 1;
+    size_t fullPathSize = snprintf(NULL, 0, "%s%c%s.-xxx%s",
+                                   path, PATH_SEP, pureName, fileFormat) + 1;
 
     char *fullPath = GlobalArenaPush(fullPathSize * sizeof(char));
     sprintf(fullPath, "%s%c%s.%s", path, PATH_SEP, pureName, fileFormat);
@@ -195,8 +194,8 @@ static bool _fileExists(const char *fileName) {
     int len = UTF8toUTF16(fileName, -1, NULL, 0);
     wchar_t *fileNameW = GlobalArenaPush(len * sizeof(wchar_t));
     UTF8toUTF16(fileName, -1, fileNameW, len);
-    WIN32_FIND_DATAW fileData;
 
+    WIN32_FIND_DATAW fileData;
     return FindFirstFileW(fileNameW, &fileData) != INVALID_HANDLE_VALUE;
 #else /* POSIX */
     struct stat statBuffer;

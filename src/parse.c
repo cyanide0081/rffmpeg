@@ -137,13 +137,13 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
 
     /* handle null args here */
     if (!parsedArgs->ffOptions)
-        parsedArgs->ffOptions = strdup("");
+        parsedArgs->ffOptions = GlobalArenaPushString("");
 
     if (!*parsedArgs->inFormats)
-        *parsedArgs->inFormats = strdup("");
+        *parsedArgs->inFormats = GlobalArenaPushString("");
 
     if (!parsedArgs->customPath)
-        parsedArgs->customPath = strdup("");
+        parsedArgs->customPath = GlobalArenaPushString("");
 
     /* Set current working directory as input path if none is provided */
     if (!parsedArgs->inPaths[0] || !*parsedArgs->inPaths[0]) {
@@ -235,7 +235,7 @@ static char **_getTokenizedStrings(char *string, const char *delimiter) {
     char **list = GlobalArenaPush(items * sizeof(char*));
 
     if (!token) {
-        *list = strdup("");
+        *list = GlobalArenaPushString("");
         return list;
     }
 

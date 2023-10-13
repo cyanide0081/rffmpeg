@@ -251,7 +251,7 @@ void __attribute__((__no_instrument_function__))
     clock_gettime(CLOCK_MONOTONIC_RAW, &funcStartTime);
 
 #ifdef _WIN32
-#error "incomplete windows profiling code"
+#error "unfinished windows profiling code (cba to make it work)"
     HMODULE mod = GetModuleHandleW(NULL);
     DWORD rva = (DWORD)((uintptr_t)thisFunc - (uintptr_t)mod);
 
