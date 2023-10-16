@@ -95,7 +95,7 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
                                   "(illegal leading byte)");
                 }
 
-                bufIdx--;
+                bufIdx--, chars++; // all 3-byte chars seem to occupy 2 spaces
                 break;
             } else if (((buf[bufIdx] & 0xC0) == 0x80) && (i < 2)) {
                 bufIdx--;
@@ -146,6 +146,7 @@ void readLine(char *dst, size_t dstSize) {
 bool isDirectory(const char *dir) {
 #ifndef _WIN32
     struct stat pathStats;
+
     if (stat(dir, &pathStats) != 0)
         return false;
 
@@ -163,4 +164,12 @@ bool isDirectory(const char *dir) {
 
     return false;
 #endif
+}
+
+bool isZeroMemory(const void *buf, const size_t size) {
+    for (size_t i = 0; i < size; i++) {
+        if (((char*)buf)[i]) return false;
+    }
+
+    return true;
 }

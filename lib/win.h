@@ -18,6 +18,9 @@
 #define CLOCK_MONOTONIC_RAW 0
 #endif /* MSC_VER */
 
+/* length of "\\?\" path prefix */
+#define PREFIX_LEN 4
+
 /* ARG_BUF allocates the maximum size of a UNICODE_STRING (subauth.h) and
  * PATH_BUF allocates the maximum size of a qualified (Unicode) WIN32 path */
 #define ARG_BUF  USHRT_MAX
@@ -67,15 +70,24 @@
 } (void)0
 
 /* prepends "\\?\" to path and replaces '/' with '\' */
-#define formatPathToWIN32(src, dst) {                       \
-    char prefixedDir[PATH_BUF];                             \
-    sprintf_s(prefixedDir, PATH_BUF, "\\\\?\\%s", src);     \
-                                                            \
-    for (int i = 0; prefixedDir[i]; i++)                    \
-        if (prefixedDir[i] == '/')                          \
-            prefixedDir[i] = '\\';                          \
-                                                            \
-    UTF8toUTF16(prefixedDir, -1, dst, PATH_BUF);            \
+#define formatPathToWIN32(src, dst) {                           \
+    char prefixedDir[PATH_BUF];                                 \
+                                                                \
+    if (!strstr(src, "\\\\?\\"))                                \
+        sprintf_s(prefixedDir, PATH_BUF, "\\\\?\\%s", src);     \
+    else                                                        \
+        strncpy(prefixedDir, src, PATH_BUF);                    \
+                                                                \
+    for (int i = 0; prefixedDir[i]; i++) {                      \
+        if (prefixedDir[i] == '/')                              \
+            prefixedDir[i] = '\\';                              \
+        if (prefixedDir[i] == '\\' && !prefixedDir[i + 1]) {    \
+            prefixedDir[i] = '\0';                              \
+            break;                                              \
+        }                                                       \
+    }                                                           \
+                                                                \
+    UTF8toUTF16(prefixedDir, -1, dst, PATH_BUF);                \
 } (void)0
 
 /* Implementation of clock_gettime for win32 */

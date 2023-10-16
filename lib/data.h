@@ -57,6 +57,7 @@ typedef struct arguments {
 #endif
 
 #define LIST_BUF 8
+#define LINE_LEN 80
 
 #ifndef _WIN32 // these are defined in win.h for windows
 #define FILE_BUF NAME_MAX
@@ -98,5 +99,6 @@ void trimSpaces(char *string);
 char *trimUTF8StringTo(const char *str, size_t maxChars);
 void readLine(char *dst, size_t dstSize);
 bool isDirectory(const char *dir);
+bool isZeroMemory(const void *buf, const size_t size);
 
 #endif // H_TYPES

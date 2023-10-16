@@ -1,8 +1,5 @@
 #include <search.h>
 
-#define INITIAL_LIST_BUF  (8)
-#define LINE_LEN          (80)
-
 extern Arena *globalArena;
 
 static char **_getFilesFromDir(const char *dir,
@@ -12,13 +9,18 @@ static char **_getFilesFromDir(const char *dir,
 static int fileErr = 0;
 
 char **getFiles(const arguments *args) {
-    size_t listSize = INITIAL_LIST_BUF;
+    size_t listSize = LIST_BUF;
     char **list = GlobalArenaPush(listSize * sizeof(char*));
     size_t listIdx = 0;
 
     for (int i = 0; args->inPaths[i]; i++) {
         const char *dir = args->inPaths[i];
+#ifdef _WIN32
+        char *trimmedDir = trimUTF8StringTo((dir + strlen("\\\\?\\")),
+                                            LINE_LEN - 40); // skip path prefix
+#else
         char *trimmedDir = trimUTF8StringTo(dir, LINE_LEN - 40);
+#endif
 
         if (!isDirectory(dir)) {
             printf("%s \"%s\"%s is not a directory (%signoring%s)\n\n",
@@ -83,7 +85,7 @@ char **getFiles(const arguments *args) {
 static char **_getFilesFromDir(const char *dir,
                                const char **fmts,
                                const bool recurse) {
-    size_t listSize = INITIAL_LIST_BUF;
+    size_t listSize = LIST_BUF;
     size_t listIdx = 0;
     char **list = GlobalArenaPush(listSize * sizeof(char*));
 

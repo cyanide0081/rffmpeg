@@ -19,6 +19,7 @@
 #if defined _WIN32
 #include <windows.h>
 #include <shellapi.h>
+#include <process.h>
 #include <fcntl.h>
 #include <io.h>
 #elif defined __linux__ || defined __APPLE__ || defined BSD
