@@ -2,7 +2,6 @@
 @echo off
 
 call :compile %~1
-call :clean
 exit /b
 
 @rem actual recursive compilation loop
@@ -44,8 +43,16 @@ if /I "%~1" == "rel" (
 call %cmd%
 @echo off
 
+if /I "%~1" == "rel" (
+    echo.
+    echo Removing debug files ^(.pdb, .ilk, ...^)
+    call :clean
+)
+
 setlocal disabledelayedexpansion
+goto :eof
 
 :clean
 
-@rem del /Q /S *.o *.obj *.ilk *.pdb >NUL 2>&1
+del /Q /S *.o *.obj *.ilk *.pdb >NUL 2>&1
+goto :eof
