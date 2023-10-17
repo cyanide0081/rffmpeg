@@ -50,10 +50,10 @@ typedef struct arguments {
 #define COLOR_INPUT          "\x1b[97m"
 #define COLOR_ERROR          "\x1b[91m"
 #else
-#define COLOR_DEFAULT
-#define COLOR_ACCENT
-#define COLOR_INPUT
-#define COLOR_ERROR
+#define COLOR_DEFAULT        ""
+#define COLOR_ACCENT         ""
+#define COLOR_INPUT          ""
+#define COLOR_ERROR          ""
 #endif
 
 #define LIST_BUF 8

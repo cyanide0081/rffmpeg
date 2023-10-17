@@ -17,13 +17,9 @@ typedef struct Thread {
 static unsigned __stdcall _callFFmpeg(void *arg);
 static size_t getNumberOfThreads(void);
 static bool _fileExists(const char *fileName);
-static int _handleFileNameConflicts(char *pureName,
-                                    const char *fileFormat,
-                                    const char *path);
+static int _checkFileName(char *name, const char *format, const char *path);
 
-int convertFiles(const char **files,
-                 arguments *args,
-                 processInfo *stats) {
+int convertFiles(const char **files, arguments *args, processInfo *stats) {
     char *outPath = NULL;
 
     size_t numberOfThreads = getNumberOfThreads();
@@ -52,8 +48,7 @@ int convertFiles(const char **files,
             const char *fullPath = files[fileIdx];
             const char *pathDelimPoint = (fullPath + strlen(fullPath) - 1);
 
-            while (*pathDelimPoint != PATH_SEP)
-                pathDelimPoint--;
+            while (*pathDelimPoint-- != PATH_SEP);
 
             char *filePath =
                 GlobalArenaPushStringN(fullPath, (pathDelimPoint - fullPath));
@@ -89,21 +84,21 @@ int convertFiles(const char **files,
                 outPath = newPath;
             }
 
-            char *fileNameNoExt = strdup(baseName);
-            memset(fileNameNoExt + strlen(fileNameNoExt) - strlen(inputFormat) - 1,
-                   0, strlen(inputFormat) + 1);
+            char *fileNameNoExt =
+                GlobalArenaPushStringN(baseName, strlen(baseName) -
+                                       strlen(inputFormat) - 1);
 
             const char *overwriteFlag = "-n";
 
             if (args->options & OPT_OVERWRITE) {
                 overwriteFlag = "-y";
             } else {
-                _handleFileNameConflicts(fileNameNoExt, args->outFormat, outPath);
+                _checkFileName(fileNameNoExt, args->outFormat, outPath);
             }
 
             char *fullOutPath =
-                GlobalArenaSprintf("%s%c%s.%s",
-                                   outPath, PATH_SEP, fileNameNoExt, args->outFormat);
+                GlobalArenaSprintf("%s%c%s.%s", outPath, PATH_SEP,
+                                   fileNameNoExt, args->outFormat);
 
             char *ffmpegCall =
                 GlobalArenaSprintf("ffmpeg -hide_banner -loglevel error "
@@ -129,11 +124,8 @@ int convertFiles(const char **files,
                    COLOR_ACCENT, args->outFormat, COLOR_DEFAULT);
 
             threads[threadIdx].handle =
-                (HANDLE)_beginthreadex(NULL, 0,
-                                       &_callFFmpeg,
+                (HANDLE)_beginthreadex(NULL, 0, &_callFFmpeg,
                                        ffmpegCallW, 0, NULL);
-
-
 
             if (!threads[threadIdx].handle) {
                 printErr("unable to spawn new thread", strerror(errno));
@@ -224,9 +216,8 @@ static size_t getNumberOfThreads(void) {
     GetSystemInfo(&sysInfo);
 
     /* NOTE: - 1 since we already have a main thread (I guess?) */
-    return sysInfo.dwNumberOfProcessors > 1 ?
-        (size_t)sysInfo.dwNumberOfProcessors - 1 :
-        (size_t)sysInfo.dwNumberOfProcessors;
+    return sysInfo.dwNumberOfProcessors > 2 ?
+        (size_t)sysInfo.dwNumberOfProcessors - 1 : 1;
 #else
     /* TODO: POSIX impl */
 #endif
@@ -261,15 +252,13 @@ static unsigned __stdcall _callFFmpeg(void *arg) {
     _endthreadex(0);
     return 0;
 }
-/* Appends 3-digit index to output filename in case it already exists */
-static int _handleFileNameConflicts(char *pureName,
-                                    const char *fileFormat,
-                                    const char *path) {
+
+static int _checkFileName(char *name, const char *format, const char *path) {
     size_t fullPathSize = snprintf(NULL, 0, "%s%c%s.-xxx%s",
-                                   path, PATH_SEP, pureName, fileFormat) + 1;
+                                   path, PATH_SEP, name, format) + 1;
 
     char *fullPath = GlobalArenaPush(fullPathSize * sizeof(char));
-    sprintf(fullPath, "%s%c%s.%s", path, PATH_SEP, pureName, fileFormat);
+    sprintf(fullPath, "%s%c%s.%s", path, PATH_SEP, name, format);
 
     char newName[FILE_BUF];
 
@@ -278,12 +267,11 @@ static int _handleFileNameConflicts(char *pureName,
         size_t index = 0;
 
         while (_fileExists(fullPath))
-            sprintf(fullPath, "%s%c%s-%03ld.%s",
-                    path, PATH_SEP, pureName, (long)++index, fileFormat);
+            sprintf(fullPath, "%s%c%s-%03zu.%s",
+                    path, PATH_SEP, name, ++index, format);
 
-        snprintf(newName, FILE_BUF, "%s-%03ld",
-                 pureName, (long)index);
-        memccpy(pureName, newName, '\0', FILE_BUF);
+        snprintf(newName, FILE_BUF, "%s-%03zu", name, index);
+        memccpy(name, newName, '\0', FILE_BUF);
     }
 
     return EXIT_SUCCESS;
