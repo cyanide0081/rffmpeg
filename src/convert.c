@@ -46,9 +46,9 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
             assert(inputFormat);
 
             const char *fullPath = files[fileIdx];
-            const char *pathDelimPoint = (fullPath + strlen(fullPath) - 1);
+            const char *pathDelimPoint = (fullPath + strlen(fullPath));
 
-            while (*pathDelimPoint-- != PATH_SEP);
+            while (*--pathDelimPoint != PATH_SEP);
 
             char *filePath =
                 GlobalArenaPushStringN(fullPath, (pathDelimPoint - fullPath));
