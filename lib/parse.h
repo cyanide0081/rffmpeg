@@ -1,11 +1,6 @@
 #ifndef H_PARSERS_P
 #define H_PARSERS_P
 
-/* NOTE: i still don't know why the fuck i have to reinclude this */
-#ifdef __linux__
-#include <linux/limits.h>
-#endif
-
 #include <data.h>
 
 /* Option bitmasks */
@@ -34,8 +29,8 @@
 
 int parseConsoleInput(arguments *args);
 
-int parseArgs(const int count,
-               char *rawArguments[],
-               arguments *parsedArguments);
+int parseArgs(
+    const int count, char *rawArguments[], arguments *parsedArguments
+);
 
 #endif // H_PARSERS_P

@@ -93,7 +93,7 @@ typedef struct Thread {
 #ifdef _WIN32
 #define waitForNewLine() {                                          \
     wint_t c;                                                       \
-    while ((c = getwchar()) != u'\n' && c != u'\r' && c != WEOF);   \
+    while ((c = getwchar()) != L'\n' && c != L'\r' && c != WEOF);   \
 } (void)0
 #else
 #define waitForNewLine() {                              \

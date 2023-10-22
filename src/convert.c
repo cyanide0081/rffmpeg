@@ -47,9 +47,9 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
                 args->outPath.customFolder : args->outFormat;
 
             if (args->options & OPT_NEWFOLDER) {
-                char *newPath = GlobalArenaSprintf("%s%c%s",
-                                                   filePath, PATH_SEP,
-                                                   newFolderName);
+                char *newPath = GlobalArenaSprintf(
+                    "%s%c%s", filePath, PATH_SEP, newFolderName
+                );
 
                 if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                     printErr("Unable to create subdirectory", strerror(errno));
@@ -69,8 +69,9 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
             }
 
             char *fileNameNoExt =
-                GlobalArenaPushStringN(baseName, strlen(baseName) -
-                                       strlen(inputFormat) - 1);
+                GlobalArenaPushStringN(
+                    baseName, strlen(baseName) - strlen(inputFormat) - 1
+                );
 
             const char *overwriteFlag = "-n";
 
@@ -85,20 +86,22 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
                                    fileNameNoExt, args->outFormat);
 
             char *ffmpegCall =
-                GlobalArenaSprintf("ffmpeg -hide_banner -loglevel error "
-                                   "%s -i \"%s\" %s \"%s\"",
-                                   overwriteFlag, fullPath,
-                                   args->ffOptions, fullOutPath);
+                GlobalArenaSprintf(
+                    "ffmpeg -hide_banner -loglevel error "
+                    "%s -i \"%s\" %s \"%s\"",
+                    overwriteFlag, fullPath, args->ffOptions, fullOutPath
+                );
 
             threads[i].targetFile =
                 trimUTF8StringTo(fullPath + PREFIX_LEN, LINE_LEN - 30);
             threads[i].outFileID = fileIdx + 1;
 
-            printf(" converting %sF-%.02zu %s-> %s\"%s\"%s to %s%s%s\n",
-                   COLOR_INPUT, threads[i].outFileID,
-                   COLOR_ACCENT, COLOR_INPUT,
-                   threads[i].targetFile, COLOR_DEFAULT,
-                   COLOR_ACCENT, args->outFormat, COLOR_DEFAULT);
+            printf(
+                " converting %sF-%.02zu %s-> %s\"%s\"%s to %s%s%s\n",
+                COLOR_INPUT, threads[i].outFileID, COLOR_ACCENT, COLOR_INPUT,
+                threads[i].targetFile, COLOR_DEFAULT, COLOR_ACCENT,
+                args->outFormat, COLOR_DEFAULT
+            );
 
 #ifdef _WIN32
             int callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
@@ -106,8 +109,10 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
             UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, callBuf);
 
             threads[i].handle =
-                (HANDLE)_beginthreadex(NULL, 0, &_callFFmpeg,
-                                       ffmpegCallW, 0, NULL);
+                (HANDLE)_beginthreadex(
+                    NULL, 0, &_callFFmpeg,
+                    ffmpegCallW, 0, NULL
+                );
 
             if (!threads[i].handle) {
                 printErr("unable to spawn new thread", strerror(errno));
@@ -119,8 +124,9 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
             pthread_mutex_init(&threads[i].mutex, NULL);
             pthread_cond_init(&threads[i].cond, NULL);
 
-            int err = pthread_create(&threads[i].handle,
-                                     NULL, &_callFFmpeg, ffmpegCall);
+            int err = pthread_create(
+                &threads[i].handle, NULL, &_callFFmpeg, ffmpegCall
+            );
 
             if (err) {
                 printErr("unable to spawn new thread", strerror(err));
@@ -133,12 +139,16 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
 
         for (size_t i = 0; i < numberOfThreads; i++) {
 #ifdef _WIN32
-            if (WaitForSingleObject(threads[i].handle, 10) ==
-                WAIT_TIMEOUT || !threads[i].handle) continue;
+            if (
+                WaitForSingleObject(threads[i].handle, 10) ==
+                WAIT_TIMEOUT || !threads[i].handle
+            ) continue;
 
-            printf(" $ %sdone %sconverting %sF-%.02zu%s\n",
-                   COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
-                   threads[i].outFileID, COLOR_DEFAULT);
+            printf(
+                " $ %sdone %sconverting %sF-%.02zu%s\n",
+                COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
+                threads[i].outFileID, COLOR_DEFAULT
+            );
 
             stats->convertedFiles += 1;
 
@@ -160,9 +170,11 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
             if (err == ETIMEDOUT) {
                 continue;
             } else if (err == 0) {
-                printf(" ~ %sdone %sconverting %sF-%.02zu%s\n",
-                       COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
-                       threads[i].outFileID, COLOR_DEFAULT);
+                printf(
+                    " ~ %sdone %sconverting %sF-%.02zu%s\n",
+                    COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
+                    threads[i].outFileID, COLOR_DEFAULT
+                );
 
                 stats->convertedFiles += 1;
             } else {
@@ -193,8 +205,10 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
     }
 
     /* Delete new folder in case it exists and no conversions succeeded */
-    if (((args->options & OPT_NEWFOLDER) || (args->options & OPT_NEWPATH))
-        && stats->convertedFiles == 0) {
+    if (
+        ((args->options & OPT_NEWFOLDER) || (args->options & OPT_NEWPATH)) &&
+        stats->convertedFiles == 0
+    ) {
         if (remove(outPath) != 0) {
             printErr("unable to delete unused directory", strerror(errno));
         }
@@ -225,14 +239,14 @@ static __mt_call_conv _callFFmpeg(void *arg) {
     STARTUPINFOW ffmpegStartupInfo;
     PROCESS_INFORMATION ffmpegProcessInfo;
 
-    bool createdProcess = CreateProcessW(NULL, ffmpegCallW, NULL,
-                                         NULL, FALSE, 0, NULL, NULL,
-                                         &ffmpegStartupInfo,
-                                         &ffmpegProcessInfo);
+    bool createdProcess = CreateProcessW(
+        NULL, ffmpegCallW, NULL, NULL, FALSE, 0, NULL, NULL,
+        &ffmpegStartupInfo, &ffmpegProcessInfo
+    );
 
     if (!createdProcess) {
         printWinErrMsg("unable to call FFmpeg", GetLastError());
-        _endthreadex(-1);
+         _endthreadex(-1);
         return -1;
     } else {
         WaitForSingleObject(ffmpegProcessInfo.hProcess, INFINITE);
@@ -241,6 +255,7 @@ static __mt_call_conv _callFFmpeg(void *arg) {
     }
 
     _endthreadex(0);
+    return 0;
 #else
     const char *ffmpegCall = arg;
 
@@ -268,9 +283,6 @@ static __mt_call_conv _callFFmpeg(void *arg) {
         }
     }
 #endif
-
-    *(volatile char*)0 = 0;
-    return NULL;
 }
 
 static int _checkFileName(char *name, const char *format, const char *path) {
@@ -285,9 +297,12 @@ static int _checkFileName(char *name, const char *format, const char *path) {
     if (_fileExists(fullPath)) {
         size_t index = 0;
 
-        while (_fileExists(fullPath))
-            sprintf(fullPath, "%s%c%s-%03zu.%s",
-                    path, PATH_SEP, name, ++index, format);
+        while (_fileExists(fullPath)) {
+            sprintf(
+                fullPath, "%s%c%s-%03zu.%s", path,
+                PATH_SEP, name, ++index, format
+            );
+        }
 
         snprintf(newName, FILE_BUF, "%s-%03zu", name, index);
         memccpy(name, newName, '\0', FILE_BUF);

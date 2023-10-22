@@ -7,11 +7,9 @@ extern Arena *globalArena;
 
 #define COMP_TOKEN_DELIM ":"
 
-#define prompt(str) printf("%s > %s%s:%s ",           \
-                           COLOR_ACCENT,              \
-                           COLOR_DEFAULT,             \
-                           str,                       \
-                           COLOR_INPUT);
+#define prompt(str) printf(                                             \
+        "%s > %s%s:%s ", COLOR_ACCENT, COLOR_DEFAULT, str, COLOR_INPUT  \
+    );                                                                  \
 
 static char **_getTokenizedStrings(char *string, const char *delimiter);
 static char *getAbsolutePath(const char *dir);
@@ -158,8 +156,11 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
 #else
 
         if (!(parsedArgs->inPaths[0] = getcwd(NULL, 0))) {
-            printErr("couldn't retrieve current working directory",
-                     strerror(errno));
+            printErr(
+                "couldn't retrieve current working directory",
+                strerror(errno)
+            );
+
             return PARSE_STATE_CWD_ERROR;
         }
 #endif
@@ -167,32 +168,38 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
 
     if (!parsedArgs->inFormats[0] || !*parsedArgs->inFormats[0]) {
         printErr("missing input format", "(null)");
-        printf(" (run with %s--help%s for info)\n\n",
-               COLOR_INPUT, COLOR_DEFAULT);
+        printf(
+            " (run with %s--help%s for info)\n\n", COLOR_INPUT, COLOR_DEFAULT
+        );
 
         return PARSE_STATE_BAD_ARG;
     }
 
     if (!parsedArgs->outFormat || !*parsedArgs->outFormat) {
         printErr("missing output format", "(null)");
-        printf(" (run with %s--help%s for info)\n\n",
-               COLOR_INPUT, COLOR_DEFAULT);
+        printf(
+            " (run with %s--help%s for info)\n\n", COLOR_INPUT, COLOR_DEFAULT
+        );
 
         return PARSE_STATE_BAD_ARG;
     }
 
-    if ((parsedArgs->options & OPT_NEWFOLDER) &&
+    if (
+        (parsedArgs->options & OPT_NEWFOLDER) &&
         (parsedArgs->options & OPT_NEWPATH)
-        ) {
-        printErr("using multiple unique switches",
-                 "('-subfolder' and '-outpath' are mutually exclusive)");
+    ) {
+        printErr(
+            "using multiple unique switches",
+            "('-subfolder' and '-outpath' are mutually exclusive)"
+        );
 
         return PARSE_STATE_BAD_ARG;
     }
 
-    if ((parsedArgs->options & OPT_NEWFOLDER) &&
+    if (
+        (parsedArgs->options & OPT_NEWFOLDER) &&
         (parsedArgs->options & OPT_CUSTOMFOLDERNAME)
-        ) {
+    ) {
         if ((strlen(parsedArgs->outPath.customFolder) > FILE_BUF - 1)) {
             char len[FILE_BUF];
             snprintf(len, sizeof(len), "(%d bytes)", FILE_BUF);
@@ -213,14 +220,16 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
     }
 
     for (int i = 0; parsedArgs->inFormats[i] != NULL; i++) {
-        if (strcmp(parsedArgs->inFormats[i], parsedArgs->outFormat) == 0 &&
+        if (
+            strcmp(parsedArgs->inFormats[i], parsedArgs->outFormat) == 0 &&
             !(parsedArgs->options & OPT_NEWFOLDER) &&
             !(parsedArgs->options & OPT_NEWPATH)
-            ) {
-            printErr("can't use ffmpeg with identical input "
-                     "and output formats",
-                     "(use '-outpath' or '-subfolder' "
-                     "to save the files in a new directory)");
+        ) {
+            printErr(
+                "can't use ffmpeg with identical input and output formats",
+                "(use '-outpath' or '-subfolder' to save the files in a new"
+                " directory)"
+            );
 
             return PARSE_STATE_EXT_CONFLICT;
         }

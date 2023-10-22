@@ -77,7 +77,7 @@ static inline Arena *ArenaAlloc(size_t bytes) {
     return arena;
 }
 
-static void *ArenaPush(Arena *arena, size_t bytes) {
+static inline void *ArenaPush(Arena *arena, size_t bytes) {
     arena->pos = alignForward(arena->pos, ARENA_MEM_ALIGNMENT);
 
     if (arena->pos + bytes > arena->size) {
@@ -158,7 +158,7 @@ static inline void __attribute__((unused)) ArenaFlush(Arena *arena) {
     arena->next = NULL;
 }
 
-static char *ArenaSprintf(Arena *arena, const char *format, ...) {
+static inline char *ArenaSprintf(Arena *arena, const char *format, ...) {
     va_list args;
     va_start(args, format);
 

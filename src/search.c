@@ -2,9 +2,9 @@
 
 extern Arena *globalArena;
 
-static char **_getFilesFromDir(const char *dir,
-                               const char **fmts,
-                               const bool recurse);
+static char **_getFilesFromDir(
+    const char *dir, const char **fmts, const bool recurse
+);
 
 static int fileErr = 0;
 
@@ -16,8 +16,9 @@ char **getFiles(const arguments *args) {
     for (int i = 0; args->inPaths[i]; i++) {
         const char *dir = args->inPaths[i];
 #ifdef _WIN32
-        char *trimmedDir = trimUTF8StringTo((dir + strlen("\\\\?\\")),
-                                            LINE_LEN - 40); // skip path prefix
+        char *trimmedDir = trimUTF8StringTo(
+            (dir + strlen("\\\\?\\")), LINE_LEN - 04 // skip path prefix
+        );
 #else
         char *trimmedDir = trimUTF8StringTo(dir, LINE_LEN - 40);
 #endif
@@ -30,12 +31,15 @@ char **getFiles(const arguments *args) {
             continue;
         }
 
-        printf("%s scanning %s@ %s\"%s\"%s\n\n",
-               COLOR_DEFAULT, COLOR_ACCENT,
-               COLOR_INPUT, trimmedDir, COLOR_DEFAULT);
+        printf(
+            "%s scanning %s@ %s\"%s\"%s\n\n",
+            COLOR_DEFAULT, COLOR_ACCENT, COLOR_INPUT, trimmedDir, COLOR_DEFAULT
+        );
 
-        char **files = _getFilesFromDir(dir, (const char**)args->inFormats,
-                                        !(args->options & OPT_NORECURSION));
+        char **files = _getFilesFromDir(
+            dir, (const char**)args->inFormats,
+            !(args->options & OPT_NORECURSION)
+        );
 
         size_t fileCount = 0;
 
@@ -49,10 +53,10 @@ char **getFiles(const arguments *args) {
             }
         }
 
-        printf("%s (found %s%lu%s files)%s\n\n",
-               COLOR_DEFAULT, COLOR_ACCENT,
-               (unsigned long)fileCount,
-               COLOR_DEFAULT, COLOR_DEFAULT);
+        printf(
+            "%s (found %s%zu%s files)%s\n\n",
+            COLOR_DEFAULT, COLOR_ACCENT, fileCount, COLOR_DEFAULT, COLOR_DEFAULT
+        );
 
         if (!files) {
             continue;
@@ -64,8 +68,10 @@ char **getFiles(const arguments *args) {
 
                 char **newList = GlobalArenaPush(newSize * sizeof(char*));
                 memcpy(newList, list, listSize * sizeof(char*));
-                memset((newList + listSize), 0,
-                       (newSize - listSize) * sizeof(char*));
+                memset(
+                    (newList + listSize), 0,
+                    (newSize - listSize) * sizeof(char*)
+                );
 
                 list = newList;
                 listSize = newSize;
@@ -127,8 +133,10 @@ static char **_getFilesFromDir(const char *dir,
 
                         char **newList = GlobalArenaPush(newSize * sizeof(char*));
                         memcpy(newList, list, listSize * sizeof(char*));
-                        memset((newList + listSize), 0,
-                               (newSize - listSize) * sizeof(char*));
+                        memset(
+                            (newList + listSize), 0,
+                            (newSize - listSize) * sizeof(char*)
+                        );
 
                         list = newList;
                         listSize = newSize;
@@ -153,8 +161,10 @@ static char **_getFilesFromDir(const char *dir,
 
                     char **newList = GlobalArenaPush(newSize * sizeof(char*));
                     memcpy(newList, list, listSize * sizeof(char*));
-                    memset(newList + listSize, 0,
-                           (newSize - listSize) * sizeof(char*));
+                    memset(
+                        newList + listSize, 0,
+                        (newSize - listSize) * sizeof(char*)
+                    );
 
                     list = newList;
                     listSize = newSize;

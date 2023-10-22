@@ -74,25 +74,32 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
             bufIdx--;
             continue;
         } else if (bufIdx == 0) {
-            return GlobalArenaPushString(ERR_INVALID_UTF8 " (leading non-ASCII byte)");
+            return GlobalArenaPushString(
+                ERR_INVALID_UTF8 " (leading non-ASCII byte)"
+            );
         }
 
         if ((buf[bufIdx] & 0xC0) != 0x80) {
-            return GlobalArenaPushString(ERR_INVALID_UTF8 " (illegal continuation byte)");
+            return GlobalArenaPushString(
+                ERR_INVALID_UTF8 " (illegal continuation byte)"
+            );
         }
 
-        bufIdx--; // we have ourselves a continuation byte :DDDDD
+        bufIdx -= 1; // we have ourselves a continuation byte :DDDDD
 
         /* next 2 bytes should be a valid continuation or leading one
            and the 3rd has to be a leading byte in case we get there */
         for (int i = 0; i < 3; i++) {
-            if (((buf[bufIdx] & 0xE0) == 0xC0) || // 2-byte leading code unit
+            if (
+                ((buf[bufIdx] & 0xE0) == 0xC0) || // 2-byte leading code unit
                 ((buf[bufIdx] & 0xF0) == 0xE0) || // 3-byte leading code unit
                 ((buf[bufIdx] & 0xF8) == 0xF0)    // 4-byte leading code unit
-                ) {
+            ) {
                 if (buf[bufIdx] <= 0xC1 || buf[bufIdx] >= 0xF5) {
-                    return GlobalArenaPushString(ERR_INVALID_UTF8
-                                  "(illegal leading byte)");
+                    return GlobalArenaPushString(
+                        ERR_INVALID_UTF8
+                        "(illegal leading byte)"
+                    );
                 }
 
                 bufIdx--, chars++; // all 3-byte chars seem to occupy 2 spaces
@@ -100,13 +107,15 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
             } else if (((buf[bufIdx] & 0xC0) == 0x80) && (i < 2)) {
                 bufIdx--;
             } else {
-                return GlobalArenaPushString(ERR_INVALID_UTF8
-                              " (continuation byte out of place)");
+                return GlobalArenaPushString(
+                    ERR_INVALID_UTF8
+                    " (continuation byte out of place)"
+                );
             }
         }
     }
 
-    bufIdx++; // shift index to compensate for the last iteration's decrement
+    bufIdx += 1; // shift index to compensate for the last iteration's decrement
 
     if (bufIdx > 2) {
         for (size_t i = 0; i < 3; i++) {

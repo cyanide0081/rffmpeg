@@ -8,7 +8,7 @@ exit /b
 :compile
 
 set        "CC=clang"
-set     "FLAGS=-I./lib -I./lib/dirent -std=c11 -Wall -Wextra -pedantic"
+set     "FLAGS=-I./lib -I./lib/dirent -std=c99 -Wall -Wextra -pedantic"
 set "WIN_FLAGS=-D_CRT_SECURE_NO_WARNINGS -DWIN32_LEAN_AND_MEAN -DUNICODE -D_UNICODE -lshell32 -lkernel32 -lmsvcrt -Xlinker /NODEFAULTLIB:libcmt"
 set   "D_FLAGS=-g -gcodeview"
 set   "R_FLAGS=-DNDEBUG -O2"
