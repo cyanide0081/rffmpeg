@@ -286,8 +286,8 @@ static __mt_call_conv _callFFmpeg(void *arg) {
 }
 
 static int _checkFileName(char *name, const char *format, const char *path) {
-    size_t fullPathSize = snprintf(NULL, 0, "%s%c%s.-xxx%s",
-                                   path, PATH_SEP, name, format) + 1;
+    size_t fullPathSize =
+        snprintf(NULL, 0, "%s%c%s.-xxx%s", path, PATH_SEP, name, format) + 1;
 
     char *fullPath = GlobalArenaPush(fullPathSize * sizeof(char));
     sprintf(fullPath, "%s%c%s.%s", path, PATH_SEP, name, format);

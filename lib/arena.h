@@ -10,7 +10,8 @@
 
 #include <libs.h>
 
-/* NOTE: 64KB seemed pretty generous after some testing */
+/* NOTE: 64KB seemed pretty generous after some testing +
+ * it's also the default allocation granularity on Windows */
 #define ARENA_INIT_SIZE     (64 * 1024)
 #define ARENA_GROWTH_FACTOR 2
 #define ARENA_MEM_ALIGNMENT sizeof(void*)
@@ -53,14 +54,17 @@ static inline uintptr_t alignForward(uintptr_t ptr, size_t alignment) {
 
 static inline Arena *ArenaAlloc(size_t bytes) {
 #ifdef _WIN32
-    Arena *arena = VirtualAlloc(NULL, sizeof(*arena),
-                                MEM_COMMIT, PAGE_READWRITE);
-    arena->buf   = VirtualAlloc(NULL, bytes,
-                                MEM_COMMIT, PAGE_READWRITE);
+    Arena *arena = VirtualAlloc(
+        NULL, sizeof(*arena), MEM_COMMIT, PAGE_READWRITE
+    );
+    arena->buf = VirtualAlloc(
+        NULL, bytes, MEM_COMMIT, PAGE_READWRITE
+    );
 #else
     Arena *arena = sbrk(sizeof(*arena));
-    arena->buf   = mmap(NULL, bytes, PROT_READ | PROT_WRITE,
-                        MAP_PRIVATE | MAP_ANON, -1, 0);
+    arena->buf   = mmap(
+        NULL, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0
+    );
 #endif
 
     if (!arena || !arena->buf) {
@@ -83,8 +87,10 @@ static inline void *ArenaPush(Arena *arena, size_t bytes) {
     if (arena->pos + bytes > arena->size) {
         /* need more memory! (make growable arena linked list) */
         if (bytes > arena->size) {
-            fprintf(stderr, " FATAL: requested block is too big for one arena! "
-                    "(Bl: %zuB, Ar: %zuB)\n", bytes, arena->size);
+            fprintf(
+                stderr, " FATAL: requested block is too big for one arena! "
+                "(Bl: %zuB, Ar: %zuB)\n", bytes, arena->size
+            );
             exit(-1);
         }
 
@@ -125,8 +131,10 @@ static inline void GlobalArenaPrintUsage(void) {
 
     while ((a = a->next)) mem += a->size, usage += a->pos;
 
-    printf(" total arena memory used: %zu%% of %.2fKB\n\n",
-           100 * usage / mem, mem / 1024.0F);
+    printf(
+        " total arena memory used: %zu%% of %.2fKB\n\n",
+        100 * usage / mem, mem / 1024.0F
+    );
 #endif
 }
 

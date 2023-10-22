@@ -104,16 +104,19 @@ typedef struct Thread {
 
 #define printErr(msg, dsc)                      \
     fprintf(                                    \
-            stderr,                             \
-            "%s ERROR: %s%s: %s\"%s\"%s\n\n",   \
-            COLOR_ERROR,                        \
-            COLOR_DEFAULT, msg,                 \
-            COLOR_INPUT, dsc,                   \
-            COLOR_DEFAULT)
+        stderr,                                 \
+        "%s ERROR: %s%s: %s\"%s\"%s\n\n",       \
+        COLOR_ERROR,                            \
+        COLOR_DEFAULT, msg,                     \
+        COLOR_INPUT, dsc,                       \
+        COLOR_DEFAULT                           \
+    )                                           \
 
 #ifndef NDEBUG
-#define dprintf(fmt, ...) fprintf(stderr, "%s:%d:%s(): " fmt,           \
-                                  __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define dprintf(fmt, ...)                                                     \
+    fprintf(                                                                  \
+        stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, __VA_ARGS__ \
+    )
 #else
 #define dprintf(...) (void)0
 #endif
