@@ -8,12 +8,12 @@
 Arena *globalArena = NULL; // for simplifying arena alloc calls
 
 static void createTestProcess(void);
-static inline void displayEndDialog(processInfo *procInfo);
+static inline void displayEndDialog(ProcessInfo *procInfo);
 
 int main(int argc, char *argv[]) {
     GlobalArenaInit();
 
-    inputMode inputMode = argc > 1 ? ARGUMENTS : CONSOLE;
+    InputMode inputMode = argc > 1 ? ARGUMENTS : CONSOLE;
 
 #ifdef _WIN32
     /* NOTE:
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
 
     createTestProcess();
 
-    arguments *parsedArgs = allocArguments();
+    Arguments *parsedArgs = ArgumentsAlloc();
 
     int exitCode = EXIT_SUCCESS;
     int state = PARSE_STATE_OK;
@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
             waitForNewLine();
             printf("%s\n", COLOR_DEFAULT);
 
-            processInfo procInfo = {0};
+            ProcessInfo procInfo = {0};
             struct timespec startTime;
             clock_gettime(CLOCK_MONOTONIC_RAW, &startTime);
 
@@ -205,11 +205,11 @@ static void createTestProcess(void) {
 #endif
 }
 
-static inline void displayEndDialog(processInfo *procInfo) {
+static inline void displayEndDialog(ProcessInfo *procInfo) {
     if (procInfo->convertedFiles == 0) {
         printErr("unable to convert files", "check your ffmpeg parameters");
     } else {
-        fmtTime execTime = formatTime(procInfo->executionTime);
+        FmtTime execTime = formatTime(procInfo->executionTime);
 
         printf(" %sDONE!%s\n\n", COLOR_ACCENT, COLOR_DEFAULT);
         printf(
@@ -254,7 +254,7 @@ void __attribute__((__no_instrument_function__))
     HMODULE mod = GetModuleHandleW(NULL);
     DWORD rva = (DWORD)((uintptr_t)thisFunc - (uintptr_t)mod);
 
-    wchar_t func[PATH_BUF] = {0};
+    wchar_t func[PATH_BUF];
     GetModuleFileNameW(thisFunc, func, sizeof(func));
 
     if (*func)
@@ -278,7 +278,7 @@ void __attribute__((__no_instrument_function__))
         (funcEndTime.tv_nsec - funcStartTime.tv_nsec) / 1e9F;
 
 #ifdef _WIN32
-    wchar_t func[PATH_BUF] = {0};
+    wchar_t func[PATH_BUF];
     GetModuleFileNameW(thisFunc, func, sizeof(func));
 
     if (*func)

@@ -2,16 +2,16 @@
 
 extern Arena *globalArena;
 
-arguments *allocArguments(void) {
-    arguments *args = GlobalArenaPush(sizeof(arguments));
+Arguments *ArgumentsAlloc(void) {
+    Arguments *args = GlobalArenaPush(sizeof(*args));
     args->inPaths   = GlobalArenaPush(LIST_BUF * sizeof(char*));
     args->inFormats = GlobalArenaPush(LIST_BUF * sizeof(char*));
 
     return args;
 }
 
-fmtTime formatTime(double seconds) {
-    fmtTime time = {
+FmtTime formatTime(double seconds) {
+    FmtTime time = {
         .hours   = (size_t)(seconds / 3600),
         .minutes = (size_t)((seconds - (time.hours * 3600)) / 60),
         .seconds = (double)(seconds - (time.hours * 3600) - (time.minutes * 60))

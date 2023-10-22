@@ -7,7 +7,7 @@ static size_t getNumberOfThreads(void);
 static bool _fileExists(const char *fileName);
 static int _checkFileName(char *name, const char *format, const char *path);
 
-int convertFiles(const char **files, arguments *args, processInfo *stats) {
+int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
     char *outPath = NULL;
 
     size_t numberOfThreads = getNumberOfThreads();

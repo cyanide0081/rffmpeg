@@ -14,7 +14,7 @@ extern Arena *globalArena;
 static char **_getTokenizedStrings(char *string, const char *delimiter);
 static char *getAbsolutePath(const char *dir);
 
-int parseConsoleInput(arguments *args) {
+int parseConsoleInput(Arguments *args) {
     char input[ARG_BUF] = {0};
 
     prompt("Input path(s) (separated by a '" DIR_DELIMITER "')");
@@ -44,16 +44,14 @@ int parseConsoleInput(arguments *args) {
     char **optionsList = _getTokenizedStrings(input, " ");
     size_t listSize = 0;
 
-    while (optionsList[listSize])
-        listSize++;
+    while (optionsList[listSize]) listSize++;
 
     return parseArgs(listSize, optionsList, args);
 }
 
 /* Parses an array of strings to format an (arguments*) accordingly */
-int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
-    if (listSize == 0)
-        return PARSE_STATE_EMPTY;
+int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
+    if (listSize == 0) return PARSE_STATE_EMPTY;
 
     size_t count = listSize, parsedArgsIdx = 0;
 

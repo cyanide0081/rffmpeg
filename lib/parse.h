@@ -27,10 +27,10 @@
 #define DIR_DELIMITER ":"
 #endif
 
-int parseConsoleInput(arguments *args);
+int parseConsoleInput(Arguments *args);
 
 int parseArgs(
-    const int count, char *rawArguments[], arguments *parsedArguments
+    const int count, char *rawArguments[], Arguments *parsedArguments
 );
 
 #endif // H_PARSERS_P

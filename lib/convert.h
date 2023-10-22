@@ -4,6 +4,6 @@
 #include <data.h>
 #include <parse.h>
 
-int convertFiles(const char **files, arguments *args, processInfo *stats);
+int convertFiles(const char **files, Arguments *args, ProcessInfo *stats);
 
 #endif  /* HEADER_CONVERT */

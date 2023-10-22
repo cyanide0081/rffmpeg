@@ -10,23 +10,24 @@
 
 #define FMT_BUF FILE_BUF
 
-typedef enum inputMode {
-    ARGUMENTS, CONSOLE
-} inputMode;
+typedef enum InputMode {
+    ARGUMENTS,
+    CONSOLE
+} InputMode;
 
-typedef struct processInfo {
+typedef struct ProcessInfo {
     size_t convertedFiles;
     size_t deletedFiles;
     double executionTime;
-} processInfo;
+} ProcessInfo;
 
-typedef struct fmtTime {
+typedef struct FmtTime {
     size_t hours;
     size_t minutes;
     double seconds;
-} fmtTime;
+} FmtTime;
 
-typedef struct arguments {
+typedef struct Arguments {
     char **inPaths;
     char *ffOptions;
     char **inFormats;
@@ -38,7 +39,7 @@ typedef struct arguments {
     } outPath;
 
     uint8_t options; // Bit fields for the optional arguments
-} arguments;
+} Arguments;
 
 typedef struct Thread {
     char *targetFile;
@@ -52,8 +53,9 @@ typedef struct Thread {
     pthread_cond_t cond;
 
     enum Status {
-        RUNNING = 1,
-        FINISHED = 2
+        UNINITIALIZED,
+        RUNNING,
+        FINISHED
     } status;
 #endif
 } Thread;
@@ -121,8 +123,8 @@ typedef struct Thread {
 #define dprintf(...) (void)0
 #endif
 
-arguments *allocArguments(void);
-fmtTime formatTime(double seconds);
+Arguments *ArgumentsAlloc(void);
+FmtTime formatTime(double seconds);
 void trimSpaces(char *string);
 char *trimUTF8StringTo(const char *str, size_t maxChars);
 void readLine(char *dst, size_t dstSize);

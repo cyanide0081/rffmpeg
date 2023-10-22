@@ -4,6 +4,6 @@
 #include <data.h>
 #include <parse.h>
 
-char **getFiles(const arguments *args);
+char **getFiles(const Arguments *args);
 
 #endif // H_SEARCH
