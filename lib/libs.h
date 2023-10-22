@@ -24,6 +24,7 @@
 #include <io.h>
 #elif defined __linux__ || defined __APPLE__ || defined BSD
 #include <unistd.h>
+#include <pthread.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/cdefs.h>

@@ -105,7 +105,7 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
 
             if (delimPoint) {
                 parsedArgs->options |= OPT_CUSTOMFOLDERNAME;
-                parsedArgs->customFolder = strdup(++delimPoint);
+                parsedArgs->outPath.customFolder = strdup(++delimPoint);
             }
 
             continue;
@@ -118,7 +118,7 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
 
             if (delimPoint) {
                 parsedArgs->options |= OPT_CUSTOMPATHNAME;
-                parsedArgs->customPath = strdup(++delimPoint);
+                parsedArgs->outPath.customPath = strdup(++delimPoint);
             }
 
             continue;
@@ -142,8 +142,8 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
     if (!*parsedArgs->inFormats)
         *parsedArgs->inFormats = GlobalArenaPushString("");
 
-    if (!parsedArgs->customPath)
-        parsedArgs->customPath = GlobalArenaPushString("");
+    if (!parsedArgs->outPath.customPath)
+        parsedArgs->outPath.customPath = GlobalArenaPushString("");
 
     /* Set current working directory as input path if none is provided */
     if (!parsedArgs->inPaths[0] || !*parsedArgs->inPaths[0]) {
@@ -193,7 +193,7 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
     if ((parsedArgs->options & OPT_NEWFOLDER) &&
         (parsedArgs->options & OPT_CUSTOMFOLDERNAME)
         ) {
-        if ((strlen(parsedArgs->customFolder) > FILE_BUF - 1)) {
+        if ((strlen(parsedArgs->outPath.customFolder) > FILE_BUF - 1)) {
             char len[FILE_BUF];
             snprintf(len, sizeof(len), "(%d bytes)", FILE_BUF);
             printErr("custom folder name exceeds maximum allowed length", len);
@@ -203,7 +203,9 @@ int parseArgs(const int listSize, char *args[], arguments *parsedArgs) {
     }
 
     if (parsedArgs->options & OPT_NEWPATH) {
-        if (!parsedArgs->customPath || !*parsedArgs->customPath) {
+        if (!parsedArgs->outPath.customPath ||
+            !*parsedArgs->outPath.customPath
+        ) {
             printErr("empty custom path field", "usage: -outpath:[PATH]");
 
             return PARSE_STATE_BAD_ARG;

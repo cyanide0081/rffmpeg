@@ -9,12 +9,11 @@
  */
 
 #include <libs.h>
-#include <stdint.h>
 
 /* NOTE: 64KB seemed pretty generous after some testing */
-#define ARENA_INIT_SIZE     (32 * 1024)
+#define ARENA_INIT_SIZE     (64 * 1024)
 #define ARENA_GROWTH_FACTOR 2
-#define ARENA_MEM_ALIGNMENT sizeof(void *)
+#define ARENA_MEM_ALIGNMENT sizeof(void*)
 
 typedef struct Arena {
     char *buf;          // actual arena memory
@@ -25,19 +24,21 @@ typedef struct Arena {
 
 extern Arena *globalArena;
 
-#define GlobalArenaPush(sz) ArenaPush(globalArena, sz)
-#define GlobalArenaPushString(str) ArenaPushString(globalArena, str)
 #define GlobalArenaInit() {                     \
     globalArena = ArenaAlloc(ARENA_INIT_SIZE);  \
 } (void)0
+
 #define GlobalArenaRelease() {          \
     GlobalArenaPrintUsage();            \
     ArenaRelease(globalArena);          \
 } (void)0
+
+#define GlobalArenaPush(sz) ArenaPush(globalArena, sz)
+#define GlobalArenaPushString(str) ArenaPushString(globalArena, str)
 #define GlobalArenaSprintf(f, ...) ArenaSprintf(globalArena, f, __VA_ARGS__)
 #define GlobalArenaPushStringN(str, n) ArenaPushStringN(globalArena, str, n)
 
-static uintptr_t alignForward(uintptr_t ptr, size_t alignment) {
+static inline uintptr_t alignForward(uintptr_t ptr, size_t alignment) {
     assert((alignment & (alignment - 1)) == 0); // is power of 2
 
     uintptr_t p = ptr, a = (uintptr_t)alignment;
@@ -50,7 +51,7 @@ static uintptr_t alignForward(uintptr_t ptr, size_t alignment) {
     return p;
 }
 
-static Arena *ArenaAlloc(size_t bytes) {
+static inline Arena *ArenaAlloc(size_t bytes) {
 #ifdef _WIN32
     Arena *arena = VirtualAlloc(NULL, sizeof(*arena),
                                 MEM_COMMIT, PAGE_READWRITE);
@@ -82,7 +83,7 @@ static void *ArenaPush(Arena *arena, size_t bytes) {
     if (arena->pos + bytes > arena->size) {
         /* need more memory! (make growable arena linked list) */
         if (bytes > arena->size) {
-            fprintf(stderr, " ERROR: requested block is too big for one arena! "
+            fprintf(stderr, " FATAL: requested block is too big for one arena! "
                     "(Bl: %zuB, Ar: %zuB)\n", bytes, arena->size);
             exit(-1);
         }
@@ -105,11 +106,11 @@ static void *ArenaPush(Arena *arena, size_t bytes) {
     return (void*)(arena->buf + pos);
 }
 
-static char *ArenaPushString(Arena *arena, const char *string) {
+static inline char *ArenaPushString(Arena *arena, const char *string) {
     size_t bytes = 0;
     while (*(string + bytes++));
 
-    char *buf = (char*)ArenaPush(arena, bytes);
+    char *buf = ArenaPush(arena, bytes);
 
     size_t idx = 0;
     while((*(buf + idx) = *(string + idx))) idx++;
@@ -147,8 +148,7 @@ static inline void ArenaRelease(Arena *arena) {
 #endif
 }
 
-/* NOTE: unused */
-static void ArenaFlush(Arena *arena) {
+static inline void __attribute__((unused)) ArenaFlush(Arena *arena) {
     if (arena->next) {
         ArenaRelease(arena->next);
     }
@@ -167,21 +167,18 @@ static char *ArenaSprintf(Arena *arena, const char *format, ...) {
 
     va_end(args);
     va_start(args, format);
-
     vsprintf(s, format, args);
-
     va_end(args);
 
     return s;
 }
 
-static char *ArenaPushStringN(Arena *arena, const char *str, size_t n) {
+static inline char *ArenaPushStringN(Arena *arena, const char *str, size_t n) {
     if (strlen(str) <= n) {
         return ArenaPushString(arena, str);
     }
 
     char *s = ArenaPush(arena, (n + 1) * sizeof(char));
-
     return memcpy(s, str, n);
 }
 

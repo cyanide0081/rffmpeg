@@ -1,9 +1,10 @@
-# build script for linux/mac (clang)
+# build script for POSIX (linux/mac/freebsd/...) (clang)
 #!/usr/bin/env bash
 
 # recursive file searching and compilation routine
 compile() {
-    local   FLAGS="-I./lib -std=gnu11 -Wall -Wextra -pedantic -Wno-unused-function"
+    local DEFINES=" -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE"
+    local   FLAGS="-I./lib -std=c99 $DEFINES -Wall -Wextra -pedantic -Wno-unused-function"
     local D_FLAGS="-g"
     local P_FLAGS="-finstrument-functions -ldl -rdynamic -DINSTRUMENTATION"
     local R_FLAGS="-DNDEBUG -O2 -s"
@@ -28,10 +29,6 @@ compile() {
 
     set +x
 }
-
-# clean() {
-#     rm -rf "*.o" &> /dev/null
-# }
 
 # entry point of the script
 compile $1

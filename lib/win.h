@@ -18,15 +18,15 @@
 #define CLOCK_MONOTONIC_RAW 0
 #endif /* MSC_VER */
 
-/* length of "\\?\" path prefix */
-#define PREFIX_LEN 4
-
 /* ARG_BUF allocates the maximum size of a UNICODE_STRING (subauth.h) and
  * PATH_BUF allocates the maximum size of a qualified (Unicode) WIN32 path */
 #define ARG_BUF  USHRT_MAX
 #define PATH_BUF SHRT_MAX
 #define FILE_BUF FILENAME_MAX
 #define PATH_SEP '\\'
+
+/* length of "\\?\" path prefix */
+#define PREFIX_LEN 4
 
 #define DIR     _WDIR
 #define dirent  _wdirent

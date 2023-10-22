@@ -2,19 +2,7 @@
 
 extern Arena *globalArena;
 
-typedef struct Thread {
-    char *targetFile;
-    char *outFile;
-    size_t outFileID;
-
-#ifdef _WIN32
-    HANDLE handle;
-#else
-    /* TODO: POSIX */
-#endif
-} Thread;
-
-static unsigned __stdcall _callFFmpeg(void *arg);
+static __mt_call_conv _callFFmpeg(void *arg);
 static size_t getNumberOfThreads(void);
 static bool _fileExists(const char *fileName);
 static int _checkFileName(char *name, const char *format, const char *path);
@@ -23,22 +11,18 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
     char *outPath = NULL;
 
     size_t numberOfThreads = getNumberOfThreads();
-    Thread *threads = GlobalArenaPush(numberOfThreads * sizeof(Thread));
-
+    Thread *threads = GlobalArenaPush(numberOfThreads * sizeof(*threads));
     size_t fileIdx = 0;
 
     while (true) {
-        for (size_t threadIdx = 0;
-             threadIdx < numberOfThreads && files[fileIdx];
-             threadIdx++
-            ) {
-            if (threads[threadIdx].handle) continue; // Thread is busy
+        for (size_t i = 0; i < numberOfThreads && files[fileIdx]; i++) {
+            if (threads[i].handle) continue; // thread is busy (kiwi business)
 
             const char *inputFormat = NULL;
 
-            for (int i = 0; args->inFormats[i]; i++) {
-                if (strstr(files[fileIdx], args->inFormats[i])) {
-                    inputFormat = args->inFormats[i];
+            for (int f = 0; args->inFormats[f]; f++) {
+                if (strstr(files[fileIdx], args->inFormats[f])) {
+                    inputFormat = args->inFormats[f];
                     break;
                 }
             }
@@ -60,7 +44,7 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
             outPath = filePath;
 
             const char *newFolderName = (args->options & OPT_CUSTOMFOLDERNAME) ?
-                args->customFolder : args->outFormat;
+                args->outPath.customFolder : args->outFormat;
 
             if (args->options & OPT_NEWFOLDER) {
                 char *newPath = GlobalArenaSprintf("%s%c%s",
@@ -74,7 +58,7 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
 
                 outPath = newPath;
             } else if (args->options & OPT_NEWPATH) {
-                char *newPath = args->customPath;
+                char *newPath = args->outPath.customPath;
 
                 if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
                     printErr("Unable to create new directory", strerror(errno));
@@ -106,69 +90,53 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
                                    overwriteFlag, fullPath,
                                    args->ffOptions, fullOutPath);
 
+            threads[i].targetFile =
+                trimUTF8StringTo(fullPath + PREFIX_LEN, LINE_LEN - 30);
+            threads[i].outFileID = fileIdx + 1;
+
+            printf(" converting %sF-%.02zu %s-> %s\"%s\"%s to %s%s%s\n",
+                   COLOR_INPUT, threads[i].outFileID,
+                   COLOR_ACCENT, COLOR_INPUT,
+                   threads[i].targetFile, COLOR_DEFAULT,
+                   COLOR_ACCENT, args->outFormat, COLOR_DEFAULT);
+
 #ifdef _WIN32
             int callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
             wchar_t *ffmpegCallW = GlobalArenaPush(callBuf * sizeof(wchar_t));
             UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, callBuf);
 
-            threads[threadIdx].targetFile =
-                trimUTF8StringTo(fullPath + PREFIX_LEN, LINE_LEN - 30);
-            threads[threadIdx].outFile =
-                trimUTF8StringTo(fullOutPath + PREFIX_LEN, LINE_LEN - 30);
-            threads[threadIdx].outFileID = fileIdx + 1;
-
-            printf(" converting %sF-%.02zu %s-> %s\"%s\"%s to %s%s%s\n",
-                   COLOR_INPUT, threads[threadIdx].outFileID,
-                   COLOR_ACCENT, COLOR_INPUT,
-                   threads[threadIdx].targetFile, COLOR_DEFAULT,
-                   COLOR_ACCENT, args->outFormat, COLOR_DEFAULT);
-
-            threads[threadIdx].handle =
+            threads[i].handle =
                 (HANDLE)_beginthreadex(NULL, 0, &_callFFmpeg,
                                        ffmpegCallW, 0, NULL);
 
-            if (!threads[threadIdx].handle) {
+            if (!threads[i].handle) {
                 printErr("unable to spawn new thread", strerror(errno));
+                exit(errno);
             }
 
-            fileIdx += 1;
 #else
-            /* TODO: replace this POSIX part with multithreaded code! */
+            /* pthread setup stuff so we can get the thread's status later */
+            pthread_mutex_init(&threads[i].mutex, NULL);
+            pthread_cond_init(&threads[i].cond, NULL);
 
-            pid_t procId = fork();
+            int err = pthread_create(&threads[i].handle,
+                                     NULL, &_callFFmpeg, ffmpegCall);
 
-            if (procId == 0) {
-                /* NOTE: use system() for now cause i'm too lazy to build a
-                   dynamic array of args due to ffOptions right now */
-                /* execlp("ffmpeg", "ffmpeg", overwriteFlag, "-i", */
-                /*        fullPath, args->ffOptions, fullOutPath, (char*)NULL); */
-                system(ffmpegCall);
-                exit(errno);
-            } else {
-                int status;
-                waitpid(procId, &status, 0);
-
-                int exitStatus = 0;
-
-                if (!WIFEXITED(status))
-                    exitStatus = WEXITSTATUS(status);
-
-                if (exitStatus != 0) {
-                    char status[FILE_BUF];
-                    snprintf(status, FILE_BUF - 1, "exit status: %d", exitStatus);
-                    printErr("unable to call FFmpeg", status);
-                    exit(EXIT_FAILURE);
-                }
+            if (err) {
+                printErr("unable to spawn new thread", strerror(err));
+                exit(err);
             }
 #endif
+
+            fileIdx += 1;
         }
 
         for (size_t i = 0; i < numberOfThreads; i++) {
 #ifdef _WIN32
-            if (WaitForSingleObject(threads[i].handle, 10) == WAIT_TIMEOUT ||
-                !threads[i].handle) continue;
+            if (WaitForSingleObject(threads[i].handle, 10) ==
+                WAIT_TIMEOUT || !threads[i].handle) continue;
 
-            printf(" ~ %sdone %sconverting %sF-%.02zu%s\n",
+            printf(" $ %sdone %sconverting %sF-%.02zu%s\n",
                    COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
                    threads[i].outFileID, COLOR_DEFAULT);
 
@@ -176,15 +144,40 @@ int convertFiles(const char **files, arguments *args, processInfo *stats) {
 
             CloseHandle(threads[i].handle);
 #else
-            /* TODO: POSIX impl */
+#error "ay we're not done yet"
+            /* TODO: finish setting up condition and mutex
+             * for the check to work properly down here */
+            pthread_cond_t *cond = &threads[i].cond;
+            pthread_mutex_t *mutex = &threads[i].mutex;
+            struct timespec timeout;
+            clock_gettime(CLOCK_REALTIME, &timeout);
+            timeout.tv_nsec += 1e7; // 10ms
+
+            /* TODO: finish figuring out how to properly setup the
+             * condition and mutex stuff here so this works fr fr */
+            int err = pthread_cond_timedwait(cond, mutex, &timeout);
+
+            if (err == ETIMEDOUT) {
+                continue;
+            } else if (err == 0) {
+                printf(" ~ %sdone %sconverting %sF-%.02zu%s\n",
+                       COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
+                       threads[i].outFileID, COLOR_DEFAULT);
+
+                stats->convertedFiles += 1;
+            } else {
+                printErr("unable to retrieve thread status", strerror(err));
+                exit(err);
+            }
 #endif
+
             memset(&threads[i], 0, sizeof(*threads));
         }
 
-        /* NOTE: here we check if all threads are nulled so
+        /* NOTE: here we check if all threads are zeroed so
          * we only exit after all the work is actually done */
-        if (!files[fileIdx] &&
-            isZeroMemory(threads, numberOfThreads * sizeof(Thread))) break;
+        if (isZeroMemory(threads, numberOfThreads * sizeof(*threads)) &&
+            !files[fileIdx]) break;
     }
 
     putchar('\n');
@@ -219,16 +212,17 @@ static size_t getNumberOfThreads(void) {
     return sysInfo.dwNumberOfProcessors > 2 ?
         (size_t)sysInfo.dwNumberOfProcessors - 1 : 1;
 #else
-    /* TODO: POSIX impl */
+    size_t n = (size_t)sysconf(_SC_NPROCESSORS_ONLN);
+    return n > 2 ? n - 1 : 1;
 #endif
 
     return *((volatile size_t*)0); // why are you here
 }
 
-static unsigned __stdcall _callFFmpeg(void *arg) {
+static __mt_call_conv _callFFmpeg(void *arg) {
 #ifdef _WIN32
     wchar_t *ffmpegCallW = (wchar_t*)arg;
-    STARTUPINFOW ffmpegStartupInfo = {0};
+    STARTUPINFOW ffmpegStartupInfo;
     PROCESS_INFORMATION ffmpegProcessInfo;
 
     bool createdProcess = CreateProcessW(NULL, ffmpegCallW, NULL,
@@ -245,12 +239,38 @@ static unsigned __stdcall _callFFmpeg(void *arg) {
         CloseHandle(ffmpegProcessInfo.hProcess);
         CloseHandle(ffmpegProcessInfo.hThread);
     }
-#else
-    /* TODO: POSIX impl */
-#endif
 
     _endthreadex(0);
-    return 0;
+#else
+    const char *ffmpegCall = arg;
+
+    pid_t procId = fork();
+
+    if (procId == 0) {
+        /* NOTE: using system() for now cause i'm too lazy to
+           build a dynamic array of args due to ffOptions */
+        system(ffmpegCall);
+        exit(errno);
+    } else {
+        int status;
+        waitpid(procId, &status, 0);
+
+        int exitStatus = 0;
+
+        if (!WIFEXITED(status))
+            exitStatus = WEXITSTATUS(status);
+
+        if (exitStatus != 0) {
+            char status[FILE_BUF];
+            snprintf(status, FILE_BUF - 1, "exit status: %d", exitStatus);
+            printErr("unable to call FFmpeg", status);
+            exit(EXIT_FAILURE);
+        }
+    }
+#endif
+
+    *(volatile char*)0 = 0;
+    return NULL;
 }
 
 static int _checkFileName(char *name, const char *format, const char *path) {
@@ -262,7 +282,6 @@ static int _checkFileName(char *name, const char *format, const char *path) {
 
     char newName[FILE_BUF];
 
-    /* Keep appending indexes until it results in a unique file name */
     if (_fileExists(fullPath)) {
         size_t index = 0;
 

@@ -5,20 +5,15 @@
 #include <arena.h>
 #include <help.h>
 
-/* TODO:
- * - finish profiling the code's most important routines
- * - add multi-threading to the conversion procedure (and maybe searching too)
- */
-
 Arena *globalArena = NULL; // for simplifying arena alloc calls
 
 static void createTestProcess(void);
-static void displayEndDialog(processInfo *procInfo);
+static inline void displayEndDialog(processInfo *procInfo);
 
 int main(int argc, char *argv[]) {
-    inputMode inputMode = argc > 1 ? ARGUMENTS : CONSOLE;
-
     GlobalArenaInit();
+
+    inputMode inputMode = argc > 1 ? ARGUMENTS : CONSOLE;
 
 #ifdef _WIN32
     /* NOTE:
@@ -71,9 +66,7 @@ int main(int argc, char *argv[]) {
     }
 
     LocalFree(argvW);
-#endif  /* _WIN32 */
-
-    processInfo procInfo = {0};
+#endif /* _WIN32 */
 
     printf("%s%s%s\n\n", COLOR_ACCENT,
            "RFFMPEG " PROGRAM_VERSION " (竞技场)", COLOR_DEFAULT);
@@ -110,7 +103,8 @@ int main(int argc, char *argv[]) {
             waitForNewLine();
             printf("%s\n", COLOR_DEFAULT);
 
-            struct timespec startTime = {0};
+            processInfo procInfo = {0};
+            struct timespec startTime;
             clock_gettime(CLOCK_MONOTONIC_RAW, &startTime);
 
             if (input == 'y') {
@@ -120,7 +114,7 @@ int main(int argc, char *argv[]) {
                 exitCode = EXIT_FAILURE;
             }
 
-            struct timespec endTime = {0};
+            struct timespec endTime;
             clock_gettime(CLOCK_MONOTONIC_RAW, &endTime);
 
             procInfo.executionTime =
@@ -160,7 +154,7 @@ int main(int argc, char *argv[]) {
 
 static void createTestProcess(void) {
 #ifdef _WIN32
-    STARTUPINFOW ffmpegStartupInfo = {0};
+    STARTUPINFOW ffmpegStartupInfo;
     PROCESS_INFORMATION ffmpegProcessInfo;
     wchar_t ffmpegProcessCall[] = u"ffmpeg -loglevel quiet";
 
@@ -201,31 +195,24 @@ static void createTestProcess(void) {
             exit(EXIT_FAILURE);
         }
     }
-
-    return;
 #endif
 }
 
-static void displayEndDialog(processInfo *procInfo) {
+static inline void displayEndDialog(processInfo *procInfo) {
     if (procInfo->convertedFiles == 0) {
-        printErr("unable to convert files",
-                 "double-check your ffmpeg parameters");
+        printErr("unable to convert files", "check your ffmpeg parameters");
     } else {
         fmtTime execTime = formatTime(procInfo->executionTime);
 
         printf(" %sDONE!%s\n\n", COLOR_ACCENT, COLOR_DEFAULT);
 
-        printf(" %sProcessed files: %s%lu%s\n", COLOR_DEFAULT,
-               COLOR_ACCENT, (unsigned long)procInfo->convertedFiles,
-               COLOR_DEFAULT);
-        printf(" %sDeleted files:   %s%lu%s\n", COLOR_DEFAULT,
-               COLOR_ACCENT, (unsigned long)procInfo->deletedFiles,
-               COLOR_DEFAULT);
-        printf(" %sElapsed time:    %s%02lu:%02lu:%05.2lf%s\n\n",
+        printf(" %sProcessed files: %s%zu%s\n", COLOR_DEFAULT,
+               COLOR_ACCENT, procInfo->convertedFiles, COLOR_DEFAULT);
+        printf(" %sDeleted files:   %s%zu%s\n", COLOR_DEFAULT,
+               COLOR_ACCENT, procInfo->deletedFiles, COLOR_DEFAULT);
+        printf(" %sElapsed time:    %s%02zu:%02zu:%05.2lf%s\n\n",
                COLOR_DEFAULT, COLOR_ACCENT,
-               (unsigned long)execTime.hours,
-               (unsigned long)execTime.minutes,
-               execTime.seconds,
+               execTime.hours, execTime.minutes, execTime.seconds,
                COLOR_DEFAULT);
     }
 }
@@ -240,8 +227,8 @@ static void displayEndDialog(processInfo *procInfo) {
 #include <dlfcn.h>
 #endif
 
-static struct timespec funcStartTime = {0};
-static struct timespec funcEndTime   = {0};
+static struct timespec funcStartTime;
+static struct timespec funcEndTime;
 
 /* overriding clang's instrumentation functions for profiling */
 void __attribute__((__no_instrument_function__))

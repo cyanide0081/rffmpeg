@@ -32,37 +32,62 @@ typedef struct arguments {
     char **inFormats;
     const char *outFormat;
 
-    union {
+    union OutPath {
         char *customFolder;
         char *customPath;
-    };
+    } outPath;
 
     uint8_t options; // Bit fields for the optional arguments
 } arguments;
+
+typedef struct Thread {
+    char *targetFile;
+    size_t outFileID;
+
+#ifdef _WIN32
+    HANDLE handle;
+#else
+    pthread_t handle;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+
+    enum Status {
+        RUNNING = 1,
+        FINISHED = 2
+    } status;
+#endif
+} Thread;
 
 #define PROGRAM_VERSION      "v1.2.1"
 #define CONSOLE_WINDOW_TITLE ("RFFmpeg " PROGRAM_VERSION)
 
 /* ANSI escape chars for colored shell output */
 #ifndef NO_ANSI_ESCAPE_CODES
-#define COLOR_DEFAULT        "\x1b[0m"
-#define COLOR_ACCENT         "\x1b[91m"
-#define COLOR_INPUT          "\x1b[97m"
-#define COLOR_ERROR          "\x1b[91m"
+#define COLOR_DEFAULT "\x1b[0m"
+#define COLOR_ACCENT  "\x1b[91m"
+#define COLOR_INPUT   "\x1b[97m"
+#define COLOR_ERROR   "\x1b[91m"
 #else
-#define COLOR_DEFAULT        ""
-#define COLOR_ACCENT         ""
-#define COLOR_INPUT          ""
-#define COLOR_ERROR          ""
+#define COLOR_DEFAULT ""
+#define COLOR_ACCENT  ""
+#define COLOR_INPUT   ""
+#define COLOR_ERROR   ""
 #endif
 
 #define LIST_BUF 8
 #define LINE_LEN 80
 
 #ifndef _WIN32 // these are defined in win.h for windows
-#define FILE_BUF NAME_MAX
-#define ARG_BUF  ARG_MAX
-#define PATH_SEP '/'
+#define FILE_BUF   NAME_MAX
+#define ARG_BUF    ARG_MAX
+#define PATH_SEP   '/'
+#define PREFIX_LEN 0
+#endif
+
+#ifdef _WIN32
+#define __mt_call_conv unsigned __stdcall
+#else
+#define __mt_call_conv void *
 #endif
 
 #ifdef _WIN32
