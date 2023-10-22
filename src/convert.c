@@ -85,15 +85,15 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 GlobalArenaSprintf("%s%c%s.%s", outPath, PATH_SEP,
                                    fileNameNoExt, args->outFormat);
 
-            char *ffmpegCall =
-                GlobalArenaSprintf(
-                    "ffmpeg -hide_banner -loglevel error "
-                    "%s -i \"%s\" %s \"%s\"",
-                    overwriteFlag, fullPath, args->ffOptions, fullOutPath
-                );
+            char *ffmpegCall = GlobalArenaSprintf(
+                "ffmpeg -hide_banner -loglevel error "
+                "%s -i \"%s\" %s \"%s\"",
+                overwriteFlag, fullPath, args->ffOptions, fullOutPath
+            );
 
-            threads[i].targetFile =
-                trimUTF8StringTo(fullPath + PREFIX_LEN, LINE_LEN - 30);
+            threads[i].targetFile = trimUTF8StringTo(
+                fullPath + PREFIX_LEN, LINE_LEN - 30
+            );
             threads[i].outFileID = fileIdx + 1;
 
             printf(
@@ -120,12 +120,11 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             }
 
 #else
-            /* pthread setup stuff so we can get the thread's status later */
-            pthread_mutex_init(&threads[i].mutex, NULL);
-            pthread_cond_init(&threads[i].cond, NULL);
+            threads[i].arg = ffmpegCall;
+            threads[i].status = RUNNING;
 
             int err = pthread_create(
-                &threads[i].handle, NULL, &_callFFmpeg, ffmpegCall
+                &threads[i].handle, NULL, &_callFFmpeg, &threads[i]
             );
 
             if (err) {
@@ -150,46 +149,50 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 threads[i].outFileID, COLOR_DEFAULT
             );
 
-            stats->convertedFiles += 1;
-
             CloseHandle(threads[i].handle);
 #else
-#error "ay we're not done yet"
-            /* TODO: finish setting up condition and mutex
-             * for the check to work properly down here */
-            pthread_cond_t *cond = &threads[i].cond;
-            pthread_mutex_t *mutex = &threads[i].mutex;
-            struct timespec timeout;
-            clock_gettime(CLOCK_REALTIME, &timeout);
-            timeout.tv_nsec += 1e7; // 10ms
+            const struct timespec timeout = { 0, 1e7 }; // 10ms timeout
+            nanosleep(&timeout, NULL);
 
-            /* TODO: finish figuring out how to properly setup the
-             * condition and mutex stuff here so this works fr fr */
-            int err = pthread_cond_timedwait(cond, mutex, &timeout);
+            int status = threads[i].status;
 
-            if (err == ETIMEDOUT) {
+            if (status != FINISHED) {
+                if (status != RUNNING && status != UNINITIALIZED) {
+                    printErr(
+                        "got invalid status from active thread", "(FATAL)"
+                    );
+                    abort();
+                }
+
                 continue;
-            } else if (err == 0) {
-                printf(
-                    " ~ %sdone %sconverting %sF-%.02zu%s\n",
-                    COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
-                    threads[i].outFileID, COLOR_DEFAULT
-                );
+            }
 
-                stats->convertedFiles += 1;
-            } else {
-                printErr("unable to retrieve thread status", strerror(err));
+            int err = pthread_join(threads[i].handle, NULL);
+
+            if (err) {
+                printErr("unable to join threads", strerror(err));
                 exit(err);
             }
+
+            printf(
+                " ~ %sdone %sconverting %sF-%.02zu%s\n",
+                COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
+                threads[i].outFileID, COLOR_DEFAULT
+            );
 #endif
 
+            stats->convertedFiles += 1;
+
             memset(&threads[i], 0, sizeof(*threads));
+            assert(threads[i].status == UNINITIALIZED);
         }
 
         /* NOTE: here we check if all threads are zeroed so
          * we only exit after all the work is actually done */
-        if (isZeroMemory(threads, numberOfThreads * sizeof(*threads)) &&
-            !files[fileIdx]) break;
+        if (
+            isZeroMemory(threads, numberOfThreads * sizeof(*threads)) &&
+            !files[fileIdx]
+        ) break;
     }
 
     putchar('\n');
@@ -218,19 +221,17 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
 }
 
 static size_t getNumberOfThreads(void) {
+    /* NOTE: (n * 2) seems to compensate for the thread logic overhead
+     * on low-core-count systems (should be tested more later though) */
 #ifdef _WIN32
     SYSTEM_INFO sysInfo = {0};
     GetSystemInfo(&sysInfo);
-
-    /* NOTE: - 1 since we already have a main thread (I guess?) */
-    return sysInfo.dwNumberOfProcessors > 2 ?
-        (size_t)sysInfo.dwNumberOfProcessors - 1 : 1;
+    size_t n = (size_t)sysInfo.dwNumberOfProcessors;
 #else
     size_t n = (size_t)sysconf(_SC_NPROCESSORS_ONLN);
-    return n > 2 ? n - 1 : 1;
 #endif
 
-    return *((volatile size_t*)0); // why are you here
+    return n > 2 ? n - 1 : n * 2;
 }
 
 static __mt_call_conv _callFFmpeg(void *arg) {
@@ -257,15 +258,16 @@ static __mt_call_conv _callFFmpeg(void *arg) {
     _endthreadex(0);
     return 0;
 #else
-    const char *ffmpegCall = arg;
+    Thread *thread = (Thread*)arg;
+    const char *ffmpegCall = thread->arg;
 
     pid_t procId = fork();
 
     if (procId == 0) {
         /* NOTE: using system() for now cause i'm too lazy to
            build a dynamic array of args due to ffOptions */
-        system(ffmpegCall);
-        exit(errno);
+        int err = system(ffmpegCall);
+        exit(err);
     } else {
         int status;
         waitpid(procId, &status, 0);
@@ -282,6 +284,10 @@ static __mt_call_conv _callFFmpeg(void *arg) {
             exit(EXIT_FAILURE);
         }
     }
+
+    thread->status = FINISHED;
+    pthread_exit(NULL);
+    return NULL;
 #endif
 }
 

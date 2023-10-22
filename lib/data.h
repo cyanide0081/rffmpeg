@@ -49,8 +49,10 @@ typedef struct Thread {
     HANDLE handle;
 #else
     pthread_t handle;
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
+    /* pthread_mutex_t mutex; */
+    /* pthread_cond_t cond; */
+
+    void *arg;
 
     enum Status {
         UNINITIALIZED,

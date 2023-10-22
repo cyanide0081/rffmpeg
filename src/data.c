@@ -71,7 +71,7 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
     for (bufIdx = bufLen - 1; (bufIdx > 0) && (chars < maxChars - 3); chars++) {
         /* first check for ASCII bytes */
         if (!(buf[bufIdx] & 0x80)) {
-            bufIdx--;
+            bufIdx -= 1;
             continue;
         } else if (bufIdx == 0) {
             return GlobalArenaPushString(
@@ -102,10 +102,12 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
                     );
                 }
 
-                bufIdx--, chars++; // all 3-byte chars seem to occupy 2 spaces
+                bufIdx -= 1;
+                chars += 1; // all 3-byte chars seem to occupy 2 spaces
+
                 break;
             } else if (((buf[bufIdx] & 0xC0) == 0x80) && (i < 2)) {
-                bufIdx--;
+                bufIdx -= 1;
             } else {
                 return GlobalArenaPushString(
                     ERR_INVALID_UTF8

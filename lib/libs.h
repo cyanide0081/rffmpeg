@@ -1,20 +1,6 @@
 #ifndef H_LIBS
 #define H_LIBS
 
-/* CRT headers */
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include <ctype.h>
-#include <time.h>
-#include <dirent.h>
-#include <errno.h>
-#include <assert.h>
-#include <inttypes.h>
-#include <stdarg.h>
-
 /* OS headers */
 #if defined _WIN32
 #include <windows.h>
@@ -37,4 +23,19 @@
 #else
 #error "unsupported OS/kernel"
 #endif /* OS headers */
+
+/* CRT headers */
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include <ctype.h>
+#include <time.h>
+#include <dirent.h>
+#include <errno.h>
+#include <assert.h>
+#include <inttypes.h>
+#include <stdarg.h>
+
 #endif /* H_LIBS */

@@ -45,9 +45,7 @@ static inline uintptr_t alignForward(uintptr_t ptr, size_t alignment) {
     uintptr_t p = ptr, a = (uintptr_t)alignment;
     uintptr_t mod = p & (a - 1);
 
-    if (mod) {
-        p += a - mod;
-    }
+    if (mod) p += a - mod;
 
     return p;
 }
