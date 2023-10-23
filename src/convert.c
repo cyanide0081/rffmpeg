@@ -121,6 +121,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             int callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
             wchar_t *ffmpegCallW = GlobalArenaPush(callBuf * sizeof(wchar_t));
             UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, callBuf);
+            threads[i].arg = ffmpegCallW;
 
             threads[i].handle = (HANDLE)_beginthreadex(
                 NULL, 0, &_callFFmpeg, &threads[i], 0, NULL

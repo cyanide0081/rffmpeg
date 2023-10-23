@@ -154,7 +154,7 @@ void readLine(char *dst, size_t dstSize) {
     trimSpaces(dst);
 }
 
-inline bool isDirectory(const char *dir) {
+extern inline bool isDirectory(const char *dir) {
 #ifndef _WIN32
     struct stat pathStats;
 
@@ -177,7 +177,7 @@ inline bool isDirectory(const char *dir) {
 #endif
 }
 
-inline bool isZeroMemory(const void *buf, const size_t bytes) {
+extern inline bool isZeroMemory(const void *buf, const size_t bytes) {
     for (size_t i = 0; i < bytes / sizeof(size_t); i++) {
         if (((size_t*)buf)[i]) return false;
     }
