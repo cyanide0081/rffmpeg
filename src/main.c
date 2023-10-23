@@ -47,10 +47,10 @@ int main(int argc, char *argv[]) {
     wchar_t originalConsoleWindowTitle[FILE_BUF];
 
     if (inputMode == CONSOLE) {
-        size_t size = strlen(CONSOLE_WINDOW_TITLE) + 1;
+        int size = strlen(CONSOLE_WINDOW_TITLE) + 1;
         wchar_t *windowTitle = ArenaPush(globalArena, size * sizeof(wchar_t));
 
-        UTF8toUTF16(CONSOLE_WINDOW_TITLE, -1, windowTitle, (int)size);
+        UTF8toUTF16(CONSOLE_WINDOW_TITLE, -1, windowTitle, size);
         GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUF);
         SetConsoleTitleW(windowTitle);
     }
@@ -159,8 +159,8 @@ int main(int argc, char *argv[]) {
 
 static void createTestProcess(void) {
 #ifdef _WIN32
-    STARTUPINFOW ffmpegStartupInfo;
-    PROCESS_INFORMATION ffmpegProcessInfo;
+    STARTUPINFOW ffmpegStartupInfo = {0};
+    PROCESS_INFORMATION ffmpegProcessInfo = {0};
     wchar_t ffmpegProcessCall[] = L"ffmpeg -loglevel quiet";
 
     if (CreateProcessW(

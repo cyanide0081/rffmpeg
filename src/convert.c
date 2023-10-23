@@ -5,7 +5,9 @@ extern Arena *globalArena;
 static __mt_call_conv _callFFmpeg(void *arg);
 static size_t getNumberOfThreads(void);
 static bool _fileExists(const char *fileName);
-static int _checkFileName(char *name, const char *format, const char *path);
+static int _formatOutputFileName(
+    char *name, const char *format, const char *path
+);
 
 int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
     char *outPath = NULL;
@@ -13,6 +15,12 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
     size_t numberOfThreads = getNumberOfThreads();
     Thread *threads = GlobalArenaPush(numberOfThreads * sizeof(*threads));
     size_t fileIdx = 0;
+
+#ifdef _WIN32
+    const DWORD timeout = 10;
+#else
+    const struct timespec timeout = { 0, 1e7 }; // 10ms
+#endif
 
     while (true) {
         for (size_t i = 0; i < numberOfThreads && files[fileIdx]; i++) {
@@ -34,8 +42,9 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
 
             while (*--pathDelimPoint != PATH_SEP);
 
-            char *filePath =
-                GlobalArenaPushStringN(fullPath, (pathDelimPoint - fullPath));
+            char *filePath = GlobalArenaPushStringN(
+                fullPath, (pathDelimPoint - fullPath)
+            );
             char *baseName = GlobalArenaPushString(pathDelimPoint + 1);
 
             assert(filePath);
@@ -68,22 +77,21 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 outPath = newPath;
             }
 
-            char *fileNameNoExt =
-                GlobalArenaPushStringN(
-                    baseName, strlen(baseName) - strlen(inputFormat) - 1
-                );
+            char *fileNameNoExt = GlobalArenaPushStringN(
+                baseName, strlen(baseName) - strlen(inputFormat) - 1
+            );
 
             const char *overwriteFlag = "-n";
 
             if (args->options & OPT_OVERWRITE) {
                 overwriteFlag = "-y";
             } else {
-                _checkFileName(fileNameNoExt, args->outFormat, outPath);
+                _formatOutputFileName(fileNameNoExt, args->outFormat, outPath);
             }
 
-            char *fullOutPath =
-                GlobalArenaSprintf("%s%c%s.%s", outPath, PATH_SEP,
-                                   fileNameNoExt, args->outFormat);
+            char *fullOutPath = GlobalArenaSprintf(
+                "%s%c%s.%s", outPath, PATH_SEP, fileNameNoExt, args->outFormat
+            );
 
             char *ffmpegCall = GlobalArenaSprintf(
                 "ffmpeg -hide_banner -loglevel error "
@@ -121,7 +129,6 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
 
 #else
             threads[i].arg = ffmpegCall;
-            threads[i].status = RUNNING;
 
             int err = pthread_create(
                 &threads[i].handle, NULL, &_callFFmpeg, &threads[i]
@@ -131,6 +138,8 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 printErr("unable to spawn new thread", strerror(err));
                 exit(err);
             }
+
+            threads[i].status = RUNNING;
 #endif
 
             fileIdx += 1;
@@ -139,19 +148,12 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
         for (size_t i = 0; i < numberOfThreads; i++) {
 #ifdef _WIN32
             if (
-                WaitForSingleObject(threads[i].handle, 10) ==
+                WaitForSingleObject(threads[i].handle, timeout) ==
                 WAIT_TIMEOUT || !threads[i].handle
             ) continue;
 
-            printf(
-                " $ %sdone %sconverting %sF-%.02zu%s\n",
-                COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
-                threads[i].outFileID, COLOR_DEFAULT
-            );
-
             CloseHandle(threads[i].handle);
 #else
-            const struct timespec timeout = { 0, 1e7 }; // 10ms timeout
             nanosleep(&timeout, NULL);
 
             int status = threads[i].status;
@@ -173,18 +175,17 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 printErr("unable to join threads", strerror(err));
                 exit(err);
             }
+#endif
 
             printf(
-                " ~ %sdone %sconverting %sF-%.02zu%s\n",
+                " $ %sdone %sconverting %sF-%.02zu%s\n",
                 COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
                 threads[i].outFileID, COLOR_DEFAULT
             );
-#endif
 
             stats->convertedFiles += 1;
 
             memset(&threads[i], 0, sizeof(*threads));
-            assert(threads[i].status == UNINITIALIZED);
         }
 
         /* NOTE: here we check if all threads are zeroed so
@@ -237,8 +238,8 @@ static size_t getNumberOfThreads(void) {
 static __mt_call_conv _callFFmpeg(void *arg) {
 #ifdef _WIN32
     wchar_t *ffmpegCallW = (wchar_t*)arg;
-    STARTUPINFOW ffmpegStartupInfo;
-    PROCESS_INFORMATION ffmpegProcessInfo;
+    STARTUPINFOW ffmpegStartupInfo = {0};
+    PROCESS_INFORMATION ffmpegProcessInfo = {0};
 
     bool createdProcess = CreateProcessW(
         NULL, ffmpegCallW, NULL, NULL, FALSE, 0, NULL, NULL,
@@ -291,7 +292,9 @@ static __mt_call_conv _callFFmpeg(void *arg) {
 #endif
 }
 
-static int _checkFileName(char *name, const char *format, const char *path) {
+static int _formatOutputFileName(
+    char *name, const char *format, const char *path
+) {
     size_t fullPathSize =
         snprintf(NULL, 0, "%s%c%s.-xxx%s", path, PATH_SEP, name, format) + 1;
 
