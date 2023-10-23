@@ -3,7 +3,7 @@
 extern Arena *globalArena;
 
 static __mt_call_conv _callFFmpeg(void *arg);
-static size_t getNumberOfThreads(void);
+static size_t getNumberOfOnlineThreads(void);
 static bool _fileExists(const char *fileName);
 static int _formatOutputFileName(
     char *name, const char *format, const char *path
@@ -11,8 +11,21 @@ static int _formatOutputFileName(
 
 int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
     char *outPath = NULL;
+    size_t onlineThreads = getNumberOfOnlineThreads();
+    size_t numberOfThreads = onlineThreads;
 
-    size_t numberOfThreads = getNumberOfThreads();
+    if (args->numberOfThreads) {
+        if (args->numberOfThreads > 2 * onlineThreads) {
+            printf(
+                " %sWARNING: %signoring above-limit custom thread number: "
+                "%s%zu%s\n\n", COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
+                args->numberOfThreads, COLOR_DEFAULT
+            );
+        } else {
+            numberOfThreads = args->numberOfThreads;
+        }
+    }
+
     Thread *threads = GlobalArenaPush(numberOfThreads * sizeof(*threads));
     size_t fileIdx = 0;
 
@@ -24,7 +37,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
 
     while (true) {
         for (size_t i = 0; i < numberOfThreads && files[fileIdx]; i++) {
-            if (threads[i].handle) continue; // thread is busy (kiwi business)
+            if (threads[i].status != UNINITIALIZED) continue;
 
             const char *inputFormat = NULL;
 
@@ -55,22 +68,14 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             const char *newFolderName = (args->options & OPT_CUSTOMFOLDERNAME) ?
                 args->outPath.customFolder : args->outFormat;
 
-            if (args->options & OPT_NEWFOLDER) {
-                char *newPath = GlobalArenaSprintf(
-                    "%s%c%s", filePath, PATH_SEP, newFolderName
-                );
+            if (args->options & OPT_NEWFOLDER || args->options & OPT_NEWPATH) {
+                char *newPath = args->options & OPT_NEWFOLDER ?
+                    GlobalArenaSprintf(
+                        "%s%c%s", filePath, PATH_SEP, newFolderName
+                    ) : args->outPath.customPath;
 
                 if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
-                    printErr("Unable to create subdirectory", strerror(errno));
-                    return EXIT_FAILURE;
-                }
-
-                outPath = newPath;
-            } else if (args->options & OPT_NEWPATH) {
-                char *newPath = args->outPath.customPath;
-
-                if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
-                    printErr("Unable to create new directory", strerror(errno));
+                    printErr("unable to create subdirectory", strerror(errno));
                     return EXIT_FAILURE;
                 }
 
@@ -99,6 +104,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 overwriteFlag, fullPath, args->ffOptions, fullOutPath
             );
 
+            threads[i].arg = ffmpegCall;
             threads[i].targetFile = trimUTF8StringTo(
                 fullPath + PREFIX_LEN, LINE_LEN - 30
             );
@@ -116,11 +122,9 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             wchar_t *ffmpegCallW = GlobalArenaPush(callBuf * sizeof(wchar_t));
             UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, callBuf);
 
-            threads[i].handle =
-                (HANDLE)_beginthreadex(
-                    NULL, 0, &_callFFmpeg,
-                    ffmpegCallW, 0, NULL
-                );
+            threads[i].handle = (HANDLE)_beginthreadex(
+                NULL, 0, &_callFFmpeg, &threads[i], 0, NULL
+            );
 
             if (!threads[i].handle) {
                 printErr("unable to spawn new thread", strerror(errno));
@@ -128,20 +132,21 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             }
 
 #else
-            threads[i].arg = ffmpegCall;
+
 
             int err = pthread_create(
                 &threads[i].handle, NULL, &_callFFmpeg, &threads[i]
             );
 
+            dprintf("spawned thread [%lu]\n", threads[i].handle);
+
             if (err) {
                 printErr("unable to spawn new thread", strerror(err));
                 exit(err);
             }
-
-            threads[i].status = RUNNING;
 #endif
 
+            threads[i].status = RUNNING;
             fileIdx += 1;
         }
 
@@ -170,6 +175,8 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             }
 
             int err = pthread_join(threads[i].handle, NULL);
+
+            dprintf("joined thread [%lu]\n", threads[i].handle);
 
             if (err) {
                 printErr("unable to join threads", strerror(err));
@@ -221,9 +228,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
     return EXIT_SUCCESS;
 }
 
-static size_t getNumberOfThreads(void) {
-    /* NOTE: (n * 2) seems to compensate for the thread logic overhead
-     * on low-core-count systems (should be tested more later though) */
+static size_t getNumberOfOnlineThreads(void) {
 #ifdef _WIN32
     SYSTEM_INFO sysInfo = {0};
     GetSystemInfo(&sysInfo);
@@ -232,12 +237,14 @@ static size_t getNumberOfThreads(void) {
     size_t n = (size_t)sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 
-    return n > 2 ? n - 1 : n * 2;
+    return n > 1 ? n : 2;
 }
 
 static __mt_call_conv _callFFmpeg(void *arg) {
+    Thread *thread = (Thread*)arg;
+
 #ifdef _WIN32
-    wchar_t *ffmpegCallW = (wchar_t*)arg;
+    wchar_t *ffmpegCallW = thread->arg;
     STARTUPINFOW ffmpegStartupInfo = {0};
     PROCESS_INFORMATION ffmpegProcessInfo = {0};
 
@@ -256,17 +263,19 @@ static __mt_call_conv _callFFmpeg(void *arg) {
         CloseHandle(ffmpegProcessInfo.hThread);
     }
 
+    thread->status = FINISHED;
     _endthreadex(0);
     return 0;
 #else
-    Thread *thread = (Thread*)arg;
     const char *ffmpegCall = thread->arg;
 
     pid_t procId = fork();
 
     if (procId == 0) {
-        /* NOTE: using system() for now cause i'm too lazy to
-           build a dynamic array of args due to ffOptions */
+        /* NOTE: using system() for now cause i'm too lazy
+         * to build a dynamic array of args due to ffOptions
+         * having to be popped from the array in case it's
+         * an empty string (._.)  */
         int err = system(ffmpegCall);
         exit(err);
     } else {
@@ -280,9 +289,9 @@ static __mt_call_conv _callFFmpeg(void *arg) {
 
         if (exitStatus != 0) {
             char status[FILE_BUF];
-            snprintf(status, FILE_BUF - 1, "exit status: %d", exitStatus);
+            snprintf(status, FILE_BUF, "exit status: %d", exitStatus);
             printErr("unable to call FFmpeg", status);
-            exit(EXIT_FAILURE);
+            exit(exitStatus);
         }
     }
 

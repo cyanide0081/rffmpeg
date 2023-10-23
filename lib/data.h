@@ -32,33 +32,31 @@ typedef struct Arguments {
     char *ffOptions;
     char **inFormats;
     const char *outFormat;
+    size_t numberOfThreads;
 
     union OutPath {
         char *customFolder;
         char *customPath;
     } outPath;
 
-    uint8_t options; // Bit fields for the optional arguments
+    uint8_t options; // fields for the optional arguments
 } Arguments;
 
 typedef struct Thread {
+    void *arg;
     char *targetFile;
     size_t outFileID;
-
-#ifdef _WIN32
-    HANDLE handle;
-#else
-    pthread_t handle;
-    /* pthread_mutex_t mutex; */
-    /* pthread_cond_t cond; */
-
-    void *arg;
 
     enum Status {
         UNINITIALIZED,
         RUNNING,
         FINISHED
     } status;
+
+#ifdef _WIN32
+    HANDLE handle;
+#else
+    pthread_t handle;
 #endif
 } Thread;
 
@@ -131,6 +129,6 @@ void trimSpaces(char *string);
 char *trimUTF8StringTo(const char *str, size_t maxChars);
 void readLine(char *dst, size_t dstSize);
 bool isDirectory(const char *dir);
-bool isZeroMemory(const void *buf, const size_t size);
+bool isZeroMemory(const void *buf, const size_t bytes);
 
 #endif // H_TYPES

@@ -101,7 +101,8 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
 
             if (delimPoint) {
                 parsedArgs->options |= OPT_CUSTOMFOLDERNAME;
-                parsedArgs->outPath.customFolder = strdup(++delimPoint);
+                parsedArgs->outPath.customFolder =
+                    GlobalArenaPushString(++delimPoint);
             }
 
             continue;
@@ -114,21 +115,63 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
 
             if (delimPoint) {
                 parsedArgs->options |= OPT_CUSTOMPATHNAME;
-                parsedArgs->outPath.customPath = strdup(++delimPoint);
+                parsedArgs->outPath.customPath =
+                    GlobalArenaPushString(++delimPoint);
             }
 
             continue;
         }
 
-        if (isDirectory(args[i])) {
-            parsedArgs->inPaths[parsedArgsIdx++] = getAbsolutePath(args[i]);
-        } else {
+        expectCompositeToken(args[i], "nt") {
+            char *delimPoint = strstr(args[i], COMP_TOKEN_DELIM);
+
+            if (delimPoint) {
+                errno = 0;
+
+                parsedArgs->numberOfThreads = (size_t)strtoull(
+                    ++delimPoint, NULL, 10
+                );
+
+                if (errno || !parsedArgs->numberOfThreads) {
+                    printErr("invalid custom thread number", delimPoint);
+                    exit(errno);
+                }
+            }
+
+            continue;
+        }
+
+        if (!isDirectory(args[i])) {
             printErr("invalid/incomplete option", args[i]);
-            printf(" (run with %s--help%s for info)\n\n",
-                   COLOR_INPUT, COLOR_DEFAULT);
+            printf(
+                " (run with %s--help%s for info)\n\n",
+                COLOR_INPUT, COLOR_DEFAULT
+            );
 
             return PARSE_STATE_INVALID;
         }
+
+        char *absPath = getAbsolutePath(args[i]);
+        bool isDupPath = false;
+
+        for (size_t i = 0; i < parsedArgsIdx; i++) {
+            if (strcmp(parsedArgs->inPaths[i], absPath) == 0) {
+                isDupPath = true;
+                break;
+            }
+        }
+
+        if (isDupPath) {
+            printf(
+                " %sWARNING: %signoring duplicate path: %s\"%s\"%s\n\n",
+                COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
+                absPath, COLOR_DEFAULT
+            );
+
+            continue;
+        }
+
+        parsedArgs->inPaths[parsedArgsIdx++] = absPath;
     }
 
     /* handle null args here */
