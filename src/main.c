@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 #endif /* _WIN32 */
 
     printf("%s%s%s\n\n", COLOR_ACCENT,
-           "RFFMPEG " PROGRAM_VERSION " (竞技场)", COLOR_DEFAULT);
+           "RFFMPEG " PROGRAM_VERSION " (线程)", COLOR_DEFAULT);
 
     createTestProcess();
 
