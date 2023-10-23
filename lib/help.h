@@ -29,7 +29,9 @@
     " -subfolder         store output files in a relative subfolder\n"                 \
     "                    (you can give it a name with '-subfolder:[NAME]')\n"          \
     " -outpath:[PATH]    store output files in a separate directory\n"                 \
-    "                    (doesn't preserve the directory structure)\n\n"               \
+    "                    (doesn't preserve the directory structure)\n"                 \
+    " -nt:[THREADS]      custom number of threads to be spawned when converting\n"     \
+    "                    (must be between [1, (2 * system threads)] (inclusive))\n\n"  \
                                                                                        \
     " EXAMPLE\n\n"                                                                     \
                                                                                        \
