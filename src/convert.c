@@ -175,6 +175,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 continue;
             }
 
+            /* TODO: try replacing this with pthread_cancel() */
             int err = pthread_join(threads[i].handle, NULL);
 
             dprintf("joined thread [%lu]\n", threads[i].handle);
