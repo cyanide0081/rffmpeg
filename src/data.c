@@ -27,8 +27,7 @@ void trimSpaces(char *string) {
     size_t length = strlen(string);
     char *start = string;
 
-    while (isspace(*start))
-        start++;
+    while (isspace(*start)) start++;
 
     char *end = string + length;
 
@@ -47,18 +46,16 @@ void trimSpaces(char *string) {
 /* Trims a long (NUL terminated) UTF-8 encoded string if it exceeds
 [maxChars] characters (codepoints) and inserts '...' at the start */
 char *trimUTF8StringTo(const char *str, size_t maxChars) {
-    if (maxChars <= 3)
-        return GlobalArenaPushString("...");
-    if (!str)
-        return GlobalArenaPushString("(null)");
+    if (maxChars <= 3) return GlobalArenaPushString("...");
+
+    if (!str) return GlobalArenaPushString("(null)");
 
     /* TODO: (1) check for overlong encodings and stuff aswell
-       (2) actually count glyphs inside the loop instead of just
-       codepoints, since one glyph may be made out of more than
-       one codepoint
-       NOTE: '(2)' is probably impossible to do without getting info
-       from the renderer itself since the length of a glyph will
-       depend on the symbol font it's being rendered with (;-;) */
+     * (2) actually count glyphs inside the loop instead of just
+     * codepoints, since one glyph may be made out of more than
+     * one codepoint
+     * NOTE: worked around (2) by incrementing chars
+     * by 2 whenever a 3+ byte character is found */
 
     size_t bufIdx = 0, chars = 0;
     size_t bufLen = strlen(str);

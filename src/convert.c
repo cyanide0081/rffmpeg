@@ -6,7 +6,7 @@ static __mt_call_conv _callFFmpeg(void *arg);
 static size_t getNumberOfOnlineThreads(void);
 static bool _fileExists(const char *fileName);
 static int _formatOutputFileName(
-    char *name, const char *format, const char *path
+    char *name, const char *outFormat, const char *path
 );
 
 int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
@@ -29,15 +29,9 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
     Thread *threads = GlobalArenaPush(numberOfThreads * sizeof(*threads));
     size_t fileIdx = 0;
 
-#ifdef _WIN32
-    const DWORD timeout = 10;
-#else
-    const struct timespec timeout = { 0, 1e7 }; // 10ms
-#endif
-
-    while (true) {
+    do {
         for (size_t i = 0; i < numberOfThreads && files[fileIdx]; i++) {
-            if (threads[i].status != UNINITIALIZED) continue;
+            if (threads[i].handle) continue; // thread is busy (kiwi business)
 
             const char *inputFormat = NULL;
 
@@ -69,8 +63,8 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 args->outPath.customFolder : args->outFormat;
 
             if (args->options & OPT_NEWFOLDER || args->options & OPT_NEWPATH) {
-                char *newPath = args->options & OPT_NEWFOLDER ?
-                    GlobalArenaSprintf(
+                char *newPath =
+                    args->options & OPT_NEWFOLDER ? GlobalArenaSprintf(
                         "%s%c%s", filePath, PATH_SEP, newFolderName
                     ) : args->outPath.customPath;
 
@@ -104,9 +98,9 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 overwriteFlag, fullPath, args->ffOptions, fullOutPath
             );
 
-            threads[i].arg = ffmpegCall;
+            threads[i].callArg = ffmpegCall;
             threads[i].targetFile = trimUTF8StringTo(
-                fullPath + PREFIX_LEN, LINE_LEN - 30
+                fullPath + PREFIX_LEN, LINE_LEN - 36
             );
             threads[i].outFileID = fileIdx + 1;
 
@@ -121,8 +115,8 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             int callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
             wchar_t *ffmpegCallW = GlobalArenaPush(callBuf * sizeof(wchar_t));
             UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, callBuf);
-            threads[i].arg = ffmpegCallW;
 
+            threads[i].callArg = ffmpegCallW;
             threads[i].handle = (HANDLE)_beginthreadex(
                 NULL, 0, &_callFFmpeg, &threads[i], 0, NULL
             );
@@ -133,13 +127,14 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             }
 
 #else
-
+            pthread_mutex_init(&threads[i].mutex, NULL);
+            pthread_cond_init(&threads[i].cond, NULL);
 
             int err = pthread_create(
                 &threads[i].handle, NULL, &_callFFmpeg, &threads[i]
             );
 
-            dprintf("spawned thread [%lu]\n", threads[i].handle);
+            dprintf("spawned thread [%zu]\n", (size_t)threads[i].handle);
 
             if (err) {
                 printErr("unable to spawn new thread", strerror(err));
@@ -147,42 +142,63 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             }
 #endif
 
-            threads[i].status = RUNNING;
             fileIdx += 1;
         }
 
         for (size_t i = 0; i < numberOfThreads; i++) {
+            if (!threads[i].handle) continue;
+
 #ifdef _WIN32
             if (
-                WaitForSingleObject(threads[i].handle, timeout) ==
-                WAIT_TIMEOUT || !threads[i].handle
+                WaitForSingleObject(threads[i].handle, TIMEOUT_MS) ==
+                WAIT_TIMEOUT
             ) continue;
 
             CloseHandle(threads[i].handle);
 #else
-            nanosleep(&timeout, NULL);
+            struct timespec time;
+            clock_gettime(CLOCK_REALTIME, &time);
+            time.tv_nsec += (TIMEOUT_MS * 1e6);
 
-            int status = threads[i].status;
+            if (time.tv_nsec > TV_NSEC_MAX) time.tv_nsec = TV_NSEC_MAX;
 
-            if (status != FINISHED) {
-                if (status != RUNNING && status != UNINITIALIZED) {
-                    printErr(
-                        "got invalid status from active thread", "(FATAL)"
-                    );
-                    abort();
-                }
+            int wait = pthread_cond_timedwait(
+                &threads[i].cond, &threads[i].mutex, &time
+            );
 
+            if (wait == ETIMEDOUT) {
                 continue;
+            } else if (wait == EINVAL) {
+                printErr(
+                    "invalid parameter passed to pthread_cond_timedwait()",
+                    strerror(wait)
+                );
+                abort();
+            } else if (wait == EPERM) {
+                printErr(
+                    "mutex not owned during call to pthread_cond_timedwait()\n",
+                    strerror(wait)
+                );
+                abort();
             }
 
-            /* TODO: try replacing this with pthread_cancel() */
             int err = pthread_join(threads[i].handle, NULL);
-
-            dprintf("joined thread [%lu]\n", threads[i].handle);
 
             if (err) {
                 printErr("unable to join threads", strerror(err));
                 exit(err);
+            }
+
+            dprintf("joined thread [%zu]\n", (size_t)threads[i].handle);
+
+            if ((err = pthread_cond_destroy(&threads[i].cond))) {
+                printErr("unable to destroy conditiion", strerror(err));
+                abort();
+            }
+
+            if ((err = pthread_mutex_destroy(&threads[i].mutex))) {
+                printErr("unable to destroy mutex", strerror(err));
+                abort();
             }
 #endif
 
@@ -196,20 +212,16 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
 
             memset(&threads[i], 0, sizeof(*threads));
         }
-
-        /* NOTE: here we check if all threads are zeroed so
-         * we only exit after all the work is actually done */
-        if (
-            isZeroMemory(threads, numberOfThreads * sizeof(*threads)) &&
-            !files[fileIdx]
-        ) break;
-    }
+    } while (
+        !isZeroMemory(threads, numberOfThreads * sizeof(*threads)) ||
+        files[fileIdx]
+    );
 
     putchar('\n');
 
     for (int i = 0; files[i]; i++) {
         if (args->options & OPT_CLEANUP) {
-            if (remove(files[i]) != 0) {
+            if (remove(files[i])) {
                 printErr("unable to delete original file", strerror(errno));
             } else {
                 stats->deletedFiles += 1;
@@ -227,7 +239,14 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
         }
     }
 
-    return EXIT_SUCCESS;
+    /* FIXME: temporary hack to restore stdin tty state because something
+     * in the multithreaded code is messing it up and blocking the input
+     * (pthread_exit() linux man page points out a bug with similar symptoms) */
+#ifdef __linux__
+    system("stty sane");
+#endif
+
+    return 0;
 }
 
 static size_t getNumberOfOnlineThreads(void) {
@@ -246,7 +265,7 @@ static __mt_call_conv _callFFmpeg(void *arg) {
     Thread *thread = (Thread*)arg;
 
 #ifdef _WIN32
-    wchar_t *ffmpegCallW = thread->arg;
+    wchar_t *ffmpegCallW = thread->callArg;
     STARTUPINFOW ffmpegStartupInfo = {0};
     PROCESS_INFORMATION ffmpegProcessInfo = {0};
 
@@ -265,11 +284,10 @@ static __mt_call_conv _callFFmpeg(void *arg) {
         CloseHandle(ffmpegProcessInfo.hThread);
     }
 
-    thread->status = FINISHED;
     _endthreadex(0);
     return 0;
 #else
-    const char *ffmpegCall = thread->arg;
+    const char *ffmpegCall = thread->callArg;
 
     pid_t procId = fork();
 
@@ -297,8 +315,14 @@ static __mt_call_conv _callFFmpeg(void *arg) {
         }
     }
 
-    thread->status = FINISHED;
-    pthread_exit(NULL);
+    int err = 0;
+
+    while ((err = pthread_mutex_trylock(&thread->mutex)))
+        usleep(TIMEOUT_MS * 1000);
+
+    pthread_cond_broadcast(&thread->cond);
+    pthread_mutex_unlock(&thread->mutex);
+
     return NULL;
 #endif
 }

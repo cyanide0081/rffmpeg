@@ -43,20 +43,16 @@ typedef struct Arguments {
 } Arguments;
 
 typedef struct Thread {
-    void *arg;
+    void *callArg;
     char *targetFile;
     size_t outFileID;
-
-    enum Status {
-        UNINITIALIZED,
-        RUNNING,
-        FINISHED
-    } status;
 
 #ifdef _WIN32
     HANDLE handle;
 #else
     pthread_t handle;
+    pthread_cond_t cond;
+    pthread_mutex_t mutex;
 #endif
 } Thread;
 
