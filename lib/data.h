@@ -67,11 +67,14 @@ typedef struct Thread {
 #define COLOR_ACCENT  "\x1b[91m"
 #define COLOR_INPUT   "\x1b[97m"
 #define COLOR_ERROR   "\x1b[91m"
+#define LINE_ERASE    "\x1b[2K\r"
+#define LINE_MOVE_UP  "\x1b[A"
 #else
 #define COLOR_DEFAULT ""
 #define COLOR_ACCENT  ""
 #define COLOR_INPUT   ""
 #define COLOR_ERROR   ""
+#define LINE_ERASE    ""
 #endif
 
 #define LIST_BUF 8
