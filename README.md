@@ -100,6 +100,9 @@ You can also pass any of the flags below to help you organize your batch convers
 
  * **-rn**         :   disables file searches inside subfolders, in case your directory contains many folders you  don't want to mess with
 
+ * **-nt**         :   sets a custom number of threads to be spawned at the conversion stage e.g.: `-nt:8`
+     * NOTE: the number must be a positive value between 1 and double the current online threads in the system 
+
 <br>
 
 <a name="building"></a>
