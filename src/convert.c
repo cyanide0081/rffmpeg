@@ -7,11 +7,24 @@ static bool _fileExists(const char *fileName);
 static int _formatOutputFileName(
     char *name, const char *outFormat, const char *path
 );
+static inline void _clearProgBar(void);
+static inline void _updateProgBar(size_t convertedFiles, size_t numberOfFiles);
+
+#define PROGBAR_LINES 3
+#define BAR_LEN (LINE_LEN - 27)
+
+enum ProgBarStatus {
+    CLEARED,
+    VISIBLE
+} progBarStatus = CLEARED;
 
 int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
     char *outPath = NULL;
     size_t numberOfThreads = args->numberOfThreads ?
         args->numberOfThreads : getNumberOfOnlineThreads();
+
+    size_t numberOfFiles = 0;
+    while (files[++numberOfFiles]);
 
 #ifndef _WIN32
     int attrErr;
@@ -105,12 +118,16 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             );
             threads[i].outFileID = fileIdx + 1;
 
+            if (progBarStatus == VISIBLE) _clearProgBar();
+
             printf(
                 " converting %sF-%.02zu %s-> %s\"%s\"%s to %s%s%s\n",
                 COLOR_INPUT, threads[i].outFileID, COLOR_ACCENT, COLOR_INPUT,
                 threads[i].targetFile, COLOR_DEFAULT, COLOR_ACCENT,
                 args->outFormat, COLOR_DEFAULT
             );
+
+            _updateProgBar(stats->convertedFiles, numberOfFiles);
 
 #ifdef _WIN32
             int callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
@@ -192,13 +209,9 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             }
 #endif
 
-            printf(
-                " $ %sdone %sconverting %sF-%.02zu%s\n",
-                COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
-                threads[i].outFileID, COLOR_DEFAULT
-            );
-
             stats->convertedFiles += 1;
+
+            _updateProgBar(stats->convertedFiles, numberOfFiles);
 
             memset(&threads[i], 0, sizeof(*threads));
         }
@@ -336,4 +349,38 @@ static bool _fileExists(const char *fileName) {
     struct stat statBuffer;
     return stat(fileName, &statBuffer) == 0;
 #endif
+}
+
+static inline void _clearProgBar(void) {
+    for (size_t i = 0; i < PROGBAR_LINES - 1; i++)
+        printf(LINE_ERASE LINE_MOVE_UP);
+
+    printf(LINE_ERASE);
+
+    progBarStatus = CLEARED;
+}
+
+static inline void _updateProgBar(size_t convertedFiles, size_t numberOfFiles) {
+    if (progBarStatus == VISIBLE) _clearProgBar();
+
+    printf(
+        "\n PROGRESS -> %s%3zu%% %s", COLOR_INPUT,
+        (100 * convertedFiles / numberOfFiles), COLOR_DEFAULT
+    );
+
+    printf("[%s", COLOR_ACCENT);
+
+    size_t fill = (BAR_LEN * convertedFiles) / numberOfFiles;
+
+    for (size_t i = 0; i < BAR_LEN; i++) {
+        if (i < fill) {
+            putchar('=');
+        } else {
+            putchar(' ');
+        }
+    }
+
+    printf("%s]\n", COLOR_DEFAULT);
+
+    progBarStatus = VISIBLE;
 }
