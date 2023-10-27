@@ -175,9 +175,21 @@ extern inline bool isDirectory(const char *dir) {
 }
 
 extern inline bool isZeroMemory(const void *buf, const size_t bytes) {
-    for (size_t i = 0; i < bytes / sizeof(size_t); i++) {
-        if (((size_t*)buf)[i]) return false;
+    size_t chunks = bytes / sizeof(size_t);
+    size_t remainder = bytes % sizeof(size_t);
+
+    size_t i = 0;
+
+    while (i < chunks) {
+        if (((size_t*)buf)[i++]) return false;
     }
+
+    if (remainder) {
+        while (i < remainder) {
+            if (((char*)buf)[i++]) return false;
+        }
+    }
+
 
     return true;
 }
