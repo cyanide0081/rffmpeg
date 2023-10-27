@@ -374,7 +374,7 @@ static inline void _updateProgBar(size_t convertedFiles, size_t numberOfFiles) {
 
     for (size_t i = 0; i < BAR_LEN; i++) {
         if (i < fill) {
-            putchar('=');
+            putchar('#');
         } else {
             putchar(' ');
         }
