@@ -10,7 +10,7 @@ static int _formatOutputFileName(
 
 int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
     char *outPath = NULL;
-    size_t numberOfThreads = getNumberOfOnlineThreads();
+    size_t numberOfThreads = args->numberOfThreads;
 
 #ifndef _WIN32
     int attrErr;

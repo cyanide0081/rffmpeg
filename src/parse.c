@@ -140,8 +140,14 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
 
             errno = 0;
 
-            parsedArgs->numberOfThreads =
-                (size_t)strtoull(delimPoint, NULL, 10);
+            long numberOfThreads = strtol(delimPoint, NULL, 10);
+
+            if (errno || numberOfThreads < 1) {
+                printErr("invalid custom thread number", delimPoint);
+                exit(errno);
+            }
+
+            parsedArgs->numberOfThreads = (size_t)numberOfThreads;
 
             size_t maxThreads = (2 * getNumberOfOnlineThreads());
 
@@ -158,10 +164,6 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
                 exit(EXIT_FAILURE);
             }
 
-            if (errno || !parsedArgs->numberOfThreads) {
-                printErr("invalid custom thread number", delimPoint);
-                exit(errno);
-            }
 
             continue;
         }
