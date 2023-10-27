@@ -17,12 +17,18 @@ compile() {
     mkdir -p "./bin"
 
     if [[ "$1" == "rel" ]]; then
+        echo "Building rffmpeg in RELEASE mode..."
+        echo
         set -x
         clang -o "bin/rffmpeg" $files $FLAGS $R_FLAGS
     elif [[ "$1" == "prof" ]]; then
+        echo "Building rffmpeg in PROFILING mode..."
+        echo
         set -x
         clang -o "bin/rffmpeg" $files $FLAGS $D_FLAGS $P_FLAGS
     else
+        echo "Building rffmpeg in DEBUG mode..."
+        echo
         set -x
         clang -o "bin/rffmpeg" $files $FLAGS $D_FLAGS
     fi
