@@ -3,7 +3,6 @@
 extern Arena *globalArena;
 
 static __mt_call_conv _callFFmpeg(void *arg);
-static size_t getNumberOfOnlineThreads(void);
 static bool _fileExists(const char *fileName);
 static int _formatOutputFileName(
     char *name, const char *outFormat, const char *path
@@ -11,20 +10,21 @@ static int _formatOutputFileName(
 
 int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
     char *outPath = NULL;
-    size_t onlineThreads = getNumberOfOnlineThreads();
-    size_t numberOfThreads = onlineThreads;
+    size_t numberOfThreads = getNumberOfOnlineThreads();
 
-    if (args->numberOfThreads) {
-        if (args->numberOfThreads > 2 * onlineThreads) {
-            printf(
-                " %sWARNING: %signoring above-limit custom thread number: "
-                "%s%zu%s\n\n", COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
-                args->numberOfThreads, COLOR_DEFAULT
-            );
-        } else {
-            numberOfThreads = args->numberOfThreads;
-        }
+#ifndef _WIN32
+    int attrErr;
+    pthread_attr_t attr;
+
+    if ((attrErr = pthread_attr_init(&attr))) {
+        printErr("unable to initialize thread attributes", strerror(attrErr));
+        exit(attrErr);
     }
+    if ((attrErr = pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN))) {
+        printErr("unable to set threads' stack size", strerror(attrErr));
+        exit(attrErr);
+    }
+#endif
 
     Thread *threads = GlobalArenaPush(numberOfThreads * sizeof(*threads));
     size_t fileIdx = 0;
@@ -93,7 +93,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             );
 
             char *ffmpegCall = GlobalArenaSprintf(
-                "ffmpeg -hide_banner -loglevel error "
+                "ffmpeg -nostdin -hide_banner -loglevel error "
                 "%s -i \"%s\" %s \"%s\"",
                 overwriteFlag, fullPath, args->ffOptions, fullOutPath
             );
@@ -131,7 +131,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             pthread_cond_init(&threads[i].cond, NULL);
 
             int err = pthread_create(
-                &threads[i].handle, NULL, &_callFFmpeg, &threads[i]
+                &threads[i].handle, &attr, &_callFFmpeg, &threads[i]
             );
 
             dprintf("spawned thread [%zu]\n", (size_t)threads[i].handle);
@@ -160,6 +160,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             clock_gettime(CLOCK_REALTIME, &time);
             time.tv_nsec += (TIMEOUT_MS * 1e6);
 
+            /* NOTE: making sure tv_nsec doesn't exceed it's maximum value */
             if (time.tv_nsec > TV_NSEC_MAX) time.tv_nsec = TV_NSEC_MAX;
 
             int wait = pthread_cond_timedwait(
@@ -168,18 +169,6 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
 
             if (wait == ETIMEDOUT) {
                 continue;
-            } else if (wait == EINVAL) {
-                printErr(
-                    "invalid parameter passed to pthread_cond_timedwait()",
-                    strerror(wait)
-                );
-                abort();
-            } else if (wait == EPERM) {
-                printErr(
-                    "mutex not owned during call to pthread_cond_timedwait()\n",
-                    strerror(wait)
-                );
-                abort();
             }
 
             int err = pthread_join(threads[i].handle, NULL);
@@ -192,7 +181,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             dprintf("joined thread [%zu]\n", (size_t)threads[i].handle);
 
             if ((err = pthread_cond_destroy(&threads[i].cond))) {
-                printErr("unable to destroy conditiion", strerror(err));
+                printErr("unable to destroy condition", strerror(err));
                 abort();
             }
 
@@ -239,26 +228,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
         }
     }
 
-    /* FIXME: temporary hack to restore stdin tty state because something
-     * in the multithreaded code is messing it up and blocking the input
-     * (pthread_exit() linux man page points out a bug with similar symptoms) */
-#ifdef __linux__
-    system("stty sane");
-#endif
-
     return 0;
-}
-
-static size_t getNumberOfOnlineThreads(void) {
-#ifdef _WIN32
-    SYSTEM_INFO sysInfo = {0};
-    GetSystemInfo(&sysInfo);
-    size_t n = (size_t)sysInfo.dwNumberOfProcessors;
-#else
-    size_t n = (size_t)sysconf(_SC_NPROCESSORS_ONLN);
-#endif
-
-    return n > 1 ? n : 2;
 }
 
 static __mt_call_conv _callFFmpeg(void *arg) {
@@ -315,10 +285,8 @@ static __mt_call_conv _callFFmpeg(void *arg) {
         }
     }
 
-    int err = 0;
-
-    while ((err = pthread_mutex_trylock(&thread->mutex)))
-        usleep(TIMEOUT_MS * 1000);
+    while ((pthread_mutex_trylock(&thread->mutex)))
+        usleep((TIMEOUT_MS * 1000) / 2);
 
     pthread_cond_broadcast(&thread->cond);
     pthread_mutex_unlock(&thread->mutex);

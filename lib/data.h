@@ -126,5 +126,6 @@ char *trimUTF8StringTo(const char *str, size_t maxChars);
 void readLine(char *dst, size_t dstSize);
 bool isDirectory(const char *dir);
 bool isZeroMemory(const void *buf, const size_t bytes);
+size_t getNumberOfOnlineThreads(void);
 
 #endif // H_TYPES

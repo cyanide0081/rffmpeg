@@ -113,11 +113,16 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
 
             char *delimPoint = strstr(args[i], COMP_TOKEN_DELIM);
 
-            if (delimPoint) {
-                parsedArgs->options |= OPT_CUSTOMPATHNAME;
-                parsedArgs->outPath.customPath =
-                    GlobalArenaPushString(++delimPoint);
+            if (!delimPoint || !*(++delimPoint)) {
+                printErr(
+                    "missing custom path name after flag",
+                    "(USAGE: -outpath:[PATH])"
+                );
+                exit(-1);
             }
+
+            parsedArgs->options |= OPT_CUSTOMPATHNAME;
+            parsedArgs->outPath.customPath = GlobalArenaPushString(delimPoint);
 
             continue;
         }
@@ -125,17 +130,37 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
         expectCompositeToken(args[i], "nt") {
             char *delimPoint = strstr(args[i], COMP_TOKEN_DELIM);
 
-            if (delimPoint) {
-                errno = 0;
-
-                parsedArgs->numberOfThreads = (size_t)strtoull(
-                    ++delimPoint, NULL, 10
+            if (!delimPoint || !*(++delimPoint)) {
+                printErr(
+                    "missing number of threads after flag",
+                    "(USAGE: -nt:[THREADS])"
                 );
+                exit(EXIT_FAILURE);
+            }
 
-                if (errno || !parsedArgs->numberOfThreads) {
-                    printErr("invalid custom thread number", delimPoint);
-                    exit(errno);
-                }
+            errno = 0;
+
+            parsedArgs->numberOfThreads =
+                (size_t)strtoull(delimPoint, NULL, 10);
+
+            size_t maxThreads = (2 * getNumberOfOnlineThreads());
+
+            if (parsedArgs->numberOfThreads > maxThreads) {
+                fprintf(
+                    stderr,
+                    " %sERROR: %sabove-limit custom thread number: "
+                    "%s%zu %s(%smaximum value%s: %s%zu%s)\n\n",
+                    COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
+                    parsedArgs->numberOfThreads, COLOR_DEFAULT,
+                    COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
+                    maxThreads, COLOR_DEFAULT
+                );
+                exit(EXIT_FAILURE);
+            }
+
+            if (errno || !parsedArgs->numberOfThreads) {
+                printErr("invalid custom thread number", delimPoint);
+                exit(errno);
             }
 
             continue;
@@ -247,16 +272,6 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
             printErr("custom folder name exceeds maximum allowed length", len);
 
             return PARSE_STATE_LONG_ARG;
-        }
-    }
-
-    if (parsedArgs->options & OPT_NEWPATH) {
-        if (!parsedArgs->outPath.customPath ||
-            !*parsedArgs->outPath.customPath
-        ) {
-            printErr("empty custom path field", "usage: -outpath:[PATH]");
-
-            return PARSE_STATE_BAD_ARG;
         }
     }
 

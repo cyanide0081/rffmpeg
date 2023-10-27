@@ -181,3 +181,16 @@ extern inline bool isZeroMemory(const void *buf, const size_t bytes) {
 
     return true;
 }
+
+
+extern inline size_t getNumberOfOnlineThreads(void) {
+#ifdef _WIN32
+    SYSTEM_INFO sysInfo = {0};
+    GetSystemInfo(&sysInfo);
+    size_t n = (size_t)sysInfo.dwNumberOfProcessors;
+#else
+    size_t n = (size_t)sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+
+    return n > 1 ? n : 2;
+}
