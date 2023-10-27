@@ -56,7 +56,9 @@ typedef struct Thread {
 #endif
 } Thread;
 
-#define PROGRAM_VERSION      "v1.3.0"
+#define VERSION_NUMBER       "1.3.1"
+#define VERSION_NAME         "(线程)"
+#define VERSION_DESC         "RFFMPEG v" VERSION_NUMBER " " VERSION_NAME
 #define CONSOLE_WINDOW_TITLE ("RFFmpeg " PROGRAM_VERSION)
 
 /* ANSI escape chars for colored shell output */

@@ -69,8 +69,7 @@ int main(int argc, char *argv[]) {
     LocalFree(argvW);
 #endif /* _WIN32 */
 
-    printf("%s%s%s\n\n", COLOR_ACCENT,
-           "RFFMPEG " PROGRAM_VERSION " (线程)", COLOR_DEFAULT);
+    printf("%s%s%s\n\n", COLOR_ACCENT, VERSION_DESC, COLOR_DEFAULT);
 
     createTestProcess();
 
