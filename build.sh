@@ -4,13 +4,13 @@
 # recursive file searching and compilation routine
 compile() {
     local DEFINES=" -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE"
-    local   FLAGS="-I./lib -std=c99 $DEFINES -Wall -Wextra -pedantic -Wno-unused-function"
+    local   FLAGS="-I./lib -std=c99 -lpthread $DEFINES -Wall -Wextra -pedantic -Wno-unused-function"
     local D_FLAGS="-g"
     local P_FLAGS="-finstrument-functions -ldl -rdynamic -DINSTRUMENTATION"
     local R_FLAGS="-DNDEBUG -O2 -s"
     local   files=""
 
-    for f in $(find -name "*.c"); do
+    for f in $(find . -name "*.c"); do
         files="$files $f";
     done
 
