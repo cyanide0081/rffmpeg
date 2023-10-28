@@ -59,9 +59,13 @@ static inline Arena *ArenaAlloc(size_t bytes) {
         NULL, bytes, MEM_COMMIT, PAGE_READWRITE
     );
 #else
-    Arena *arena = sbrk(sizeof(*arena));
+    Arena *arena = mmap(
+        NULL, sizeof(*arena), PROT_READ | PROT_WRITE,
+        MAP_PRIVATE | MAP_ANON, -1, 0
+    );
     arena->buf   = mmap(
-        NULL, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0
+        NULL, bytes, PROT_READ | PROT_WRITE,
+        MAP_PRIVATE | MAP_ANON, -1, 0
     );
 #endif
 
@@ -151,6 +155,7 @@ static inline void ArenaRelease(Arena *arena) {
     VirtualFree(arena, 0, MEM_RELEASE);
 #else
     munmap(arena->buf, arena->size);
+    munmap(arena, sizeof(*arena));
 #endif
 }
 

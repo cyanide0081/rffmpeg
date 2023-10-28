@@ -8,20 +8,29 @@
 #include <process.h>
 #include <fcntl.h>
 #include <io.h>
-#elif defined __linux__ || defined __APPLE__ || defined BSD
+
+#elif defined __linux__ || defined __APPLE__ || defined __FreeBSD__
+/* don't ask me why */
+#ifdef __FreeBSD__
+#define __BSD_VISIBLE 1
+#define __XSI_VISIBLE 600
+#endif /* __FreeBSD__ */
+
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/cdefs.h>
 #include <sys/mman.h>
+
 #ifdef __linux__
 #include <linux/limits.h>
 #else
 #include <limits.h>
 #endif /* __linux__ */
+
 #else
-#error "unsupported OS/kernel"
+#error "FATAL: unsupported OS/Kernel"
 #endif /* OS headers */
 
 /* CRT headers */
