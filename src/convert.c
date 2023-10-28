@@ -10,6 +10,10 @@ static int _formatOutputFileName(
 static inline void _updateProgBar(Arguments *args, ProcessInfo *stats);
 static inline void _clearProgBar(void);
 
+#ifndef _WIN32
+static inline void _threadAttrInit(pthread_attr_t *attr);
+#endif
+
 int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
 #ifndef _WIN32
     pthread_attr_t attr;
@@ -372,11 +376,11 @@ static inline void _clearProgBar(void) {
 static inline void _threadAttrInit(pthread_attr_t *attr) {
     int err = 0;
 
-    if ((err = pthread_attr_init(&attr))) {
+    if ((err = pthread_attr_init(attr))) {
         printErr("unable to initialize thread attributes", strerror(err));
         exit(err);
     }
-    if ((err = pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN))) {
+    if ((err = pthread_attr_setstacksize(attr, PTHREAD_STACK_MIN))) {
         printErr("unable to set threads' stack size", strerror(err));
         exit(err);
     }
