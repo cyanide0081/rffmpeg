@@ -16,6 +16,7 @@ typedef enum InputMode {
 } InputMode;
 
 typedef struct ProcessInfo {
+    size_t totalFiles;
     size_t convertedFiles;
     size_t deletedFiles;
     double executionTime;
@@ -56,25 +57,26 @@ typedef struct Thread {
 #endif
 } Thread;
 
-#define VERSION_NUMBER       "1.3.1"
+#define VERSION_NUMBER       "1.3.2"
 #define VERSION_NAME         "(线程)"
 #define VERSION_DESC         "RFFMPEG v" VERSION_NUMBER " " VERSION_NAME
 #define CONSOLE_WINDOW_TITLE ("RFFmpeg v" VERSION_NUMBER)
 
 /* ANSI escape chars for colored shell output */
-#ifndef NO_ANSI_ESCAPE_CODES
+#define LINE_ERASE    "\x1b[2K"
+#define LINE_MOVE_UP  "\x1b[A"
+#define CARRIAGE_RET  "\r"
+
+#ifndef NO_ANSI_COLOR_CODES
 #define COLOR_DEFAULT "\x1b[0m"
 #define COLOR_ACCENT  "\x1b[91m"
 #define COLOR_INPUT   "\x1b[97m"
 #define COLOR_ERROR   "\x1b[91m"
-#define LINE_ERASE    "\x1b[2K\r"
-#define LINE_MOVE_UP  "\x1b[A"
 #else
 #define COLOR_DEFAULT ""
 #define COLOR_ACCENT  ""
 #define COLOR_INPUT   ""
 #define COLOR_ERROR   ""
-#define LINE_ERASE    ""
 #endif
 
 #define LIST_BUF 8

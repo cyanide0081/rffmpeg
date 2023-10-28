@@ -7,45 +7,27 @@ static bool _fileExists(const char *fileName);
 static int _formatOutputFileName(
     char *name, const char *outFormat, const char *path
 );
+static inline void _updateProgBar(Arguments *args, ProcessInfo *stats);
 static inline void _clearProgBar(void);
-static inline void _updateProgBar(size_t convertedFiles, size_t numberOfFiles);
-
-#define PROGBAR_LINES 3
-#define BAR_LEN (LINE_LEN - 27)
-
-enum ProgBarStatus {
-    CLEARED,
-    VISIBLE
-} progBarStatus = CLEARED;
 
 int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
+#ifndef _WIN32
+    pthread_attr_t attr;
+
+    _threadAttrInit(&attr);
+#endif
+
     char *outPath = NULL;
     size_t numberOfThreads = args->numberOfThreads ?
         args->numberOfThreads : getNumberOfOnlineThreads();
-
-    size_t numberOfFiles = 0;
-    while (files[++numberOfFiles]);
-
-#ifndef _WIN32
-    int attrErr;
-    pthread_attr_t attr;
-
-    if ((attrErr = pthread_attr_init(&attr))) {
-        printErr("unable to initialize thread attributes", strerror(attrErr));
-        exit(attrErr);
-    }
-    if ((attrErr = pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN))) {
-        printErr("unable to set threads' stack size", strerror(attrErr));
-        exit(attrErr);
-    }
-#endif
-
     Thread *threads = GlobalArenaPush(numberOfThreads * sizeof(*threads));
     size_t fileIdx = 0;
 
     do {
         for (size_t i = 0; i < numberOfThreads && files[fileIdx]; i++) {
             if (threads[i].handle) continue; // thread is busy (kiwi business)
+
+            _updateProgBar(args, stats);
 
             const char *inputFormat = NULL;
 
@@ -118,17 +100,6 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             );
             threads[i].outFileID = fileIdx + 1;
 
-            if (progBarStatus == VISIBLE) _clearProgBar();
-
-            printf(
-                " converting %sF-%.02zu %s-> %s\"%s\"%s to %s%s%s\n",
-                COLOR_INPUT, threads[i].outFileID, COLOR_ACCENT, COLOR_INPUT,
-                threads[i].targetFile, COLOR_DEFAULT, COLOR_ACCENT,
-                args->outFormat, COLOR_DEFAULT
-            );
-
-            _updateProgBar(stats->convertedFiles, numberOfFiles);
-
 #ifdef _WIN32
             int callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
             wchar_t *ffmpegCallW = GlobalArenaPush(callBuf * sizeof(wchar_t));
@@ -151,8 +122,6 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             int err = pthread_create(
                 &threads[i].handle, &attr, &_callFFmpeg, &threads[i]
             );
-
-            dprintf("spawned thread [%zu]\n", (size_t)threads[i].handle);
 
             if (err) {
                 printErr("unable to spawn new thread", strerror(err));
@@ -196,8 +165,6 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 exit(err);
             }
 
-            dprintf("joined thread [%zu]\n", (size_t)threads[i].handle);
-
             if ((err = pthread_cond_destroy(&threads[i].cond))) {
                 printErr("unable to destroy condition", strerror(err));
                 abort();
@@ -211,7 +178,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
 
             stats->convertedFiles += 1;
 
-            _updateProgBar(stats->convertedFiles, numberOfFiles);
+            _updateProgBar(args, stats);
 
             memset(&threads[i], 0, sizeof(*threads));
         }
@@ -351,36 +318,67 @@ static bool _fileExists(const char *fileName) {
 #endif
 }
 
+#define PROGBAR_LINES 1
+#define BAR_LEN (LINE_LEN - 21)
+
+enum ProgBarStatus {
+    CLEARED,
+    VISIBLE
+} progBarStatus = CLEARED;
+
+/* NOTE: progress bar/stats printing function (style subject to change) */
+static inline void _updateProgBar(Arguments *args, ProcessInfo *stats) {
+    (void)args; // will use these later
+
+    if (progBarStatus == VISIBLE) _clearProgBar();
+
+    char progBar[LINE_LEN * PROGBAR_LINES] = {0};
+    size_t progBarIdx = 0;
+
+    progBarIdx += sprintf(
+        progBar, " Progress: [%s", COLOR_ACCENT
+    );
+
+    size_t fill = (BAR_LEN * stats->convertedFiles) / stats->totalFiles;
+
+    for (size_t i = 0; i < BAR_LEN; i++) {
+        if (i < fill) {
+            progBar[progBarIdx++] = '#';
+        } else {
+            progBar[progBarIdx++] = ' ';
+        }
+    }
+
+    sprintf(
+        (progBar + progBarIdx),
+        "%s] %6.2f%%", COLOR_DEFAULT,
+        (double)(100.0F * stats->convertedFiles / stats->totalFiles)
+    );
+
+    puts(progBar);
+    progBarStatus = VISIBLE;
+}
+
 static inline void _clearProgBar(void) {
-    for (size_t i = 0; i < PROGBAR_LINES - 1; i++)
+    for (size_t i = 0; i < PROGBAR_LINES; i++)
         printf(LINE_ERASE LINE_MOVE_UP);
 
-    printf(LINE_ERASE);
+    printf(LINE_ERASE CARRIAGE_RET);
 
     progBarStatus = CLEARED;
 }
 
-static inline void _updateProgBar(size_t convertedFiles, size_t numberOfFiles) {
-    if (progBarStatus == VISIBLE) _clearProgBar();
+#ifndef _WIN32
+static inline void _threadAttrInit(pthread_attr_t *attr) {
+    int err = 0;
 
-    printf(
-        "\n PROGRESS -> %s%3zu%% %s", COLOR_INPUT,
-        (100 * convertedFiles / numberOfFiles), COLOR_DEFAULT
-    );
-
-    printf("[%s", COLOR_ACCENT);
-
-    size_t fill = (BAR_LEN * convertedFiles) / numberOfFiles;
-
-    for (size_t i = 0; i < BAR_LEN; i++) {
-        if (i < fill) {
-            putchar('#');
-        } else {
-            putchar(' ');
-        }
+    if ((err = pthread_attr_init(&attr))) {
+        printErr("unable to initialize thread attributes", strerror(err));
+        exit(err);
     }
-
-    printf("%s]\n", COLOR_DEFAULT);
-
-    progBarStatus = VISIBLE;
+    if ((err = pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN))) {
+        printErr("unable to set threads' stack size", strerror(err));
+        exit(err);
+    }
 }
+#endif

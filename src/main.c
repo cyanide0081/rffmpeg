@@ -7,8 +7,8 @@
 
 Arena *globalArena = NULL; // for simplifying arena alloc calls
 
-static void createTestProcess(void);
-static inline void displayEndDialog(ProcessInfo *procInfo);
+static void _createTestProcess(void);
+static inline void _displayEndDialog(ProcessInfo *procInfo);
 
 int main(int argc, char *argv[]) {
     GlobalArenaInit();
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 
     printf("%s%s%s\n\n", COLOR_ACCENT, VERSION_DESC, COLOR_DEFAULT);
 
-    createTestProcess();
+    _createTestProcess();
 
     Arguments *parsedArgs = ArgumentsAlloc();
 
@@ -104,14 +104,14 @@ int main(int argc, char *argv[]) {
             waitForNewLine();
             printf("%s\n", COLOR_DEFAULT);
 
-            ProcessInfo procInfo = {0};
+            ProcessInfo stats = { .totalFiles = fileCount };
             struct timespec startTime;
             clock_gettime(CLOCK_MONOTONIC_RAW, &startTime);
 
             if (input == 'y') {
                 exitCode = convertFiles(
                     (const char **)fileList,
-                    parsedArgs, &procInfo
+                    parsedArgs, &stats
                 );
             } else {
                 exitCode = EXIT_FAILURE;
@@ -120,12 +120,12 @@ int main(int argc, char *argv[]) {
             struct timespec endTime;
             clock_gettime(CLOCK_MONOTONIC_RAW, &endTime);
 
-            procInfo.executionTime =
+            stats.executionTime =
                 (double)(endTime.tv_sec - startTime.tv_sec) +
                 (endTime.tv_nsec - startTime.tv_nsec) / 1e9F;
 
             if (exitCode != EXIT_FAILURE)
-                displayEndDialog(&procInfo);
+                _displayEndDialog(&stats);
         } else {
             printf(
                 " found no matching files (%saborting%s)\n\n",
@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
     return exitCode;
 }
 
-static void createTestProcess(void) {
+static void _createTestProcess(void) {
 #ifdef _WIN32
     STARTUPINFOW ffmpegStartupInfo = {0};
     PROCESS_INFORMATION ffmpegProcessInfo = {0};
@@ -204,23 +204,23 @@ static void createTestProcess(void) {
 #endif
 }
 
-static inline void displayEndDialog(ProcessInfo *procInfo) {
+static inline void _displayEndDialog(ProcessInfo *procInfo) {
     if (procInfo->convertedFiles == 0) {
         printErr("unable to convert files", "check your ffmpeg parameters");
     } else {
         FmtTime execTime = formatTime(procInfo->executionTime);
 
-        printf(" %sDONE!%s\n\n", COLOR_ACCENT, COLOR_DEFAULT);
+        printf(" %sDONE! (完毕)%s\n\n", COLOR_ACCENT, COLOR_DEFAULT);
         printf(
-            " %sProcessed files: %s%zu%s\n", COLOR_DEFAULT,
+            " %sConverted files  :  %s%zu%s\n", COLOR_DEFAULT,
             COLOR_ACCENT, procInfo->convertedFiles, COLOR_DEFAULT
         );
         printf(
-            " %sDeleted files:   %s%zu%s\n", COLOR_DEFAULT,
+            " %sDeleted files    :  %s%zu%s\n", COLOR_DEFAULT,
             COLOR_ACCENT, procInfo->deletedFiles, COLOR_DEFAULT
         );
         printf(
-            " %sElapsed time:    %s%02zu:%02zu:%05.2lf%s\n\n",
+            " %sElapsed time     :  %s%02zu:%02zu:%05.2lf%s\n\n",
             COLOR_DEFAULT, COLOR_ACCENT,
             execTime.hours, execTime.minutes, execTime.seconds,
             COLOR_DEFAULT
