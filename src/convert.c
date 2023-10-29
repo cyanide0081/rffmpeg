@@ -17,7 +17,6 @@ static inline void _threadAttrInit(pthread_attr_t *attr);
 int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
 #ifndef _WIN32
     pthread_attr_t attr;
-
     _threadAttrInit(&attr);
 #endif
 
@@ -270,8 +269,10 @@ static __mt_call_conv _callFFmpeg(void *arg) {
         }
     }
 
-    while ((pthread_mutex_trylock(&thread->mutex)))
-        usleep((TIMEOUT_MS * 1000) / 2);
+    static struct timespec timeout = { .tv_nsec = TIMEOUT_MS * 1e7 / 2 };
+
+    while (pthread_mutex_trylock(&thread->mutex) == EBUSY)
+        nanosleep(&timeout, NULL);
 
     pthread_cond_broadcast(&thread->cond);
     pthread_mutex_unlock(&thread->mutex);
