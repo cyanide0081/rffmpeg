@@ -303,7 +303,7 @@ static int _formatOutputFileName(
         }
 
         snprintf(newName, FILE_BUF, "%s-%03zu", name, index);
-        memccpy(name, newName, '\0', FILE_BUF);
+        strncpy(name, newName, FILE_BUF);
     }
 
     return EXIT_SUCCESS;
