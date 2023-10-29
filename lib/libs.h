@@ -13,7 +13,6 @@
 /* don't ask me why */
 #ifdef __FreeBSD__
 #define __BSD_VISIBLE 1
-#define __XSI_VISIBLE 600
 #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC_PRECISE
 #endif /* __FreeBSD__ */
 
