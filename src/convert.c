@@ -321,7 +321,7 @@ static inline void _updateProgBar(Arguments *args, ProcessInfo *stats) {
 
     if (progBarStatus == VISIBLE) _clearProgBar();
 
-    char progBar[LINE_LEN * PROGBAR_LINES] = {0};
+    char progBar[LINE_LEN * PROGBAR_LINES + 1];
     size_t progBarIdx = 0;
 
     progBarIdx += sprintf(
