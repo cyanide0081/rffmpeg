@@ -43,19 +43,15 @@ void trimSpaces(char *string) {
 
 #define ERR_INVALID_UTF8 "found invalid UTF-8"
 
-/* Trims a long (NUL terminated) UTF-8 encoded string if it exceeds
-[maxChars] characters (codepoints) and inserts '...' at the start */
-char *trimUTF8StringTo(const char *str, size_t maxChars) {
-    if (maxChars <= 3) return GlobalArenaPushString("...");
+/* Trims a 'long' (NUL terminated) UTF-8 encoded string if it exceeds
+ * [cells] characters (codepoints) and inserts '...' at the beginning */
+char *trimUTF8StringTo(const char *str, size_t cells) {
+    if (cells <= 3) return GlobalArenaPushString("...");
 
     if (!str) return GlobalArenaPushString("(null)");
 
-    /* TODO: (1) check for overlong encodings and stuff aswell
-     * (2) actually count glyphs inside the loop instead of just
-     * codepoints, since one glyph may be made out of more than
-     * one codepoint
-     * NOTE: worked around (2) by incrementing chars
-     * by 2 whenever a 3+ byte character is found */
+    /* TODO: port UCS width code to here so we can get a more accurate
+     * estimated character width when calculating the trimmed length */
 
     size_t bufIdx = 0, chars = 0;
     size_t bufLen = strlen(str);
@@ -65,7 +61,7 @@ char *trimUTF8StringTo(const char *str, size_t maxChars) {
 
     /* walk backwards through the string's bytes
        until we reach the max amount of symbols */
-    for (bufIdx = bufLen - 1; (bufIdx > 0) && (chars < maxChars - 3); chars++) {
+    for (bufIdx = bufLen - 1; (bufIdx > 0) && (chars < cells - 3); chars++) {
         /* first check for ASCII bytes */
         if (!(buf[bufIdx] & 0x80)) {
             bufIdx -= 1;
@@ -185,11 +181,13 @@ extern inline bool isZeroMemory(const void *buf, const size_t bytes) {
     }
 
     if (remainder) {
-        while (i < remainder) {
+        size_t chunkBytes = chunks * sizeof(size_t);
+        i = chunkBytes;
+
+        while (i < chunkBytes + remainder) {
             if (((char*)buf)[i++]) return false;
         }
     }
-
 
     return true;
 }
