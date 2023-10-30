@@ -194,7 +194,6 @@ extern inline bool isZeroMemory(const void *buf, const size_t bytes) {
     return true;
 }
 
-
 extern inline size_t getNumberOfOnlineThreads(void) {
 #ifdef _WIN32
     SYSTEM_INFO sysInfo = {0};
@@ -206,3 +205,28 @@ extern inline size_t getNumberOfOnlineThreads(void) {
 
     return n > 1 ? n : 2;
 }
+
+#ifndef _WIN32
+extern inline void threadAttrInit(pthread_attr_t *attr) {
+    int err = 0;
+
+    if ((err = pthread_attr_init(attr))) {
+        printErr("unable to initialize thread attributes", strerror(err));
+        exit(err);
+    }
+
+    if ((err = pthread_attr_setstacksize(attr, PTHREAD_STACK_MIN))) {
+        printErr("unable to set threads' stack size", strerror(err));
+        exit(err);
+    }
+}
+
+extern inline void threadAttrDestroy(pthread_attr_t *attr) {
+    int err = 0;
+
+    if ((err = pthread_attr_destroy(attr))) {
+        printErr("unable to destroy thread attributes", strerror(err));
+        exit(err);
+    }
+}
+#endif

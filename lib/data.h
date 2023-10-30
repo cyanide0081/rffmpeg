@@ -135,4 +135,9 @@ bool isDirectory(const char *dir);
 bool isZeroMemory(const void *buf, const size_t bytes);
 size_t getNumberOfOnlineThreads(void);
 
+#ifndef _WIN32
+void threadAttrInit(pthread_attr_t *attr);
+void threadAttrDestroy(pthread_attr_t *attr);
+#endif
+
 #endif // H_TYPES

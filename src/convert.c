@@ -3,21 +3,15 @@
 extern Arena *globalArena;
 
 static __mt_call_conv _callFFmpeg(void *arg);
-static bool _fileExists(const char *fileName);
-static int _formatOutputFileName(
-    char *name, const char *outFormat, const char *path
-);
+static int _formatFileName(char *name, const char *ext, const char *path);
 static inline void _updateProgBar(Arguments *args, ProcessInfo *stats);
 static inline void _clearProgBar(void);
-
-#ifndef _WIN32
-static inline void _threadAttrInit(pthread_attr_t *attr);
-#endif
+static inline bool _fileExists(const char *fileName);
 
 int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
 #ifndef _WIN32
     pthread_attr_t attr;
-    _threadAttrInit(&attr);
+    threadAttrInit(&attr);
 #endif
 
     char *outPath = NULL;
@@ -41,8 +35,6 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 }
             }
 
-            assert(inputFormat);
-
             const char *fullPath = files[fileIdx];
             const char *pathDelimPoint = (fullPath + strlen(fullPath));
 
@@ -52,9 +44,6 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 fullPath, (pathDelimPoint - fullPath)
             );
             char *baseName = GlobalArenaPushString(pathDelimPoint + 1);
-
-            assert(filePath);
-            assert(baseName);
 
             outPath = filePath;
 
@@ -84,7 +73,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             if (args->options & OPT_OVERWRITE) {
                 overwriteFlag = "-y";
             } else {
-                _formatOutputFileName(fileNameNoExt, args->outFormat, outPath);
+                _formatFileName(fileNameNoExt, args->outFormat, outPath);
             }
 
             char *fullOutPath = GlobalArenaSprintf(
@@ -104,11 +93,6 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             threads[i].outFileID = fileIdx + 1;
 
 #ifdef _WIN32
-            int callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
-            wchar_t *ffmpegCallW = GlobalArenaPush(callBuf * sizeof(wchar_t));
-            UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, callBuf);
-
-            threads[i].callArg = ffmpegCallW;
             threads[i].handle = (HANDLE)_beginthreadex(
                 NULL, 0, &_callFFmpeg, &threads[i], 0, NULL
             );
@@ -117,7 +101,6 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 printErr("unable to spawn new thread", strerror(errno));
                 exit(errno);
             }
-
 #else
             pthread_mutex_init(&threads[i].mutex, NULL);
             pthread_cond_init(&threads[i].cond, NULL);
@@ -149,7 +132,6 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
             struct timespec time;
             clock_gettime(CLOCK_REALTIME, &time);
             time.tv_nsec += (TIMEOUT_MS * 1e6);
-
             /* NOTE: making sure tv_nsec doesn't exceed it's maximum value */
             if (time.tv_nsec > TV_NSEC_MAX) time.tv_nsec = TV_NSEC_MAX;
 
@@ -157,9 +139,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 &threads[i].cond, &threads[i].mutex, &time
             );
 
-            if (wait == ETIMEDOUT) {
-                continue;
-            }
+            if (wait == ETIMEDOUT) continue;
 
             int err = pthread_join(threads[i].handle, NULL);
 
@@ -190,6 +170,10 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
         files[fileIdx]
     );
 
+#ifndef _WIN32
+    threadAttrDestroy(&attr);
+#endif
+
     putchar('\n');
 
     for (int i = 0; files[i]; i++) {
@@ -202,12 +186,12 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
         }
     }
 
-    /* Delete new folder in case it exists and no conversions succeeded */
     if (
-        ((args->options & OPT_NEWFOLDER) || (args->options & OPT_NEWPATH)) &&
+        ((args->options & OPT_NEWFOLDER) ||
+         (args->options & OPT_NEWPATH)) &&
         stats->convertedFiles == 0
     ) {
-        if (remove(outPath) != 0) {
+        if (remove(outPath)) {
             printErr("unable to delete unused directory", strerror(errno));
         }
     }
@@ -217,9 +201,13 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
 
 static __mt_call_conv _callFFmpeg(void *arg) {
     Thread *thread = (Thread*)arg;
+    const char *ffmpegCall = thread->callArg;
 
 #ifdef _WIN32
-    wchar_t *ffmpegCallW = thread->callArg;
+    int callBuf = UTF8toUTF16(ffmpegCall, -1, NULL, 0);
+    wchar_t *ffmpegCallW = GlobalArenaPush(callBuf * sizeof(wchar_t));
+    UTF8toUTF16(ffmpegCall, -1, ffmpegCallW, callBuf);
+
     STARTUPINFOW ffmpegStartupInfo = {0};
     PROCESS_INFORMATION ffmpegProcessInfo = {0};
 
@@ -241,8 +229,6 @@ static __mt_call_conv _callFFmpeg(void *arg) {
     _endthreadex(0);
     return 0;
 #else
-    const char *ffmpegCall = thread->callArg;
-
     pid_t procId = fork();
 
     if (procId == 0) {
@@ -281,14 +267,12 @@ static __mt_call_conv _callFFmpeg(void *arg) {
 #endif
 }
 
-static int _formatOutputFileName(
-    char *name, const char *format, const char *path
-) {
+static int _formatFileName(char *name, const char *ext, const char *path) {
     size_t fullPathSize =
-        snprintf(NULL, 0, "%s%c%s.-xxx%s", path, PATH_SEP, name, format) + 1;
+        snprintf(NULL, 0, "%s%c%s.-xxx%s", path, PATH_SEP, name, ext) + 1;
 
     char *fullPath = GlobalArenaPush(fullPathSize * sizeof(char));
-    sprintf(fullPath, "%s%c%s.%s", path, PATH_SEP, name, format);
+    sprintf(fullPath, "%s%c%s.%s", path, PATH_SEP, name, ext);
 
     char newName[FILE_BUF];
 
@@ -298,7 +282,7 @@ static int _formatOutputFileName(
         while (_fileExists(fullPath)) {
             sprintf(
                 fullPath, "%s%c%s-%03zu.%s", path,
-                PATH_SEP, name, ++index, format
+                PATH_SEP, name, ++index, ext
             );
         }
 
@@ -355,8 +339,7 @@ static inline void _updateProgBar(Arguments *args, ProcessInfo *stats) {
     }
 
     sprintf(
-        (progBar + progBarIdx),
-        "%s] %6.2f%%", COLOR_DEFAULT,
+        (progBar + progBarIdx), "%s] %6.2f%%", COLOR_DEFAULT,
         (double)(100.0F * stats->convertedFiles / stats->totalFiles)
     );
 
@@ -372,18 +355,3 @@ static inline void _clearProgBar(void) {
 
     progBarStatus = CLEARED;
 }
-
-#ifndef _WIN32
-static inline void _threadAttrInit(pthread_attr_t *attr) {
-    int err = 0;
-
-    if ((err = pthread_attr_init(attr))) {
-        printErr("unable to initialize thread attributes", strerror(err));
-        exit(err);
-    }
-    if ((err = pthread_attr_setstacksize(attr, PTHREAD_STACK_MIN))) {
-        printErr("unable to set threads' stack size", strerror(err));
-        exit(err);
-    }
-}
-#endif
