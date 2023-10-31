@@ -15,18 +15,15 @@ done
 mkdir -p "./bin"
 
 if [ "$1" = "rel" ]; then
-    echo "Building rffmpeg in RELEASE mode..."
-    echo
-    set -x
-    $CC -o "bin/rffmpeg" $files $FLAGS $R_FLAGS || exit 1
+    printf "Building rffmpeg in RELEASE mode...\n\n"
+    args="$files $FLAGS $R_FLAGS"
 elif [ "$1" = "prof" ]; then
-    echo "Building rffmpeg in PROFILING mode..."
-    echo
-    set -x
-    $CC -o "bin/rffmpeg" $files $FLAGS $D_FLAGS $P_FLAGS || exit 1
+    printf "Building rffmpeg in PROFILING mode...\n\n"
+    args="$files $FLAGS $D_FLAGS $P_FLAGS"
 else
-    echo "Building rffmpeg in DEBUG mode..."
-    echo
-    set -x
-    $CC -o "bin/rffmpeg" $files $FLAGS $D_FLAGS || exit 1
+    printf "Building rffmpeg in DEBUG mode...\n\n"
+    args="$files $FLAGS $D_FLAGS"
 fi
+
+set -x
+$CC -o "bin/rffmpeg" $args || exit 1
