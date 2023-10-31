@@ -255,8 +255,9 @@ static __mt_call_conv _callFFmpeg(void *arg) {
         }
     }
 
-    static struct timespec timeout = { .tv_nsec = TIMEOUT_MS * 1e7 / 2 };
+    static struct timespec timeout = { .tv_nsec = TIMEOUT_MS * 1e6 / 2 };
 
+    /* TODO: test using pthread_mutex_lock() here instead */
     while (pthread_mutex_trylock(&thread->mutex) == EBUSY)
         nanosleep(&timeout, NULL);
 
