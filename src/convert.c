@@ -3,7 +3,7 @@
 extern Arena *globalArena;
 
 static __mt_call_conv _callFFmpeg(void *arg);
-static int _formatFileName(char *name, const char *ext, const char *path);
+static void _formatFileName(char *name, const char *ext, const char *path);
 static inline void _updateProgBar(Arguments *args, ProcessInfo *stats);
 static inline void _clearProgBar(void);
 static inline bool _fileExists(const char *fileName);
@@ -147,16 +147,6 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                 printErr("unable to join threads", strerror(err));
                 exit(err);
             }
-
-            if ((err = pthread_cond_destroy(&threads[i].cond))) {
-                printErr("unable to destroy condition", strerror(err));
-                abort();
-            }
-
-            if ((err = pthread_mutex_destroy(&threads[i].mutex))) {
-                printErr("unable to destroy mutex", strerror(err));
-                abort();
-            }
 #endif
 
             stats->convertedFiles += 1;
@@ -244,10 +234,9 @@ static __mt_call_conv _callFFmpeg(void *arg) {
 
         int exitStatus = 0;
 
-        if (!WIFEXITED(status))
-            exitStatus = WEXITSTATUS(status);
+        if (!WIFEXITED(status)) exitStatus = WEXITSTATUS(status);
 
-        if (exitStatus != 0) {
+        if (exitStatus) {
             char status[FILE_BUF];
             snprintf(status, FILE_BUF, "exit status: %d", exitStatus);
             printErr("unable to call FFmpeg", status);
@@ -255,12 +244,7 @@ static __mt_call_conv _callFFmpeg(void *arg) {
         }
     }
 
-    static struct timespec timeout = { .tv_nsec = TIMEOUT_MS * 1e6 / 2 };
-
-    /* TODO: test using pthread_mutex_lock() here instead */
-    while (pthread_mutex_trylock(&thread->mutex) == EBUSY)
-        nanosleep(&timeout, NULL);
-
+    pthread_mutex_lock(&thread->mutex);
     pthread_cond_broadcast(&thread->cond);
     pthread_mutex_unlock(&thread->mutex);
 
@@ -268,7 +252,7 @@ static __mt_call_conv _callFFmpeg(void *arg) {
 #endif
 }
 
-static int _formatFileName(char *name, const char *ext, const char *path) {
+static void _formatFileName(char *name, const char *ext, const char *path) {
     size_t fullPathSize =
         snprintf(NULL, 0, "%s%c%s.-xxx%s", path, PATH_SEP, name, ext) + 1;
 
@@ -290,8 +274,6 @@ static int _formatFileName(char *name, const char *ext, const char *path) {
         snprintf(newName, FILE_BUF, "%s-%03zu", name, index);
         strncpy(name, newName, FILE_BUF);
     }
-
-    return EXIT_SUCCESS;
 }
 
 static bool _fileExists(const char *fileName) {
@@ -309,7 +291,7 @@ static bool _fileExists(const char *fileName) {
 }
 
 #define PROGBAR_LINES 1
-#define BAR_LEN (LINE_LEN - 21)
+#define BAR_LEN (LINE_LEN - 22)
 
 enum ProgBarStatus {
     CLEARED,
