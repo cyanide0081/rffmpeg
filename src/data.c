@@ -151,20 +151,16 @@ extern inline bool isDirectory(const char *dir) {
 #ifndef _WIN32
     struct stat pathStats;
 
-    if (stat(dir, &pathStats) != 0)
-        return false;
+    if (stat(dir, &pathStats) != 0) return false;
 
     return S_ISDIR(pathStats.st_mode);
 #else
     wchar_t dirW[PATH_BUF];
     formatPathToWIN32(dir, dirW);
-
     DWORD fileAttr = GetFileAttributesW(dirW);
 
-    if (fileAttr == INVALID_FILE_ATTRIBUTES)
-        return false;
-    if (fileAttr & FILE_ATTRIBUTE_DIRECTORY)
-        return true;
+    if (fileAttr == INVALID_FILE_ATTRIBUTES) return false;
+    if (fileAttr & FILE_ATTRIBUTE_DIRECTORY) return true;
 
     return false;
 #endif
@@ -173,7 +169,6 @@ extern inline bool isDirectory(const char *dir) {
 extern inline bool isZeroMemory(const void *buf, const size_t bytes) {
     size_t chunks = bytes / sizeof(size_t);
     size_t remainder = bytes % sizeof(size_t);
-
     size_t i = 0;
 
     while (i < chunks) {
