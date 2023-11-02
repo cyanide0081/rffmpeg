@@ -39,8 +39,7 @@ call %cmd%
 @echo off
 
 if /I "%~1" == "rel" (
-
-echo(
+    echo(
     echo Removing debug files ^(.pdb, .ilk, ...^)
     call :clean
 )
