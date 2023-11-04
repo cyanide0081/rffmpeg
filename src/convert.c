@@ -329,11 +329,8 @@ static inline void _updateProgBar(Arguments *args, ProcessInfo *stats) {
     size_t fill = (BAR_LEN * stats->convertedFiles) / stats->totalFiles;
 
     for (size_t i = 0; i < BAR_LEN; i++) {
-        if (i < fill) {
-            progBarIdx += stringConcat(progBar, BAR_FILL);
-        } else {
-            progBarIdx += stringConcat(progBar, BAR_EMPTY);
-        }
+        progBarIdx += i < fill ?
+            stringConcat(progBar, BAR_FILL) : stringConcat(progBar, BAR_EMPTY);
     }
 
     sprintf(
