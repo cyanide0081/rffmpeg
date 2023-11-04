@@ -1,3 +1,4 @@
+
 #include <convert.h>
 
 extern Arena *globalArena;
@@ -21,10 +22,9 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
     size_t fileIdx = 0;
 
     do {
+        _updateProgBar(args, stats);
         for (size_t i = 0; i < numberOfThreads && files[fileIdx]; i++) {
             if (threads[i].handle) continue; // thread is busy (kiwi business)
-
-            _updateProgBar(args, stats);
 
             const char *inputFormat = NULL;
 
@@ -252,6 +252,8 @@ static __mt_call_conv _callFFmpeg(void *arg) {
 #endif
 }
 
+#define MAX_APPENDABLE_INDEX 999
+
 static void _formatFileName(char *name, const char *ext, const char *path) {
     size_t fullPathSize =
         snprintf(NULL, 0, "%s%c%s.-xxx%s", path, PATH_SEP, name, ext) + 1;
@@ -269,6 +271,15 @@ static void _formatFileName(char *name, const char *ext, const char *path) {
                 fullPath, "%s%c%s-%03zu.%s", path,
                 PATH_SEP, name, ++index, ext
             );
+        }
+
+        if (index > MAX_APPENDABLE_INDEX) {
+            fprintf(
+                stderr,
+                "%sWARNING: %stoo many repeated files (truncating index)\n\n",
+                COLOR_ACCENT, COLOR_DEFAULT
+            );
+            index = MAX_APPENDABLE_INDEX;
         }
 
         snprintf(newName, FILE_BUF, "%s-%03zu", name, index);
@@ -292,6 +303,10 @@ static bool _fileExists(const char *fileName) {
 
 #define PROGBAR_LINES 1
 #define BAR_LEN (LINE_LEN - 22)
+#define BAR_FILL (COLOR_ACCENT "#" COLOR_DEFAULT)
+#define BAR_EMPTY (COLOR_DEFAULT ".")
+#define BAR_FILL_LEN 10
+#define BAR_EMPTY_LEN 5
 
 enum ProgBarStatus {
     CLEARED,
@@ -300,11 +315,11 @@ enum ProgBarStatus {
 
 /* NOTE: progress bar/stats printing function (style subject to change) */
 static inline void _updateProgBar(Arguments *args, ProcessInfo *stats) {
-    (void)args; // will use these later
+    (void)args; // might use these later
 
     if (progBarStatus == VISIBLE) _clearProgBar();
 
-    char progBar[LINE_LEN * PROGBAR_LINES + 1];
+    char progBar[(BAR_FILL_LEN * BAR_LEN + LINE_LEN) * PROGBAR_LINES + 1];
     size_t progBarIdx = 0;
 
     progBarIdx += sprintf(
@@ -315,9 +330,9 @@ static inline void _updateProgBar(Arguments *args, ProcessInfo *stats) {
 
     for (size_t i = 0; i < BAR_LEN; i++) {
         if (i < fill) {
-            progBar[progBarIdx++] = '#';
+            progBarIdx += stringConcat(progBar, BAR_FILL);
         } else {
-            progBar[progBarIdx++] = ' ';
+            progBarIdx += stringConcat(progBar, BAR_EMPTY);
         }
     }
 

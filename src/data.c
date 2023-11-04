@@ -41,6 +41,20 @@ void trimSpaces(char *string) {
     }
 }
 
+extern inline size_t stringConcat(char *dst, const char* src) {
+    size_t written = 0;
+    char *end = dst;
+    while (*end) end += 1;
+
+    while (*src) {
+        *end++ = *src++;
+        written += 1;
+    }
+
+    *end = '\0';
+    return written;
+}
+
 #define ERR_INVALID_UTF8 "found invalid UTF-8"
 
 /* Trims a 'long' (NUL terminated) UTF-8 encoded string if it exceeds
@@ -125,7 +139,6 @@ char *trimUTF8StringTo(const char *str, size_t cells) {
 
     return (char*)buf;
 }
-
 
 void readLine(char *dst, size_t dstSize) {
 #ifdef _WIN32
