@@ -101,7 +101,8 @@ static char **_getFilesFromDir(
 #else
         char *fileName = GlobalArenaPushString(entry->d_name);
 #endif
-        char *fullInPath = GlobalArenaSprintf("%s%c%s", dir, PATH_SEP, fileName);
+        char *fullInPath =
+            GlobalArenaSprintf("%s%c%s", dir, PATH_SEP, fileName);
 
         if (strcmp(fileName, ".") == 0 || strcmp(fileName, "..") == 0) continue;
 
@@ -114,7 +115,9 @@ static char **_getFilesFromDir(
                     if (listIdx == listSize - 1) {
                         size_t newSize = listSize * 2;
 
-                        char **newList = GlobalArenaPush(newSize * sizeof(char*));
+                        char **newList =
+                            GlobalArenaPush(newSize * sizeof(char*));
+
                         memcpy(newList, list, listSize * sizeof(char*));
                         memset(
                             (newList + listSize), 0,

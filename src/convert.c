@@ -56,7 +56,7 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
                         "%s%c%s", filePath, PATH_SEP, newFolderName
                     ) : args->outPath.customPath;
 
-                if (mkdir(newPath, S_IRWXU) != EXIT_SUCCESS && errno != EEXIST) {
+                if (mkdir(newPath, S_IRWXU) && errno != EEXIST) {
                     printErr("unable to create subdirectory", strerror(errno));
                     return EXIT_FAILURE;
                 }
