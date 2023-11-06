@@ -213,6 +213,12 @@ extern inline size_t getNumberOfOnlineThreads(void) {
 }
 
 #ifndef _WIN32
+#ifdef __FreeBSD__
+#define STACK_SIZE (16 * 1024)
+#else
+#define STACK_SIZE PTHREAD_STACK_MIN
+#endif
+
 extern inline void threadAttrInit(pthread_attr_t *attr) {
     int err = 0;
 
