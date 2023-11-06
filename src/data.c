@@ -41,7 +41,7 @@ void trimSpaces(char *string) {
     }
 }
 
-extern inline size_t stringConcat(char *dst, const char* src) {
+extern inline size_t stringConcat(char *dst, const char *src) {
     size_t written = 0;
     char *end = dst;
     while (*end) end += 1;

@@ -129,7 +129,7 @@ typedef struct Thread {
 Arguments *ArgumentsAlloc(void);
 FmtTime formatTime(double seconds);
 void trimSpaces(char *string);
-size_t stringConcat(char *dst, const char* src);
+size_t stringConcat(char *dst, const char *src);
 char *trimUTF8StringTo(const char *str, size_t maxChars);
 void readLine(char *dst, size_t dstSize);
 bool isDirectory(const char *dir);
