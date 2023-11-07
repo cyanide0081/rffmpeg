@@ -21,8 +21,7 @@ FmtTime formatTime(double seconds) {
 }
 
 void trimSpaces(char *string) {
-    if (*string == '\0')
-        return;
+    if (*string == '\0') return;
 
     size_t length = strlen(string);
     char *start = string;
@@ -32,8 +31,7 @@ void trimSpaces(char *string) {
     char *end = string + length;
 
     if (end > start)
-        while (isspace(*--end))
-            *end = '\0';
+        while (isspace(*--end)) *end = '\0';
 
     if (start != string) {
         memmove(string, start, end - start + 1);
@@ -66,7 +64,6 @@ char *trimUTF8StringTo(const char *str, size_t cells) {
 
     /* TODO: port UCS width code to here so we can get a more accurate
      * estimated character width when calculating the trimmed length */
-
     size_t bufIdx = 0, chars = 0;
     size_t bufLen = strlen(str);
 
@@ -213,13 +210,7 @@ extern inline size_t getNumberOfOnlineThreads(void) {
 }
 
 #ifndef _WIN32
-/* NOTE: compensating for bug on FreeBSD where PTHREAD_STACK_MIN
- * is less than one page and causes a segfault on thread creation */
-#ifdef __FreeBSD__
-#define STACK_SIZE (4 * 4096)
-#else
-#define STACK_SIZE PTHREAD_STACK_MIN
-#endif
+#define ATTR_STACK_SIZE (8 * 4096)
 
 extern inline void threadAttrInit(pthread_attr_t *attr) {
     int err = 0;
@@ -229,7 +220,7 @@ extern inline void threadAttrInit(pthread_attr_t *attr) {
         exit(err);
     }
 
-    if ((err = pthread_attr_setstacksize(attr, STACK_SIZE))) {
+    if ((err = pthread_attr_setstacksize(attr, ATTR_STACK_SIZE))) {
         printErr("unable to set threads' stack size", strerror(err));
         exit(err);
     }
