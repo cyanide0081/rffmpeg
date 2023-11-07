@@ -213,8 +213,10 @@ extern inline size_t getNumberOfOnlineThreads(void) {
 }
 
 #ifndef _WIN32
+/* NOTE: compensating for bug on FreeBSD where PTHREAD_STACK_MIN
+ * is less than one page and causes a segfault on thread creation */
 #ifdef __FreeBSD__
-#define STACK_SIZE (16 * 1024)
+#define STACK_SIZE (4 * 4096)
 #else
 #define STACK_SIZE PTHREAD_STACK_MIN
 #endif
@@ -227,7 +229,7 @@ extern inline void threadAttrInit(pthread_attr_t *attr) {
         exit(err);
     }
 
-    if ((err = pthread_attr_setstacksize(attr, PTHREAD_STACK_MIN))) {
+    if ((err = pthread_attr_setstacksize(attr, STACK_SIZE))) {
         printErr("unable to set threads' stack size", strerror(err));
         exit(err);
     }
