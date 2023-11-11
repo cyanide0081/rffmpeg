@@ -162,7 +162,8 @@ static void _createTestProcess(void) {
     PROCESS_INFORMATION ffmpegProcessInfo = {0};
     wchar_t ffmpegProcessCall[] = L"ffmpeg -loglevel quiet";
 
-    if (CreateProcessW(
+    if (
+        CreateProcessW(
             NULL, ffmpegProcessCall, NULL, NULL, FALSE, 0, NULL, NULL,
             &ffmpegStartupInfo, &ffmpegProcessInfo
         )
@@ -187,18 +188,29 @@ static void _createTestProcess(void) {
         int status;
         waitpid(processID, &status, 0);
 
-        int exitStatus = 0;
+        int statusCode = 0;
 
-        if (WIFEXITED(status)) exitStatus = WEXITSTATUS(status);
+        if (WIFEXITED(status)) statusCode = WEXITSTATUS(status);
 
         /* Status 1 means the call succeeded and ffmpeg
-           returned an error, and 2 means it wasn't found
-           TODO: handle more exit codes down here! */
-        if (exitStatus < 0 || exitStatus > 1) {
-            char status[FMT_BUF];
-            snprintf(status, FMT_BUF, "exit status: %d", exitStatus);
-            printErr("couldn't call ffmpeg", status);
-            exit(exitStatus);
+         * returned an error, and 2 means it wasn't found
+         * TODO: handle more exit codes down here! */
+        switch (statusCode) {
+            case 0:
+            case 1:
+                break;
+            case 2: {
+                printErr("unable to call ffmpeg", "executable not found");
+                exit(statusCode);
+            }
+            default: {
+                char statusMsg[FMT_BUF];
+                snprintf(
+                    statusMsg, sizeof(statusMsg), "exit status: %d", statusCode
+                );
+                printErr("unable to call ffmpeg", statusMsg);
+                exit(statusCode);
+            }
         }
     }
 #endif

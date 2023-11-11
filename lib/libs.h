@@ -8,7 +8,6 @@
 #include <process.h>
 #include <fcntl.h>
 #include <io.h>
-
 #elif defined __linux__ || defined __APPLE__ || defined __FreeBSD__
 /* don't ask me why */
 #ifdef __FreeBSD__
