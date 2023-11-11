@@ -274,8 +274,8 @@ static void _formatFileName(char *name, const char *ext, const char *path) {
 
         if (index > MAX_APPENDABLE_INDEX) {
             char idx[FMT_BUF];
-            snprintf(idx, sizeof(idx), "(%zu)", (size_t)MAX_APPENDABLE_INDEX);
-            printErr("reached maximum appendable index", idx);
+            snprintf(idx, sizeof(idx), "(%03zu)", (size_t)MAX_APPENDABLE_INDEX);
+            printErr("fatal: reached maximum appendable index", idx);
             exit(EXIT_FAILURE);
         }
 
