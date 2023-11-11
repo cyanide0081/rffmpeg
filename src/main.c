@@ -189,16 +189,16 @@ static void _createTestProcess(void) {
 
         int exitStatus = 0;
 
-        if (!WIFEXITED(status)) exitStatus = WEXITSTATUS(status);
+        if (WIFEXITED(status)) exitStatus = WEXITSTATUS(status);
 
         /* Status 1 means the call succeeded and ffmpeg
            returned an error, and 2 means it wasn't found
            TODO: handle more exit codes down here! */
-        if (exitStatus != 0) {
+        if (exitStatus < 0 || exitStatus > 1) {
             char status[FMT_BUF];
             snprintf(status, FMT_BUF, "exit status: %d", exitStatus);
             printErr("couldn't call ffmpeg", status);
-            exit(EXIT_FAILURE);
+            exit(exitStatus);
         }
     }
 #endif

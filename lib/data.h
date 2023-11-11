@@ -110,7 +110,7 @@ typedef struct Thread {
 #define printErr(msg, dsc)                      \
     fprintf(                                    \
         stderr,                                 \
-        "%s ERROR: %s%s: %s\"%s\"%s\n\n",       \
+        "%s ERROR: %s%s: %s%s%s\n\n",           \
         COLOR_ERROR,                            \
         COLOR_DEFAULT, msg,                     \
         COLOR_INPUT, dsc,                       \
