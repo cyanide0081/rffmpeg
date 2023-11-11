@@ -233,7 +233,7 @@ static __mt_call_conv _callFFmpeg(void *arg) {
 
         int exitStatus = 0;
 
-        if (!WIFEXITED(status)) exitStatus = WEXITSTATUS(status);
+        if (WIFEXITED(status)) exitStatus = WEXITSTATUS(status);
 
         if (exitStatus) {
             char status[FILE_BUF];
@@ -273,12 +273,10 @@ static void _formatFileName(char *name, const char *ext, const char *path) {
         }
 
         if (index > MAX_APPENDABLE_INDEX) {
-            fprintf(
-                stderr,
-                "%sWARNING: %stoo many repeated files (truncating index)\n\n",
-                COLOR_ACCENT, COLOR_DEFAULT
-            );
-            index = MAX_APPENDABLE_INDEX;
+            char idx[FMT_BUF];
+            snprintf(idx, sizeof(idx), "(%zu)", (size_t)MAX_APPENDABLE_INDEX);
+            printErr("reached maximum appendable index", idx);
+            exit(EXIT_FAILURE);
         }
 
         snprintf(newName, FILE_BUF, "%s-%03zu", name, index);
