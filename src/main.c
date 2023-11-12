@@ -71,8 +71,6 @@ int main(int argc, char *argv[]) {
 
     printf("%s%s%s\n\n", COLOR_ACCENT, VERSION_DESC, COLOR_DEFAULT);
 
-    _createTestProcess();
-
     Arguments *parsedArgs = ArgumentsAlloc();
 
     int exitCode = EXIT_SUCCESS;
@@ -87,6 +85,8 @@ int main(int argc, char *argv[]) {
     if (parsedArgs->options & OPT_DISPLAYHELP && inputMode == ARGUMENTS) {
         printf(HELP_PAGE);
     } else if (state == PARSE_STATE_OK) {
+        _createTestProcess();
+
         char **fileList = getFiles(parsedArgs);
 
         if (fileList) {
