@@ -83,7 +83,7 @@ typedef struct Thread {
 #elif defined __arm__
 #define CUR_ARCH "arm"
 #else
-#define CUR_ARCH "[unrecognized_target]"
+#define CUR_ARCH "[unrecognized_arch]"
 #endif
 
 #if defined NDEBUG
