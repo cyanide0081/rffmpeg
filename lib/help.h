@@ -41,15 +41,15 @@
     " NOTE: you can run this as a console application if you give it no arguments)\n\n"\
 
 #if defined _WIN32
-#define CUR_OS "Windows"
+#define CUR_OS "windows"
 #elif defined __linux__
-#define CUR_OS "Linux"
+#define CUR_OS "linux"
 #elif defined __APPLE__
-#define CUR_OS "MacOS"
+#define CUR_OS "macos"
 #elif defined __FreeBSD__
-#define CUR_OS "FreeBSD"
+#define CUR_OS "freebsd"
 #else
-#define CUR_OS "[unrecognized OS]"
+#define CUR_OS "[unrecognized operating system]"
 #endif
 
 #if defined __x86_64__ || defined __amd64__
@@ -57,9 +57,9 @@
 #elif defines __i386__
 #define CUR_ARCH "x86"
 #elif defined __aarch64__
-#define CUR_ARCH "ARM64"
+#define CUR_ARCH "arm64"
 #elif defined __arm__
-#define CUR_ARCH "ARM"
+#define CUR_ARCH "arm"
 #else
 #define CUR_ARCH "[unrecognized architecture]"
 #endif
