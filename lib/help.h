@@ -40,30 +40,4 @@
                                                                                        \
     " NOTE: you can run this as a console application if you give it no arguments)\n\n"\
 
-#if defined _WIN32
-#define CUR_OS "windows"
-#elif defined __linux__
-#define CUR_OS "linux"
-#elif defined __APPLE__
-#define CUR_OS "macos"
-#elif defined __FreeBSD__
-#define CUR_OS "freebsd"
-#else
-#define CUR_OS "[unrecognized operating system]"
-#endif
-
-#if defined __x86_64__ || defined __amd64__
-#define CUR_ARCH "x86_64"
-#elif defines __i386__
-#define CUR_ARCH "x86"
-#elif defined __aarch64__
-#define CUR_ARCH "arm64"
-#elif defined __arm__
-#define CUR_ARCH "arm"
-#else
-#define CUR_ARCH "[unrecognized architecture]"
-#endif
-
-#define VERSION_ATTRIBUTES "rffmpeg version " VERSION_NUMBER " for " CUR_ARCH "-" CUR_OS
-
 #endif // H_HELP_PAGE

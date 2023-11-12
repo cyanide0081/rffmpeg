@@ -268,6 +268,11 @@ extern char *getCurrentWorkingDirectory(void) {
         return cwd;
 }
 
+extern inline void printVersionPage(const char *arg) {
+    printf(" executable: " VERSION_ATTRIBUTES "\n");
+    printf(" installed @ %s\n\n", getAbsolutePath(arg));
+}
+
 #ifndef _WIN32
 #define ATTR_STACK_SIZE (8 * 4096)
 
