@@ -71,7 +71,7 @@ typedef struct Thread {
 #elif defined __FreeBSD__
 #define CUR_OS "freebsd"
 #else
-#define CUR_OS "[unrecognized operating system]"
+#define CUR_OS "[unrecognized_os]"
 #endif
 
 #if defined __x86_64__ || defined __amd64__
@@ -83,7 +83,7 @@ typedef struct Thread {
 #elif defined __arm__
 #define CUR_ARCH "arm"
 #else
-#define CUR_ARCH "[unrecognized architecture]"
+#define CUR_ARCH "[unrecognized_target]"
 #endif
 
 #if defined NDEBUG
