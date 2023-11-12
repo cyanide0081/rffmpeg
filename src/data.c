@@ -209,6 +209,38 @@ extern inline size_t getNumberOfOnlineThreads(void) {
     return n > 1 ? n : 2;
 }
 
+extern char *getAbsolutePath(const char *dir) {
+#ifdef _WIN32
+    wchar_t dirW[PATH_BUF];
+    UTF8toUTF16(dir, -1, dirW, PATH_BUF);
+
+    wchar_t absDirW[PATH_BUF];
+    GetFullPathNameW(dirW, PATH_BUF, absDirW, NULL);
+
+    DWORD sz = UTF16toUTF8(absDirW, -1, NULL, 0);
+    char *absDir = GlobalArenaPush(sz * sizeof(char));
+    UTF16toUTF8(absDirW, -1, absDir, sz);
+
+    return absDir;
+#else
+    /* TODO:
+     * - do UNIX realpath() stuff here and test it
+     *   with very long paths (larger than PATH_MAX bytes)
+     * NOTE:
+     * - paths longer than PATH_MAX bytes will probably always break
+     *   here since realpath() only allows up to that much space */
+
+    char *realPath = GlobalArenaPush(PATH_MAX);
+
+    if (!realpath(dir, realPath)) {
+        printErr("unable to get resolved path", strerror(errno));
+        return NULL;
+    }
+
+    return realPath;
+#endif
+}
+
 extern char *getCurrentWorkingDirectory(void) {
     char *cwd = NULL;
 

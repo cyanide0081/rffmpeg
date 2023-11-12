@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
             goto exit;
         } else if (parsedArgs->options & OPT_DISPLAYVERSION) {
             printf(" executable: " VERSION_ATTRIBUTES);
-            printf(" installed @ %s\n\n", getCurrentWorkingDirectory());
+            printf(" installed @ %s\n\n", getAbsolutePath(argv[0]));
             goto exit;
         }
     } else {

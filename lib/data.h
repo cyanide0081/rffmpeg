@@ -135,6 +135,7 @@ void readLine(char *dst, size_t dstSize);
 bool isDirectory(const char *dir);
 bool isZeroMemory(const void *buf, const size_t bytes);
 size_t getNumberOfOnlineThreads(void);
+char *getAbsolutePath(const char *dir);
 char *getCurrentWorkingDirectory(void);
 
 #ifndef _WIN32

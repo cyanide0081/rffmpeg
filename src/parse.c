@@ -12,7 +12,6 @@ extern Arena *globalArena;
     );                                                                  \
 
 static char **_getTokenizedStrings(char *string, const char *delimiter);
-static char *getAbsolutePath(const char *dir);
 
 int parseConsoleInput(Arguments *args) {
     char input[ARG_BUF] = {0};
@@ -317,36 +316,4 @@ static char **_getTokenizedStrings(char *string, const char *delimiter) {
 
     (list)[i] = NULL;
     return list;
-}
-
-static char *getAbsolutePath(const char *dir) {
-#ifdef _WIN32
-    wchar_t dirW[PATH_BUF];
-    formatPathToWIN32(dir, dirW);
-
-    wchar_t absDirW[PATH_BUF];
-    GetFullPathNameW(dirW, PATH_BUF, absDirW, NULL);
-
-    DWORD sz = UTF16toUTF8(absDirW, -1, NULL, 0);
-    char *absDir = GlobalArenaPush(sz * sizeof(char));
-    UTF16toUTF8(absDirW, -1, absDir, sz);
-
-    return absDir;
-#else
-    /* TODO:
-     * - do UNIX realpath() stuff here and test it
-     *   with very long paths (larger than PATH_MAX bytes)
-     * NOTE:
-     * - paths longer than PATH_MAX bytes will probably always break
-     *   here since realpath() only allows up to that much space */
-
-    char *realPath = GlobalArenaPush(PATH_MAX);
-
-    if (!realpath(dir, realPath)) {
-        printErr("unable to get resolved path", strerror(errno));
-        return NULL;
-    }
-
-    return realPath;
-#endif
 }
