@@ -78,15 +78,16 @@ int main(int argc, char *argv[]) {
 
     if (inputMode == ARGUMENTS) {
         state = parseArgs(argc, argv, parsedArgs);
+
+        if (parsedArgs->options & OPT_DISPLAYHELP) {
+            printf(HELP_PAGE);
+            goto exit;
+        }
     } else {
         state = parseConsoleInput(parsedArgs);
     }
 
-    if (parsedArgs->options & OPT_DISPLAYHELP && inputMode == ARGUMENTS) {
-        printf(HELP_PAGE);
-    } else {
-        _createTestProcess();
-    }
+    _createTestProcess();
 
     if (state == PARSE_STATE_OK) {
         char **fileList = getFiles(parsedArgs);
@@ -136,6 +137,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+exit:
     if (inputMode == CONSOLE) {
         printf(" (Press %sENTER%s to exit) ", COLOR_INPUT, COLOR_DEFAULT);
 
