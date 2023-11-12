@@ -272,8 +272,12 @@ extern inline void printVersionPage(const char *arg) {
     printf(" executable: " VERSION_ATTRIBUTES "\n");
     printf(" installed @ %s\n", getAbsolutePath(arg));
 
-#if defined __clang__ || defined __gcc__
-    printf(" built with: " __VERSION__ "\n");
+#if defined __clang__
+    printf(" built with: clang " __clang_version__ "\n");
+#elif defined __GNUC__
+    printf(" built with: gcc " __VERSION__ "\n");
+#elif defined _MSC_VER
+    printf(" built with: msvc %zu\n", (size_t)_MSC_VER);
 #endif
 
     printf("\n");
