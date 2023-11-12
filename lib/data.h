@@ -86,8 +86,16 @@ typedef struct Thread {
 #define CUR_ARCH "[unrecognized architecture]"
 #endif
 
+#if defined NDEBUG
+#define CUR_MODE "release"
+#elif defined INSTRUMENTATION
+#define CUR_MODE "profiling"
+#else
+#define CUR_MODE "debug"
+#endif
+
 #define VERSION_ATTRIBUTES \
-    "rffmpeg version " VERSION_NUMBER " for " CUR_ARCH "-" CUR_OS
+    "rffmpeg-" CUR_MODE " version " VERSION_NUMBER " for " CUR_ARCH "-" CUR_OS
 
 /* ANSI escape chars for colored shell output */
 #define LINE_ERASE    "\x1b[2K"
