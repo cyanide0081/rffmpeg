@@ -31,7 +31,8 @@
     " -outpath:[PATH]    store output files in a separate directory\n"                 \
     "                    (doesn't preserve the directory structure)\n"                 \
     " -nt:[THREADS]      custom number of threads to be spawned when converting\n"     \
-    "                    (must be between [1, (2 * system threads)] (inclusive))\n\n"  \
+    "                    (must be between [1, (2 * system threads)] (inclusive))\n"    \
+    " --version          display the full version of the installed executable\n\n"     \
                                                                                        \
     " EXAMPLE\n\n"                                                                     \
                                                                                        \
@@ -62,7 +63,6 @@
 #else
 #define CUR_ARCH "[unrecognized architecture]"
 #endif
-
 
 #define VERSION_ATTRIBUTES "rffmpeg version " VERSION_NUMBER " for " CUR_ARCH "-" CUR_OS
 
