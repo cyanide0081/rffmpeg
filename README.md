@@ -3,7 +3,7 @@
 Command-line/Console window tool for batch-processing files inside a specific directory (or more) with FFmpeg
 
 * Currently ships 64-bit binaries for *Windows*, *Linux* and *FreeBSD*
-* Building for *MacOS* should work without problems but I haven't tested that yet
+* Building on *MacOS* should work without problems but it hasn't been tested yet
 
 * Run with `--help` to read the help page (this one covers more examples though)
 
@@ -26,19 +26,7 @@ Command-line/Console window tool for batch-processing files inside a specific di
 
 **1.** Installing *FFmpeg*
 
-In order to use this tool you will first need to install FFmpeg, either by getting it from your systems's package manager (examples shown below), or by downloading the binaries from a [stable release](https://ffmpeg.org/download.html), extracting them and adding the `bin` folder to your `PATH`
-
-### **Windows (10+)**
-
-If you're using Windows 10.1709 or newer, you can install it with *WinGet* by running: 
-
-    winget install ffmpeg
-
-### **Linux (Debian/Ubuntu-based)**
-
-On Linux you can probably install it just by using your local package manager. Here's the command for Debian/Ubuntu-based distros: 
-
-    sudo apt install ffmpeg
+In order to use this tool you will first need to install FFmpeg, either by getting it from your system's package manager (usually a package just called 'ffmpeg'), or by downloading the binaries from a [stable release](https://ffmpeg.org/download.html), extracting them and adding the `bin` folder to your `PATH`
 
 You can then check if your installation succeeded by running the version command below and seeing if it produces any output:
 
@@ -73,7 +61,6 @@ to OPUS using the libopus codec, and finally stores them in a new subfolder name
 <br>
 
  ### **Arguments**
- 
 
  * **-i**   :   one or more formats you wish to transcode separated by commas, like: `-i mp4,m4v,mkv`
 
@@ -81,7 +68,7 @@ to OPUS using the libopus codec, and finally stores them in a new subfolder name
 
  * **-o**   :   extension for your output files (dot is implicit) `-o webm`
 
-    * If you specify identical input and output formats, use the **-subfolder** or **-newpath** option otherwise the program won't run
+    * NOTE: If you specify identical input and output formats, use the **-subfolder** or **-outpath** option otherwise the program won't run
 
 <br>
 
@@ -101,7 +88,9 @@ You can also pass any of the flags below to help you organize your batch convers
  * **-rn**         :   disables file searches inside subfolders, in case your directory contains many folders you  don't want to mess with
 
  * **-nt**         :   sets a custom number of threads to be spawned at the conversion stage e.g.: `-nt:8`
-     * NOTE: the number must be a positive value between 1 and double the current online threads in the system 
+     * NOTE: the number must be a positive value between 1 and double the current online threads in the system
+
+ * **--version**   :   displays extended version information particular to the currently installed rffmpeg executable and exits
 
 <br>
 
@@ -112,7 +101,7 @@ You can build this program by simply having the LLVM [clang](https://releases.ll
 
 <br>
 
-### **POSIX** (Linux, MacOS, FreeBSD, ...)
+### **POSIX** (Linux, FreeBSD, MacOS, ...)
 
 To build it on (probably) most 'POSIX' systems you can run the bash build script:
 
