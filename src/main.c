@@ -84,9 +84,11 @@ int main(int argc, char *argv[]) {
 
     if (parsedArgs->options & OPT_DISPLAYHELP && inputMode == ARGUMENTS) {
         printf(HELP_PAGE);
-    } else if (state == PARSE_STATE_OK) {
+    } else {
         _createTestProcess();
+    }
 
+    if (state == PARSE_STATE_OK) {
         char **fileList = getFiles(parsedArgs);
 
         if (fileList) {
