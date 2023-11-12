@@ -61,6 +61,11 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
             return PARSE_STATE_OK;
         }
 
+        expectToken(args[i], "-version") {
+            parsedArgs->options |= OPT_DISPLAYVERSION;
+            return PARSE_STATE_OK;
+        }
+
         /* (making sure we don't try to read out-of-bounds memory here) */
         if (i < count - 1) {
             expectToken(args[i], "i") {
@@ -213,25 +218,7 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
 
     /* Set current working directory as input path if none is provided */
     if (!parsedArgs->inPaths[0] || !*parsedArgs->inPaths[0]) {
-#ifdef _WIN32
-        int len = GetCurrentDirectoryW(0, NULL);
-        wchar_t *currentDirW = GlobalArenaPush(len * sizeof(wchar_t));
-        GetCurrentDirectoryW((DWORD)len, currentDirW);
-
-        len = UTF16toUTF8(currentDirW, -1, NULL, 0);
-        parsedArgs->inPaths[0] = GlobalArenaPush(len * sizeof(char));
-        UTF16toUTF8(currentDirW, -1, parsedArgs->inPaths[0], len);
-#else
-
-        if (!(parsedArgs->inPaths[0] = getcwd(NULL, 0))) {
-            printErr(
-                "couldn't retrieve current working directory",
-                strerror(errno)
-            );
-
-            return PARSE_STATE_CWD_ERROR;
-        }
-#endif
+        parsedArgs->inPaths[0] = getCurrentWorkingDirectory();
     }
 
     if (!parsedArgs->inFormats[0] || !*parsedArgs->inFormats[0]) {

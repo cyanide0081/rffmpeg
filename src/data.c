@@ -209,6 +209,33 @@ extern inline size_t getNumberOfOnlineThreads(void) {
     return n > 1 ? n : 2;
 }
 
+extern char *getCurrentWorkingDirectory(void) {
+    char *cwd = NULL;
+
+#ifdef _WIN32
+        int len = GetCurrentDirectoryW(0, NULL);
+        wchar_t *currentDirW = GlobalArenaPush(len * sizeof(wchar_t));
+        GetCurrentDirectoryW((DWORD)len, currentDirW);
+
+        len = UTF16toUTF8(currentDirW, -1, NULL, 0);
+        cwd = GlobalArenaPush(len * sizeof(char));
+        UTF16toUTF8(currentDirW, -1, cwd, len);
+#else
+        cwd = GlobalArenaPush(PATH_MAX * sizeof(char));
+
+        if (!getcwd(cwd, PATH_MAX)) {
+            printErr(
+                "unable to retrieve current working directory",
+                strerror(errno)
+            );
+
+            return NULL;
+        }
+#endif
+
+        return cwd;
+}
+
 #ifndef _WIN32
 #define ATTR_STACK_SIZE (8 * 4096)
 

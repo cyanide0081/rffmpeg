@@ -82,6 +82,10 @@ int main(int argc, char *argv[]) {
         if (parsedArgs->options & OPT_DISPLAYHELP) {
             printf(HELP_PAGE);
             goto exit;
+        } else if (parsedArgs->options & OPT_DISPLAYVERSION) {
+            printf(" executable: " VERSION_ATTRIBUTES);
+            printf(" installed @ %s\n\n", getCurrentWorkingDirectory());
+            goto exit;
         }
     } else {
         state = parseConsoleInput(parsedArgs);

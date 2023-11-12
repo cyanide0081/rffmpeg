@@ -39,4 +39,18 @@
                                                                                        \
     " NOTE: you can run this as a console application if you give it no arguments)\n\n"\
 
+#if defined _WIN32
+#define OS "Windows"
+#elif defined __linux__
+#define OS "Linux"
+#elif defined __APPLE__
+#define OS "MacOS"
+#elif defined __FreeBSD__
+#define OS "FreeBSD"
+#else
+#define OS "(unrecognized operating system)"
+#endif
+
+#define VERSION_ATTRIBUTES "rffmpeg version " VERSION_NUMBER " for " "%zu-bit " OS "\n", (sizeof(void*) * 8)
+
 #endif // H_HELP_PAGE

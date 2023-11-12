@@ -40,7 +40,7 @@ typedef struct Arguments {
         char *customPath;
     } outPath;
 
-    uint8_t options; // fields for the optional arguments
+    uint16_t options; // fields for the optional arguments
 } Arguments;
 
 typedef struct Thread {
@@ -135,6 +135,7 @@ void readLine(char *dst, size_t dstSize);
 bool isDirectory(const char *dir);
 bool isZeroMemory(const void *buf, const size_t bytes);
 size_t getNumberOfOnlineThreads(void);
+char *getCurrentWorkingDirectory(void);
 
 #ifndef _WIN32
 void threadAttrInit(pthread_attr_t *attr);
