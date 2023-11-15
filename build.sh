@@ -25,7 +25,7 @@ else
     args="$files $FLAGS $D_FLAGS"
 fi
 
-printf "\033[1;41m$msg\033[0m\n"
+printf "\033[1;44m$msg\033[0m\n"
 
 set -x
 $CC -o "bin/rffmpeg" $args || exit 1
