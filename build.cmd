@@ -33,7 +33,7 @@ if /I "%~1" == "rel" (
     set "cmd=%CC% -o %BIN_DIR%/rffmpeg.exe %files% %FLAGS% %WIN_FLAGS% %D_FLAGS%"
 )
 
-echo %msg%
+echo "\033[1;41m%msg%\033[0m"
 @echo on
 call %cmd%
 @echo off
