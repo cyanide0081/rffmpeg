@@ -104,7 +104,7 @@ typedef struct Thread {
 
 #ifndef NO_ANSI_COLOR_CODES
 #define COLOR_DEFAULT "\x1b[0m"
-#define COLOR_ACCENT  "\x1b[91m"
+#define COLOR_ACCENT  "\x1b[94m"
 #define COLOR_INPUT   "\x1b[97m"
 #define COLOR_ERROR   "\x1b[91m"
 #else

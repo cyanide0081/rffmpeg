@@ -16,7 +16,7 @@ static char **_getTokenizedStrings(char *string, const char *delimiter);
 int parseConsoleInput(Arguments *args) {
     char input[ARG_BUF] = {0};
 
-    prompt("Input path(s) (separated by a '" DIR_DELIMITER "')");
+    prompt("Input path(s)");
     readLine(input, ARG_BUF);
     printf(COLOR_DEFAULT);
     args->inPaths = _getTokenizedStrings(input, DIR_DELIMITER);
