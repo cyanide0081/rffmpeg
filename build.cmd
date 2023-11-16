@@ -33,14 +33,14 @@ if /I "%~1" == "rel" (
     set "cmd=%CC% -o %BIN_DIR%/rffmpeg.exe %files% %FLAGS% %WIN_FLAGS% %D_FLAGS%"
 )
 
-echo "\033[1;41m%msg%\033[0m"
+echo [1;44m%msg%[0m
 @echo on
 call %cmd%
 @echo off
 
 if /I "%~1" == "rel" (
-    echo(
-    echo Removing debug files ^(.pdb, .ilk, ...^)
+    echo:
+    echo [1;41mRemoving debug files ^(.pdb, .ilk, ...^)[0m
     call :clean
 )
 
