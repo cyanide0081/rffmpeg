@@ -270,7 +270,13 @@ extern char *getCurrentWorkingDirectory(void) {
 
 extern inline void printVersionPage(const char *arg) {
     printf(" executable: " VERSION_ATTRIBUTES "\n");
-    printf(" installed @ %s\n", getAbsolutePath(arg));
+
+    char *installDir = getAbsolutePath(arg);
+    char *end = installDir + strlen(installDir) - 1;
+    while (*--end != PATH_SEP);
+    *end = '\0';
+
+    printf(" installed @ %s\n", installDir);
 
 #if defined __clang__
     printf(" built with: clang " __clang_version__ "\n");

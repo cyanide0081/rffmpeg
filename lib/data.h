@@ -95,7 +95,7 @@ typedef struct Thread {
 #endif
 
 #define VERSION_ATTRIBUTES \
-    "rffmpeg-" CUR_MODE " version " VERSION_NUMBER " for " CUR_ARCH "-" CUR_OS
+    "rffmpeg-" CUR_MODE " " VERSION_NUMBER " for " CUR_ARCH "-" CUR_OS
 
 /* ANSI escape chars for colored shell output */
 #define LINE_ERASE    "\x1b[2K"
