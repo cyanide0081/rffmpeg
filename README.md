@@ -2,9 +2,7 @@
 
 Command-line/Console window tool for batch-processing files inside a specific directory (or more) with FFmpeg
 
-* Currently ships 64-bit binaries for *Windows*, *Linux* and *FreeBSD*
-* Building on *MacOS* should work without problems but it hasn't been tested yet
-
+* Currently ships 64-bit binaries for *Windows*, *Linux*, *FreeBSD* and *MacOS*
 * Run with `--help` to read the help page (this one covers more examples though)
 
 <br>
