@@ -10,10 +10,12 @@
 #include <io.h>
 #elif defined __linux__ || defined __APPLE__ || defined __FreeBSD__
 /* don't ask me why */
-#ifdef __FreeBSD__
+#if defined __FreeBSD__
 #define __BSD_VISIBLE 1
 #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC_PRECISE
-#endif /* __FreeBSD__ */
+#elif defined __APPLE__
+#define _DARWIN_C_SOURCE 1
+#endif
 
 #include <unistd.h>
 #include <pthread.h>
@@ -27,6 +29,7 @@
 #include <linux/limits.h>
 #else
 #include <limits.h>
+
 #endif /* __linux__ */
 
 #else
