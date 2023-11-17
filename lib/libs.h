@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/cdefs.h>
+#include <sys/types.h>
 #include <sys/mman.h>
 
 #ifdef __linux__
