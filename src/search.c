@@ -13,7 +13,7 @@ char **getFiles(const Arguments *args) {
 
     for (int i = 0; args->inPaths[i]; i++) {
         const char *dir = args->inPaths[i];
-        char *trimmedDir = trimUTF8StringTo(dir + PREFIX_LEN, LINE_LEN - 40);
+        char *trimmedDir = trimUTF8StringTo(dir, LINE_LEN - 40);
 
         if (!isDirectory(dir)) {
             printf(
@@ -21,7 +21,6 @@ char **getFiles(const Arguments *args) {
                 COLOR_INPUT, trimmedDir, COLOR_DEFAULT,
                 COLOR_ACCENT, COLOR_DEFAULT
             );
-
             continue;
         }
 
@@ -40,8 +39,7 @@ char **getFiles(const Arguments *args) {
         if (errno) continue;
 
         if (files)
-            while (files[fileCount])
-                fileCount++;
+            while (files[fileCount]) fileCount++;
 
         printf(
             "%s (found %s%zu%s files)%s\n\n",
