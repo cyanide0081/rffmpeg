@@ -70,25 +70,25 @@
 } (void)0
 
 /* prepends "\\?\" to path and replaces '/' with '\' */
-#define formatPathToWIN32(src, dst) {                           \
-    char prefixedDir[PATH_BUF];                                 \
-                                                                \
-    if (!strstr(src, "\\\\?\\"))                                \
-        sprintf_s(prefixedDir, PATH_BUF, "\\\\?\\%s", src);     \
-    else                                                        \
-        strncpy(prefixedDir, src, PATH_BUF);                    \
-                                                                \
-    for (int i = 0; prefixedDir[i]; i++) {                      \
-        if (prefixedDir[i] == '/')                              \
-            prefixedDir[i] = '\\';                              \
-        if (prefixedDir[i] == '\\' && !prefixedDir[i + 1]) {    \
-            prefixedDir[i] = '\0';                              \
-            break;                                              \
-        }                                                       \
-    }                                                           \
-                                                                \
-    UTF8toUTF16(prefixedDir, -1, dst, PATH_BUF);                \
-} (void)0
+extern inline void formatPathToWIN32(const char *src, wchar_t *dst) {
+    char prefixedDir[PATH_BUF];
+
+    if (!strstr(src, "\\\\?\\"))
+        sprintf_s(prefixedDir, sizeof(prefixedDir), "\\\\?\\%s", src);
+    else
+        strncpy(prefixedDir, src, sizeof(prefixedDir));
+
+    for (size_t i = 0; prefixedDir[i]; i++) {
+        if (prefixedDir[i] == '/')
+            prefixedDir[i] = '\\';
+        if (prefixedDir[i] == '\\' && !prefixedDir[i + 1]) {
+            prefixedDir[i] = '\0';
+            break;
+        }
+    }
+
+    UTF8toUTF16(prefixedDir, -1, dst, PATH_BUF);
+}
 
 /* Implementation of clock_gettime for win32 */
 static int clock_gettime(int clockId, struct timespec *spec) {

@@ -286,9 +286,8 @@ static void _formatFileName(char *name, const char *ext, const char *path) {
 
 static bool _fileExists(const char *fileName) {
 #ifdef _WIN32
-    int len = UTF8toUTF16(fileName, -1, NULL, 0);
-    wchar_t *fileNameW = GlobalArenaPush(len * sizeof(wchar_t));
-    UTF8toUTF16(fileName, -1, fileNameW, len);
+    wchar_t fileNameW[PATH_BUF];
+    formatPathToWIN32(fileName, fileNameW);
 
     WIN32_FIND_DATAW fileData;
     return FindFirstFileW(fileNameW, &fileData) != INVALID_HANDLE_VALUE;
