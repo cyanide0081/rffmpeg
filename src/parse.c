@@ -54,7 +54,7 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
 
     size_t count = listSize, parsedArgsIdx = 0;
 
-    for (size_t i = 1; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         expectToken(args[i], "-help") {
             parsedArgs->options |= OPT_DISPLAYHELP;
             return PARSE_STATE_OK;

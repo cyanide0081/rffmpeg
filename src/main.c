@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
     int state = PARSE_STATE_OK;
 
     if (inputMode == ARGUMENTS) {
-        state = parseArgs(argc, argv, parsedArgs);
+        state = parseArgs(argc - 1, argv + 1, parsedArgs);
 
         if (parsedArgs->options & OPT_DISPLAYHELP) {
             printf(HELP_PAGE);
