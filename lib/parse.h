@@ -30,8 +30,7 @@
 
 int parseConsoleInput(Arguments *args);
 
-int parseArgs(
-    const int count, char *rawArguments[], Arguments *parsedArguments
-);
+int parseArgs(const int count, char *rawArguments[],
+    Arguments *parsedArguments);
 
 #endif // H_PARSERS_P

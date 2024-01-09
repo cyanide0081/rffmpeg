@@ -41,6 +41,7 @@ typedef struct Arguments {
     } outPath;
 
     uint16_t options; // fields for the optional arguments
+
 } Arguments;
 
 typedef struct Thread {
@@ -143,20 +144,17 @@ typedef struct Thread {
 #endif
 
 #define printErr(msg, dsc)                      \
-    fprintf(                                    \
-        stderr,                                 \
+    fprintf(stderr,                             \
         "%s ERROR: %s%s: %s%s%s\n\n",           \
         COLOR_ERROR,                            \
         COLOR_DEFAULT, msg,                     \
         COLOR_INPUT, dsc,                       \
-        COLOR_DEFAULT                           \
-    )                                           \
+        COLOR_DEFAULT)
 
 #ifndef NDEBUG
-#define dprintf(fmt, ...)                                                     \
-    fprintf(                                                                  \
-        stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, __VA_ARGS__ \
-    )
+#define dprintf(fmt, ...)                                               \
+    fprintf(stderr, "%s:%d:%s(): "                                      \
+        fmt, __FILE__, __LINE__, __func__, __VA_ARGS__ \)
 #else
 #define dprintf(...) (void)0
 #endif

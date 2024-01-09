@@ -131,12 +131,13 @@ static inline void GlobalArenaPrintUsage(void) {
     Arena *a = globalArena;
     size_t mem = a->size, usage = a->pos;
 
-    while ((a = a->next)) mem += a->size, usage += a->pos;
+    while ((a = a->next)) {
+        mem += a->size;
+        usage += a->pos;
+    }
 
-    printf(
-        " total arena memory used: %zu%% of %.2fKB\n\n",
-        100 * usage / mem, mem / 1024.0F
-    );
+    printf(" total arena memory used: %zu%% of %.2fKB\n\n",
+        100 * usage / mem, mem / 1024.0F);
 #endif
 }
 
@@ -172,11 +173,10 @@ static inline void __attribute__((unused)) ArenaFlush(Arena *arena) {
 static inline char *ArenaSprintf(Arena *arena, const char *format, ...) {
     va_list args;
     va_start(args, format);
-
     size_t bytes = vsnprintf(NULL, 0 , format, args) + 1;
     char *s = ArenaPush(arena, bytes * sizeof(char));
-
     va_end(args);
+
     va_start(args, format);
     vsprintf(s, format, args);
     va_end(args);

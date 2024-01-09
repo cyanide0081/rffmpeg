@@ -48,8 +48,7 @@
 
 #define printWinErrMsg(preamble, err) {                             \
     wchar_t *errMsgW = NULL;                                        \
-    int sizeW = FormatMessageW(                                     \
-        FORMAT_MESSAGE_ALLOCATE_BUFFER |                            \
+    int sizeW = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |     \
         FORMAT_MESSAGE_FROM_SYSTEM |                                \
         FORMAT_MESSAGE_IGNORE_INSERTS,                              \
         NULL,                                                       \
@@ -57,14 +56,12 @@
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),                  \
         (LPWSTR)&errMsgW,                                           \
         0,                                                          \
-        NULL                                                        \
-    );                                                              \
+        NULL);                                                      \
                                                                     \
     int size = UTF16toUTF8(errMsgW, (int)sizeW, NULL, 0);           \
     char *errMsg = GlobalArenaPush(size * sizeof(char));            \
     UTF16toUTF8(errMsgW, sizeW, errMsg, size);                      \
     trimSpaces(errMsg);                                             \
-                                                                    \
     printErr(preamble, errMsg);                                     \
     LocalFree(errMsgW);                                             \
 } (void)0
@@ -73,10 +70,11 @@
 extern inline void formatPathToWIN32(const char *src, wchar_t *dst) {
     char prefixedDir[PATH_BUF];
 
-    if (!strstr(src, "\\\\?\\"))
+    if (!strstr(src, "\\\\?\\")) {
         sprintf_s(prefixedDir, sizeof(prefixedDir), "\\\\?\\%s", src);
-    else
+    } else {
         strncpy(prefixedDir, src, sizeof(prefixedDir));
+    }
 
     for (size_t i = 0; prefixedDir[i]; i++) {
         if (prefixedDir[i] == '/')
@@ -93,9 +91,9 @@ extern inline void formatPathToWIN32(const char *src, wchar_t *dst) {
 /* Implementation of clock_gettime for win32 */
 static int clock_gettime(int clockId, struct timespec *spec) {
     (void)clockId;
+
     int64_t winTime;
     GetSystemTimeAsFileTime((FILETIME*)&winTime);
-
     winTime -= 116444736000000000i64;            // (1/jan/1601) to (1/jan/1970)
     spec->tv_sec  = winTime / 10000000i64;       // seconds
     spec->tv_nsec = winTime % 10000000i64 * 100; // nano-seconds
@@ -111,8 +109,9 @@ static int mkdir_WIN(const char *dir, int mode) {
     WIN32_FIND_DATAW fileData;
     formatPathToWIN32(dir, dirW);
 
-    if (FindFirstFileW(dirW, &fileData) != INVALID_HANDLE_VALUE)
+    if (FindFirstFileW(dirW, &fileData) != INVALID_HANDLE_VALUE) {
         return EXIT_SUCCESS; // Dir already exists
+    }
 
     if (!CreateDirectoryW(dirW, NULL)) {
         return EXIT_FAILURE;
@@ -133,8 +132,7 @@ static int remove_WIN(const char *dir) {
     wchar_t dirW[PATH_BUF];
     formatPathToWIN32(dir, dirW);
 
-    if (!DeleteFileW(dirW))
-        return GetLastError();
+    if (!DeleteFileW(dirW)) return GetLastError();
 
     return EXIT_SUCCESS;
 }
@@ -142,8 +140,9 @@ static int remove_WIN(const char *dir) {
 static int restoreConsoleMode(DWORD originalConsoleMode) {
     HANDLE handleToStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    if (SetConsoleMode(handleToStdOut, originalConsoleMode == false))
+    if (SetConsoleMode(handleToStdOut, originalConsoleMode == false)) {
         return GetLastError();
+    }
 
     return EXIT_SUCCESS;
 }
@@ -152,14 +151,16 @@ static int enableVirtualTerminalProcessing(PDWORD originalConsoleMode) {
     HANDLE handleToStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD consoleMode = 0;
 
-    if (GetConsoleMode(handleToStdOut, &consoleMode) == false)
+    if (GetConsoleMode(handleToStdOut, &consoleMode) == false) {
         return GetLastError();
+    }
 
     *originalConsoleMode = consoleMode;
     consoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 
-    if (SetConsoleMode(handleToStdOut, consoleMode) == false)
+    if (SetConsoleMode(handleToStdOut, consoleMode) == false) {
         return GetLastError();
+    }
 
     return EXIT_SUCCESS;
 }

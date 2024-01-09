@@ -7,9 +7,8 @@ extern Arena *globalArena;
 
 #define COMP_TOKEN_DELIM ":"
 
-#define prompt(str) printf(                                             \
-        "%s > %s%s:%s ", COLOR_ACCENT, COLOR_DEFAULT, str, COLOR_INPUT  \
-    );                                                                  \
+#define prompt(str) printf("%s > %s%s:%s ",         \
+    COLOR_ACCENT, COLOR_DEFAULT, str, COLOR_INPUT); \
 
 static char **_getTokenizedStrings(char *string, const char *delimiter);
 
@@ -135,10 +134,8 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
             char *delimPoint = strstr(args[i], COMP_TOKEN_DELIM);
 
             if (!delimPoint || !*(++delimPoint)) {
-                printErr(
-                    "missing number of threads after flag",
-                    "(USAGE: -nt:[THREADS])"
-                );
+                printErr("missing number of threads after flag",
+                    "(USAGE: -nt:[THREADS])");
                 exit(EXIT_FAILURE);
             }
 
@@ -156,15 +153,13 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
             size_t maxThreads = (2 * getNumberOfOnlineThreads());
 
             if (parsedArgs->numberOfThreads > maxThreads) {
-                fprintf(
-                    stderr,
+                fprintf(stderr,
                     " %sERROR: %sabove-limit custom thread number: "
                     "%s%zu %s(%smaximum value%s: %s%zu%s)\n\n",
                     COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
                     parsedArgs->numberOfThreads, COLOR_DEFAULT,
                     COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
-                    maxThreads, COLOR_DEFAULT
-                );
+                    maxThreads, COLOR_DEFAULT);
                 exit(EXIT_FAILURE);
             }
 
@@ -174,10 +169,8 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
 
         if (!isDirectory(args[i])) {
             printErr("invalid/incomplete option", args[i]);
-            printf(
-                " (run with %s--help%s for info)\n\n",
-                COLOR_INPUT, COLOR_DEFAULT
-            );
+            printf(" (run with %s--help%s for info)\n\n",
+                COLOR_INPUT, COLOR_DEFAULT);
 
             return PARSE_STATE_INVALID;
         }
@@ -193,11 +186,9 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
         }
 
         if (isDupPath) {
-            printf(
-                " %sWARNING: %signoring duplicate path: %s\"%s\"%s\n\n",
+            printf(" %sWARNING: %signoring duplicate path: %s\"%s\"%s\n\n",
                 COLOR_ACCENT, COLOR_DEFAULT, COLOR_INPUT,
-                absPath, COLOR_DEFAULT
-            );
+                absPath, COLOR_DEFAULT);
 
             continue;
         }
@@ -206,14 +197,17 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
     }
 
     /* handle null args here */
-    if (!parsedArgs->ffOptions)
+    if (!parsedArgs->ffOptions) {
         parsedArgs->ffOptions = GlobalArenaPushString("");
+    }
 
-    if (!*parsedArgs->inFormats)
+    if (!*parsedArgs->inFormats) {
         *parsedArgs->inFormats = GlobalArenaPushString("");
+    }
 
-    if (!parsedArgs->outPath.customPath)
+    if (!parsedArgs->outPath.customPath) {
         parsedArgs->outPath.customPath = GlobalArenaPushString("");
+    }
 
     /* Set current working directory as input path if none is provided */
     if (!parsedArgs->inPaths[0] || !*parsedArgs->inPaths[0]) {
@@ -222,18 +216,16 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
 
     if (!parsedArgs->inFormats[0] || !*parsedArgs->inFormats[0]) {
         printErr("missing input format", "(null)");
-        printf(
-            " (run with %s--help%s for info)\n\n", COLOR_INPUT, COLOR_DEFAULT
-        );
+        printf(" (run with %s--help%s for info)\n\n",
+            COLOR_INPUT, COLOR_DEFAULT);
 
         return PARSE_STATE_BAD_ARG;
     }
 
     if (!parsedArgs->outFormat || !*parsedArgs->outFormat) {
         printErr("missing output format", "(null)");
-        printf(
-            " (run with %s--help%s for info)\n\n", COLOR_INPUT, COLOR_DEFAULT
-        );
+        printf(" (run with %s--help%s for info)\n\n",
+            COLOR_INPUT, COLOR_DEFAULT);
 
         return PARSE_STATE_BAD_ARG;
     }
@@ -242,10 +234,8 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
         (parsedArgs->options & OPT_NEWFOLDER) &&
         (parsedArgs->options & OPT_NEWPATH)
     ) {
-        printErr(
-            "using multiple unique switches",
-            "('-subfolder' and '-outpath' are mutually exclusive)"
-        );
+        printErr("using multiple unique switches",
+            "('-subfolder' and '-outpath' are mutually exclusive)");
 
         return PARSE_STATE_BAD_ARG;
     }
@@ -269,11 +259,9 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
             !(parsedArgs->options & OPT_NEWFOLDER) &&
             !(parsedArgs->options & OPT_NEWPATH)
         ) {
-            printErr(
-                "can't use ffmpeg with identical input and output formats",
+            printErr("can't use ffmpeg with identical input and output formats",
                 "(use '-outpath' or '-subfolder' to save the files in a new"
-                " directory)"
-            );
+                " directory)");
 
             return PARSE_STATE_EXT_CONFLICT;
         }
@@ -285,7 +273,6 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
 static char **_getTokenizedStrings(char *string, const char *delimiter) {
     char *parserState = NULL;
     char *token = strtok_r(string, delimiter, &parserState);
-
     size_t items = LIST_BUF;
     char **list = GlobalArenaPush(items * sizeof(char*));
 
@@ -308,9 +295,7 @@ static char **_getTokenizedStrings(char *string, const char *delimiter) {
         }
 
         trimSpaces(token);
-
         (list)[i] = GlobalArenaPushString(token);
-
         token = strtok_r(NULL, delimiter, &parserState);
     }
 

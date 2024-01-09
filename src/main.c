@@ -32,8 +32,7 @@ int main(int argc, char *argv[]) {
     UINT originalCP       = GetConsoleCP();
     UINT originalOutputCP = GetConsoleOutputCP();
 
-    if (
-        !IsValidCodePage(CP_UTF8) ||
+    if (!IsValidCodePage(CP_UTF8) ||
         !SetConsoleCP(CP_UTF8) ||
         !SetConsoleOutputCP(CP_UTF8)
     ) {
@@ -49,7 +48,6 @@ int main(int argc, char *argv[]) {
     if (inputMode == CONSOLE) {
         int size = strlen(CONSOLE_WINDOW_TITLE) + 1;
         wchar_t *windowTitle = ArenaPush(globalArena, size * sizeof(wchar_t));
-
         UTF8toUTF16(CONSOLE_WINDOW_TITLE, -1, windowTitle, size);
         GetConsoleTitleW(originalConsoleWindowTitle, FILE_BUF);
         SetConsoleTitleW(windowTitle);
@@ -62,7 +60,6 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < argcW; i++) {
         int size = UTF16toUTF8(argvW[i], -1, NULL, 0);
         argv[i] = GlobalArenaPush(size * sizeof(char));
-
         UTF16toUTF8(argvW[i], -1, argv[i], size);
     }
 
@@ -70,9 +67,7 @@ int main(int argc, char *argv[]) {
 #endif /* _WIN32 */
 
     printf("%s%s%s\n\n", COLOR_ACCENT, VERSION_DESC, COLOR_DEFAULT);
-
     Arguments *parsedArgs = ArgumentsAlloc();
-
     int exitCode = EXIT_SUCCESS;
     int state = PARSE_STATE_OK;
 
@@ -83,7 +78,8 @@ int main(int argc, char *argv[]) {
             printf(HELP_PAGE);
             goto exit;
         } else if (parsedArgs->options & OPT_DISPLAYVERSION) {
-            printVersionPage(argv[0]);
+            const char *path = argv[0];
+            printVersionPage(path);
             goto exit;
         }
     } else {
@@ -100,11 +96,9 @@ int main(int argc, char *argv[]) {
 
             while (*(fileList + fileCount)) fileCount++;
 
-            printf(
-                "%s > %sAbout to convert %s%zu%s files. Continue? (Y/n):%s ",
+            printf("%s > %sAbout to convert %s%zu%s files. Continue? (Y/n):%s ",
                 COLOR_ACCENT, COLOR_DEFAULT, COLOR_ACCENT, fileCount,
-                COLOR_DEFAULT, COLOR_INPUT
-            );
+                COLOR_DEFAULT, COLOR_INPUT);
 
             int input = tolower(getchar());
             waitForNewLine();
@@ -115,10 +109,8 @@ int main(int argc, char *argv[]) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &startTime);
 
             if (input == 'y') {
-                exitCode = convertFiles(
-                    (const char **)fileList,
-                    parsedArgs, &stats
-                );
+                exitCode = convertFiles((const char **)fileList,
+                    parsedArgs, &stats);
             } else {
                 exitCode = EXIT_FAILURE;
             }
@@ -130,20 +122,16 @@ int main(int argc, char *argv[]) {
                 (double)(endTime.tv_sec - startTime.tv_sec) +
                 (endTime.tv_nsec - startTime.tv_nsec) / 1e9F;
 
-            if (exitCode != EXIT_FAILURE)
-                _displayEndDialog(&stats);
+            if (exitCode != EXIT_FAILURE) _displayEndDialog(&stats);
         } else {
-            printf(
-                " found no matching files (%saborting%s)\n\n",
-                COLOR_ACCENT, COLOR_DEFAULT
-            );
+            printf(" found no matching files (%saborting%s)\n\n",
+                COLOR_ACCENT, COLOR_DEFAULT);
         }
     }
 
 exit:
     if (inputMode == CONSOLE) {
         printf(" (Press %sENTER%s to exit) ", COLOR_INPUT, COLOR_DEFAULT);
-
         waitForNewLine();
         putchar('\n');
 
@@ -170,10 +158,9 @@ static void _createTestProcess(void) {
     wchar_t ffmpegProcessCall[] = L"ffmpeg -loglevel quiet";
 
     if (
-        CreateProcessW(
-            NULL, ffmpegProcessCall, NULL, NULL, FALSE, 0, NULL, NULL,
-            &ffmpegStartupInfo, &ffmpegProcessInfo
-        )
+        CreateProcessW(NULL, ffmpegProcessCall,
+            NULL, NULL, FALSE, 0, NULL, NULL,
+            &ffmpegStartupInfo, &ffmpegProcessInfo)
     ) {
         WaitForSingleObject(ffmpegProcessInfo.hProcess, INFINITE);
         CloseHandle(ffmpegProcessInfo.hProcess);
@@ -212,9 +199,8 @@ static void _createTestProcess(void) {
             }
             default: {
                 char statusMsg[FMT_BUF];
-                snprintf(
-                    statusMsg, sizeof(statusMsg), "exit status: %d", statusCode
-                );
+                snprintf(statusMsg, sizeof(statusMsg),
+                    "exit status: %d", statusCode);
                 printErr("unable to call ffmpeg", statusMsg);
                 exit(statusCode);
             }
@@ -228,22 +214,14 @@ static inline void _displayEndDialog(ProcessInfo *procInfo) {
         printErr("unable to convert files", "check your ffmpeg parameters");
     } else {
         FmtTime execTime = formatTime(procInfo->executionTime);
-
         printf(" %sDONE! (完毕)%s\n\n", COLOR_ACCENT, COLOR_DEFAULT);
-        printf(
-            " %sConverted files  :  %s%zu%s\n", COLOR_DEFAULT,
-            COLOR_ACCENT, procInfo->convertedFiles, COLOR_DEFAULT
-        );
-        printf(
-            " %sDeleted files    :  %s%zu%s\n", COLOR_DEFAULT,
-            COLOR_ACCENT, procInfo->deletedFiles, COLOR_DEFAULT
-        );
-        printf(
-            " %sElapsed time     :  %s%02zu:%02zu:%05.2lf%s\n\n",
-            COLOR_DEFAULT, COLOR_ACCENT,
-            execTime.hours, execTime.minutes, execTime.seconds,
-            COLOR_DEFAULT
-        );
+        printf(" %sConverted files  :  %s%zu%s\n", COLOR_DEFAULT,
+            COLOR_ACCENT, procInfo->convertedFiles, COLOR_DEFAULT);
+        printf(" %sDeleted files    :  %s%zu%s\n", COLOR_DEFAULT,
+            COLOR_ACCENT, procInfo->deletedFiles, COLOR_DEFAULT);
+        printf(" %sElapsed time     :  %s%02zu:%02zu:%05.2lf%s\n\n",
+            COLOR_DEFAULT, COLOR_ACCENT, execTime.hours,
+            execTime.minutes, execTime.seconds, COLOR_DEFAULT);
     }
 }
 
@@ -271,7 +249,6 @@ void __attribute__((__no_instrument_function__))
 #error "unfinished windows profiling code (cba to make it work)"
     HMODULE mod = GetModuleHandleW(NULL);
     DWORD rva = (DWORD)((uintptr_t)thisFunc - (uintptr_t)mod);
-
     wchar_t func[PATH_BUF];
     GetModuleFileNameW(thisFunc, func, sizeof(func));
 
@@ -290,7 +267,6 @@ void __attribute__((__no_instrument_function__))
     (void)callSite;
 
     clock_gettime(CLOCK_MONOTONIC_RAW, &funcEndTime);
-
     double time =
         (double)(funcEndTime.tv_sec - funcStartTime.tv_sec) +
         (funcEndTime.tv_nsec - funcStartTime.tv_nsec) / 1e9F;
@@ -300,19 +276,14 @@ void __attribute__((__no_instrument_function__))
     GetModuleFileNameW(thisFunc, func, sizeof(func));
 
     if (*func)
-        printf(
-            " exiting %ls() [elapsed time: %.3lfμs]\n\n",
-            func, time * 1e6F
-        );
+        printf(" exiting %ls() [elapsed time: %.3lfμs]\n\n", func, time * 1e6F);
 #else
     Dl_info info;
     dladdr(thisFunc, &info);
 
     if (info.dli_sname)
-        printf(
-            " exiting %s() [elapsed time: %.3lfμs]\n\n",
-            info.dli_sname, time * 1e6F
-        );
+        printf(" exiting %s() [elapsed time: %.3lfμs]\n\n",
+            info.dli_sname, time * 1e6F);
 #endif
 }
 

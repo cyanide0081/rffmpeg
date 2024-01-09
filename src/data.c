@@ -24,14 +24,13 @@ void trimSpaces(char *string) {
     if (*string == '\0') return;
 
     size_t length = strlen(string);
-    char *start = string;
+    char *start = string, *end = string + length;
 
-    while (isspace(*start)) start++;
+    while (isspace(*start)) start += 1;
 
-    char *end = string + length;
-
-    if (end > start)
+    if (end > start) {
         while (isspace(*--end)) *end = '\0';
+    }
 
     if (start != string) {
         memmove(string, start, end - start + 1);
@@ -78,15 +77,13 @@ char *trimUTF8StringTo(const char *str, size_t cells) {
             bufIdx -= 1;
             continue;
         } else if (bufIdx == 0) {
-            return GlobalArenaPushString(
-                ERR_INVALID_UTF8 " (leading non-ASCII byte)"
-            );
+            return GlobalArenaPushString(ERR_INVALID_UTF8
+                " (leading non-ASCII byte)");
         }
 
         if ((buf[bufIdx] & 0xC0) != 0x80) {
-            return GlobalArenaPushString(
-                ERR_INVALID_UTF8 " (illegal continuation byte)"
-            );
+            return GlobalArenaPushString(ERR_INVALID_UTF8
+                " (illegal continuation byte)");
         }
 
         bufIdx -= 1; // we have ourselves a continuation byte :DDDDD
@@ -100,10 +97,8 @@ char *trimUTF8StringTo(const char *str, size_t cells) {
                 ((buf[bufIdx] & 0xF8) == 0xF0)    // 4-byte leading code unit
             ) {
                 if (buf[bufIdx] <= 0xC1 || buf[bufIdx] >= 0xF5) {
-                    return GlobalArenaPushString(
-                        ERR_INVALID_UTF8
-                        "(illegal leading byte)"
-                    );
+                    return GlobalArenaPushString(ERR_INVALID_UTF8
+                        "(illegal leading byte)");
                 }
 
                 bufIdx -= 1;
@@ -113,10 +108,8 @@ char *trimUTF8StringTo(const char *str, size_t cells) {
             } else if (((buf[bufIdx] & 0xC0) == 0x80) && (i < 2)) {
                 bufIdx -= 1;
             } else {
-                return GlobalArenaPushString(
-                    ERR_INVALID_UTF8
-                    " (continuation byte out of place)"
-                );
+                return GlobalArenaPushString(ERR_INVALID_UTF8
+                    " (continuation byte out of place)");
             }
         }
     }
@@ -129,7 +122,6 @@ char *trimUTF8StringTo(const char *str, size_t cells) {
         }
 
         size_t bytes = strlen((char*)buf + bufIdx) + 1;
-
         memmove(buf, buf + bufIdx, bytes);
         memset(buf + bytes - 1, 0, (bufLen + 1) - bytes);
     }
@@ -170,9 +162,8 @@ extern inline bool isDirectory(const char *dir) {
     DWORD fileAttr = GetFileAttributesW(dirW);
 
     if (fileAttr == INVALID_FILE_ATTRIBUTES) return false;
-    if (fileAttr & FILE_ATTRIBUTE_DIRECTORY) return true;
 
-    return false;
+    return fileAttr & FILE_ATTRIBUTE_DIRECTORY;
 #endif
 }
 
@@ -213,10 +204,8 @@ extern char *getAbsolutePath(const char *dir) {
 #ifdef _WIN32
     wchar_t dirW[PATH_BUF];
     UTF8toUTF16(dir, -1, dirW, PATH_BUF);
-
     wchar_t absDirW[PATH_BUF];
     GetFullPathNameW(dirW, PATH_BUF, absDirW, NULL);
-
     DWORD sz = UTF16toUTF8(absDirW, -1, NULL, 0);
     char *absDir = GlobalArenaPush(sz * sizeof(char));
     UTF16toUTF8(absDirW, -1, absDir, sz);
@@ -248,7 +237,6 @@ extern char *getCurrentWorkingDirectory(void) {
         int len = GetCurrentDirectoryW(0, NULL);
         wchar_t *currentDirW = GlobalArenaPush(len * sizeof(wchar_t));
         GetCurrentDirectoryW((DWORD)len, currentDirW);
-
         len = UTF16toUTF8(currentDirW, -1, NULL, 0);
         cwd = GlobalArenaPush(len * sizeof(char));
         UTF16toUTF8(currentDirW, -1, cwd, len);
@@ -270,7 +258,6 @@ extern char *getCurrentWorkingDirectory(void) {
 
 extern inline void printVersionPage(const char *arg) {
     printf(" executable: " VERSION_ATTRIBUTES "\n");
-
     char *installDir = getAbsolutePath(arg);
     char *end = installDir + strlen(installDir) - 1;
     while (*--end != PATH_SEP);
