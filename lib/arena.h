@@ -51,24 +51,23 @@ static inline uintptr_t alignForward(uintptr_t ptr, size_t alignment) {
 }
 
 static inline Arena *ArenaAlloc(size_t bytes) {
+    if (bytes == 0) {
+        fprintf(stderr, "FATAL: requested new arena of 0 bytes!");
+        exit(-1);
+    }
+    
 #ifdef _WIN32
     Arena *arena = VirtualAlloc(
-        NULL, sizeof(*arena), MEM_COMMIT, PAGE_READWRITE
-    );
-    arena->buf = VirtualAlloc(
-        NULL, bytes, MEM_COMMIT, PAGE_READWRITE
+        NULL, sizeof(*arena) + bytes, MEM_COMMIT, PAGE_READWRITE
     );
 #else
     Arena *arena = mmap(
-        NULL, sizeof(*arena), PROT_READ | PROT_WRITE,
-        MAP_PRIVATE | MAP_ANON, -1, 0
-    );
-    arena->buf   = mmap(
-        NULL, bytes, PROT_READ | PROT_WRITE,
+        NULL, sizeof(*arena) + bytes, PROT_READ | PROT_WRITE,
         MAP_PRIVATE | MAP_ANON, -1, 0
     );
 #endif
-
+    arena->buf = (char*)(arena + sizeof(*arena)); 
+    
     if (!arena || !arena->buf) {
         fprintf(stderr, "FATAL: unable to allocate %zuB\n", bytes);
         exit(errno);
@@ -88,10 +87,10 @@ static inline void *ArenaPush(Arena *arena, size_t bytes) {
 
     if (arena->pos + bytes > arena->size) {
         /* need more memory! (make growable arena linked list) */
-        if (bytes > arena->size) {
+        if (bytes > arena->size * ARENA_GROWTH_FACTOR) {
             fprintf(
-                stderr, " FATAL: requested block is too big for one arena! "
-                "(Bl: %zuB, Ar: %zuB)\n", bytes, arena->size
+                stderr, "FATAL: requested block won't fit in a single arena!"
+                " (Block: %zuB, Arena: %zuB)\n", bytes, arena->size
             );
             exit(-1);
         }

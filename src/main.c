@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
     int state = PARSE_STATE_OK;
 
     if (inputMode == ARGUMENTS) {
+        parsedArgs->mode = ARGUMENTS;
         state = parseArgs(argc - 1, argv + 1, parsedArgs);
 
         if (parsedArgs->options & OPT_DISPLAYHELP) {
@@ -83,6 +84,7 @@ int main(int argc, char *argv[]) {
             goto exit;
         }
     } else {
+        parsedArgs->mode = CONSOLE;
         state = parseConsoleInput(parsedArgs);
     }
 
@@ -125,7 +127,7 @@ int main(int argc, char *argv[]) {
             if (exitCode != EXIT_FAILURE) _displayEndDialog(&stats);
         } else {
             printf(" found no matching files (%saborting%s)\n\n",
-                COLOR_ACCENT, COLOR_DEFAULT);
+                COLOR_ERROR, COLOR_DEFAULT);
         }
     }
 

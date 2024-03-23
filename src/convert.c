@@ -15,8 +15,9 @@ int convertFiles(const char **files, Arguments *args, ProcessInfo *stats) {
 #endif
 
     char *outPath = NULL;
-    size_t numberOfThreads = args->numberOfThreads ?
-        args->numberOfThreads : getNumberOfOnlineThreads();
+    size_t defaultThreads = getNumberOfOnlineThreads() / 2;
+    size_t numberOfThreads = args->numberOfThreads > 0 ? 
+        args->numberOfThreads : (defaultThreads > 0 ? defaultThreads : 1);
     Thread *threads = GlobalArenaPush(numberOfThreads * sizeof(*threads));
     size_t fileIdx = 0;
 

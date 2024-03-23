@@ -34,6 +34,7 @@ typedef struct Arguments {
     char **inFormats;
     const char *outFormat;
     size_t numberOfThreads;
+    InputMode mode;
 
     union OutPath {
         char *customFolder;
@@ -41,7 +42,6 @@ typedef struct Arguments {
     } outPath;
 
     uint16_t options; // fields for the optional arguments
-
 } Arguments;
 
 typedef struct Thread {
@@ -145,7 +145,7 @@ typedef struct Thread {
 
 #define printErr(msg, dsc)                      \
     fprintf(stderr,                             \
-        "%s ERROR: %s%s: %s%s%s\n\n",           \
+        "%s ERROR: %s%s: %s'%s'%s\n\n",           \
         COLOR_ERROR,                            \
         COLOR_DEFAULT, msg,                     \
         COLOR_INPUT, dsc,                       \

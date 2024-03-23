@@ -167,6 +167,8 @@ int parseArgs(const int listSize, char *args[], Arguments *parsedArgs) {
             continue;
         }
 
+        if (parsedArgs->mode != ARGUMENTS) continue;
+
         if (!isDirectory(args[i])) {
             printErr("invalid/incomplete option", args[i]);
             printf(" (run with %s--help%s for info)\n\n",
