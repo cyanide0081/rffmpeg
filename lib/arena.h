@@ -87,16 +87,16 @@ static inline void *ArenaPush(Arena *arena, size_t bytes) {
 
     if (arena->pos + bytes > arena->size) {
         /* need more memory! (make growable arena linked list) */
-        if (bytes > arena->size * ARENA_GROWTH_FACTOR) {
-            fprintf(
-                stderr, "FATAL: requested block won't fit in a single arena!"
-                " (Block: %zuB, Arena: %zuB)\n", bytes, arena->size
-            );
-            exit(-1);
-        }
-
         if (!arena->next) {
             size_t newSize = arena->size * ARENA_GROWTH_FACTOR;
+            if (bytes > newSize) {
+                fprintf(
+                    stderr,
+                    "FATAL: requested block won't fit in a single arena!"
+                    " (Block: %zuB, Arena: %zuB)\n", bytes, arena->size
+                );
+                exit(EXIT_FAILURE);
+            }
 #ifdef INSTRUMENTATION
             printf(" ALLOCATING: new arena of %zuB...\n\n", newSize);
 #endif
